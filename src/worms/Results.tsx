@@ -1,15 +1,15 @@
 export class Results {
   counts: Map<number, number>;
 
-  constructor(items?: Iterable<[number, number]>) {
-    this.counts = new Map(items);
+  constructor(items?: Iterable<readonly [number, number]>) {
+    this.counts = new Map(items as Iterable<readonly [number, number]>);
   }
 
   get(key: number): number | undefined {
     return this.counts.get(key);
   }
 
-  set(key: number, value: number): this { 
+  set(key: number, value: number): this {
     if (typeof value !== "number" || isNaN(value)) {
       throw new Error(`Cannot set value of ${value}`);
     }
@@ -33,18 +33,25 @@ export class Results {
   }
 
   get total(): number {
-    return Array.from(this.counts.values()).reduce((total, current) => total + current, 0);
+    return Array.from(this.counts.values()).reduce(
+      (total, current) => total + current,
+      0
+    );
   }
 
   toFixed(): Results {
-    return new Results(Array.from(this.entries()).map(
-      (([key, value]: [number, number]) => {
+    return new Results(
+      Array.from(this.entries()).map(([key, value]: [number, number]) => {
         if (isNaN(parseFloat(value.toFixed(6)))) {
-          throw new Error(`Value was not a number, it was a ${value?.constructor?.name || value}: ${value}`);
+          throw new Error(
+            `Value was not a number, it was a ${
+              value?.constructor?.name || value
+            }: ${value}`
+          );
         }
         return [key, parseFloat(value.toFixed(6))] as [number, number];
-      }),
-    ));
+      })
+    );
   }
 
   toMap(): Map<number, number> {

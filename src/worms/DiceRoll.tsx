@@ -1,5 +1,5 @@
 import _ from "underscore";
-import {RollResult, ValueMap} from "./RollResult";
+import { RollResult, ValueMap } from "./RollResult";
 
 export class DiceRoll {
   counts: Map<RollResult, number>;
@@ -7,17 +7,25 @@ export class DiceRoll {
   total: number;
 
   static fromDice(dice: RollResult[]): DiceRoll {
-    return new DiceRoll(Object.values(_.groupBy(dice)).map(group => [group[0], group.length]));
+    return new DiceRoll(
+      Object.values(_.groupBy(dice)).map((group) => [group[0], group.length])
+    );
   }
 
-  constructor(items?: Iterable<[RollResult, number]>) {
-    this.counts = new Map(items);
+  constructor(items?: Iterable<readonly [RollResult, number]>) {
+    this.counts = new Map(items as Iterable<readonly [RollResult, number]>);
     this.key = JSON.stringify(Array.from(this.counts.entries()).sort());
-    this.total = Array.from(this.counts.entries()).reduce((total, [roll, count]) => total + ValueMap.get(roll)! * count, 0);
+    this.total = Array.from(this.counts.entries()).reduce(
+      (total, [roll, count]) => total + ValueMap.get(roll)! * count,
+      0
+    );
   }
 
   adding(roll: RollResult, count: number): DiceRoll {
-    return new DiceRoll([...Array.from(this.counts.entries()), [roll, count] as [RollResult, number]]);
+    return new DiceRoll([
+      ...Array.from(this.counts.entries()),
+      [roll, count] as [RollResult, number],
+    ]);
   }
 
   clear(): void {
@@ -52,7 +60,7 @@ export class DiceRoll {
   entries(): Iterable<[RollResult, number]> {
     return this.counts.entries();
   }
-  
+
   get count(): number {
     return this.counts.size;
   }
