@@ -28,14 +28,6 @@ export class DiceRoll {
     ]);
   }
 
-  clear(): void {
-    throw new Error("Cannot modify a dice roll");
-  }
-
-  delete(key: RollResult): boolean {
-    throw new Error("Cannot modify a dice roll");
-  }
-
   set(key: RollResult, value: number): this {
     // Can only let the constructor modify it
     if (this.key !== undefined) {

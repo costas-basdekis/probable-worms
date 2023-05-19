@@ -1,9 +1,9 @@
-import {Evaluation} from "./Evaluation";
-import {Results} from "./Results";
-import {RollResult} from "./RollResult";
-import {RolledState} from "./RolledState";
-import {State} from "./State";
-import {StateEvaluator} from "./StateEvaluator";
+import { Evaluation } from "./Evaluation";
+import { Results } from "./Results";
+import { RollResult } from "./RollResult";
+import { RolledState } from "./RolledState";
+import { State } from "./State";
+import { StateEvaluator } from "./StateEvaluator";
 
 export class RolledStateEvaluator {
   rolledState: RolledState;
@@ -12,7 +12,7 @@ export class RolledStateEvaluator {
   evaluation: Evaluation | null = null;
 
   static fromRolledState(rolledState: RolledState): RolledStateEvaluator {
-    const {results, nextStates} = rolledState.getNextStates();
+    const { results, nextStates } = rolledState.getNextStates();
     return new RolledStateEvaluator(
       rolledState,
       nextStates.map(nextState => ({...nextState, evaluator: null})),
@@ -30,7 +30,7 @@ export class RolledStateEvaluator {
     while (this.processOne()) {
       //
     }
-    return this!;
+    return this;
   }
 
   processOne(): boolean {

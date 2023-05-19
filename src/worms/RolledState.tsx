@@ -1,8 +1,8 @@
-import {DiceRoll} from "./DiceRoll";
-import {Results} from "./Results";
-import {ResultState} from "./ResultState";
-import {RollResult} from "./RollResult";
-import {State} from "./State";
+import { DiceRoll } from "./DiceRoll";
+import { Results } from "./Results";
+import { ResultState } from "./ResultState";
+import { RollResult } from "./RollResult";
+import { State } from "./State";
 
 export class RolledState {
   state: State;
@@ -28,12 +28,16 @@ export class RolledState {
       }
       const nextState = this.state.add(roll, diceCount);
       if (nextState.remainingDiceCount) {
-        nextStates.push({state: nextState, pickedRoll: roll, pickedCount: diceCount});
+        nextStates.push({
+          state: nextState,
+          pickedRoll: roll,
+          pickedCount: diceCount,
+        });
       } else {
         results.add(nextState.total, 1 / rollCount);
       }
     }
-    return {results, nextStates};
+    return { results, nextStates };
   }
 
   pick(roll: null | RollResult): State | ResultState {

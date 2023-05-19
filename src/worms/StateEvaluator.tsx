@@ -1,7 +1,7 @@
-import {Evaluation} from "./Evaluation";
-import {RolledState} from "./RolledState";
-import {RolledStateEvaluator} from "./RolledStateEvaluator";
-import {State} from "./State";
+import { Evaluation } from "./Evaluation";
+import { RolledState } from "./RolledState";
+import { RolledStateEvaluator } from "./RolledStateEvaluator";
+import { State } from "./State";
 
 export class StateEvaluator {
   state: State;
@@ -25,7 +25,7 @@ export class StateEvaluator {
     while (this.processOne()) {
       //
     }
-    return this!;
+    return this;
   }
 
   processOne(): boolean {

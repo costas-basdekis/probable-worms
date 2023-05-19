@@ -1,5 +1,5 @@
-import {Results} from "./Results";
-import {State} from "./State";
+import { Results } from "./Results";
+import { State } from "./State";
 
 export class ResultState {
   state: State;

@@ -1,6 +1,6 @@
 import _ from "underscore";
 
-import {Results} from "./Results";
+import { Results } from "./Results";
 
 export class Evaluation {
   minimumResultOccurences: Results;

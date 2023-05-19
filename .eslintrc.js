@@ -22,5 +22,7 @@ module.exports = {
   rules: {
     "no-unused-vars": ["error", { varsIgnorePattern: "^_" }],
     "no-use-before-define": ["error", { functions: false, classes: false }],
+    "no-non-null-assertion": "off",
+    "no-inferrable-types": "off",
   },
 };

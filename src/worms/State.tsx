@@ -1,8 +1,8 @@
 import _ from "underscore";
-import {Chest} from "./Chest";
-import {DiceRoll} from "./DiceRoll";
-import {RolledState} from "./RolledState";
-import {RollResult, rollResults} from "./RollResult";
+import { Chest } from "./Chest";
+import { DiceRoll } from "./DiceRoll";
+import { RolledState } from "./RolledState";
+import { RollResult, rollResults } from "./RollResult";
 
 export class State {
   chest: Chest;
@@ -37,7 +37,7 @@ export class State {
 
     for (const diceRoll of State.iterateDiceRolls(this.remainingDiceCount)) {
       if (!diceRollInfoByKey.has(diceRoll.key)) {
-        diceRollInfoByKey.set(diceRoll.key, {diceRoll, count: 0});
+        diceRollInfoByKey.set(diceRoll.key, { diceRoll, count: 0 });
       }
       diceRollInfoByKey.get(diceRoll.key)!.count += 1;
     }
@@ -59,7 +59,7 @@ export class State {
           yield [...list, newItem];
         }
       }
-    };
+    }
     let items: Iterable<RollResult[]> = [[]];
     for (const _1 in _.range(count)) {
       items = addLayer(items, rollResults);

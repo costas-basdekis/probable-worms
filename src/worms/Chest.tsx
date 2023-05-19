@@ -1,5 +1,5 @@
-import {DiceRoll} from "./DiceRoll";
-import {RollResult, Worm} from "./RollResult";
+import { DiceRoll } from "./DiceRoll";
+import { RollResult, Worm } from "./RollResult";
 
 export class Chest {
   diceCounts: DiceRoll;
