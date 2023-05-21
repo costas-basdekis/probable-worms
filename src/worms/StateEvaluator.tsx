@@ -21,6 +21,10 @@ export class StateEvaluator {
     this.nextRolledStates = nextRolledStates;
   }
 
+  get finished(): boolean {
+    return this.evaluation !== null;
+  }
+
   processAll(): StateEvaluator {
     while (this.processOne()) {
       //
@@ -29,7 +33,18 @@ export class StateEvaluator {
   }
 
   processOne(): boolean {
-    if (this.evaluation) {
+    if (this.finished) {
+      return false;
+    }
+    if (this.nestedProcessOne()) {
+      return true;
+    }
+    this.evaluation = this.compileEvaluation();
+    return false;
+  }
+
+  nestedProcessOne(): boolean {
+    if (this.finished) {
       return false;
     }
     for (const nextRolledState of this.nextRolledStates) {
@@ -42,11 +57,26 @@ export class StateEvaluator {
       nextRolledState.evaluator.processOne();
       return true;
     }
+    return false;
+  }
+
+  compileEvaluation(): Evaluation {
+    if (this.nextRolledStates.some(({evaluator}) => !evaluator || !evaluator.evaluation)) {
+      throw new Error("Some part of the evaluation tree is not completed");
+    }
     const totalCount = this.nextRolledStates.reduce((total, current) => total + current.count, 0);
-    this.evaluation = Evaluation.combineProbabilities(
+    return Evaluation.combineProbabilities(
       this.nextRolledStates.map(
         ({evaluator, count}) => ({evaluation: evaluator!.evaluation!, ratio: count / totalCount}))
     );
-    return false;
+  }
+
+  getCompletionProgress(): number {
+    if (this.finished) {
+      return 1;
+    }
+    const completedCount = this.nextRolledStates.reduce(
+      (total, current) => total + (current.evaluator?.getCompletionProgress() ?? 0), 0);
+    return completedCount / this.nextRolledStates.length;
   }
 }

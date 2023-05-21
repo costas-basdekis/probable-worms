@@ -1,13 +1,13 @@
-import { Evaluation } from "./Evaluation";
-import { Results } from "./Results";
-import { RollResult } from "./RollResult";
-import { RolledState } from "./RolledState";
-import { State } from "./State";
-import { StateEvaluator } from "./StateEvaluator";
+import {Evaluation} from "./Evaluation";
+import {Results} from "./Results";
+import {RollResult} from "./RollResult";
+import {RolledState} from "./RolledState";
+import {State} from "./State";
+import {StateEvaluator} from "./StateEvaluator";
 
 export class RolledStateEvaluator {
   rolledState: RolledState;
-  nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, evaluator: StateEvaluator | null}[];
+  nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, ratio: number, evaluator: StateEvaluator | null}[];
   results: Results;
   evaluation: Evaluation | null = null;
 
@@ -20,10 +20,14 @@ export class RolledStateEvaluator {
     );
   }
 
-  constructor(rolledState: RolledState, nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, evaluator: StateEvaluator | null}[], results: Results) {
+  constructor(rolledState: RolledState, nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, ratio: number, evaluator: StateEvaluator | null}[], results: Results) {
     this.rolledState = rolledState;
     this.nextStates = nextStates;
     this.results = results;
+  }
+
+  get finished(): boolean {
+    return this.evaluation !== null;
   }
 
   processAll(): RolledStateEvaluator {
@@ -34,7 +38,18 @@ export class RolledStateEvaluator {
   }
 
   processOne(): boolean {
-    if (this.evaluation) {
+    if (this.finished) {
+      return false;
+    }
+    if (this.nestedProcessOne()) {
+      return true;
+    }
+    this.evaluation = this.compileEvaluation();
+    return false;
+  }
+
+  nestedProcessOne(): boolean {
+    if (this.finished) {
       return false;
     }
     for (const nextState of this.nextStates) {
@@ -47,12 +62,26 @@ export class RolledStateEvaluator {
       nextState.evaluator.processOne();
       return true;
     }
-    const optionEvaluation = Evaluation.combineOptions(this.nextStates.map(({evaluator}) => evaluator!.evaluation!));
-    const totalCount = this.results.total + this.nextStates.length;
-    this.evaluation = Evaluation.combineProbabilities([
-      {evaluation: Evaluation.fromResults(this.results), ratio: this.results.total / totalCount},
-      {evaluation: optionEvaluation, ratio: this.nextStates.length / totalCount},
-    ]);
     return false;
+  }
+
+  compileEvaluation(): Evaluation {
+    if (this.nextStates.some(({evaluator}) => !evaluator || !evaluator.evaluation)) {
+      throw new Error("Some part of the evaluation tree is not completed");
+    }
+    const optionEvaluation = Evaluation.combineOptions(this.nextStates.map(({evaluator}) => evaluator!.evaluation!));
+    return Evaluation.combineProbabilities([
+      {evaluation: Evaluation.fromResults(this.results), ratio: this.results.total},
+      {evaluation: optionEvaluation, ratio: this.nextStates.reduce((total, current) => total + current.ratio, 0)},
+    ]);
+  }
+
+  getCompletionProgress(): number {
+    if (this.finished) {
+      return 1;
+    }
+    const completedCount = this.nextStates.reduce(
+      (total, current) => total + (current.evaluator?.getCompletionProgress() ?? 0), 0);
+    return completedCount / this.nextStates.length;
   }
 }

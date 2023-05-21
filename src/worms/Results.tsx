@@ -10,9 +10,6 @@ export class Results {
   }
 
   set(key: number, value: number): this {
-    if (typeof value !== "number" || isNaN(value)) {
-      throw new Error(`Cannot set value of ${value}`);
-    }
     this.counts.set(key, value);
     return this;
   }
@@ -52,9 +49,5 @@ export class Results {
         return [key, parseFloat(value.toFixed(6))] as [number, number];
       })
     );
-  }
-
-  toMap(): Map<number, number> {
-    return new Map(this.entries());
   }
 }

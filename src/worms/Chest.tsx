@@ -9,6 +9,14 @@ export class Chest {
     return new Chest(new DiceRoll(), false);
   }
 
+  static fromDiceRoll(diceRoll: DiceRoll): Chest {
+    return new Chest(new DiceRoll(diceRoll.entries()), diceRoll.has(Worm));
+  }
+
+  static fromDice(dice: RollResult[]): Chest {
+    return this.fromDiceRoll(DiceRoll.fromDice(dice));
+  }
+
   constructor(diceCounts: DiceRoll, hasWorms: boolean) {
     this.diceCounts = diceCounts;
     this.hasWorms = hasWorms;

@@ -1,6 +1,6 @@
 {
   "include": ["./src/**/*"],
-  "exclude": ["src/**/*.test.ts"],
+  "exclude": ["src/**/*.test.tsx"],
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,

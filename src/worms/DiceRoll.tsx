@@ -1,5 +1,5 @@
 import _ from "underscore";
-import { RollResult, ValueMap } from "./RollResult";
+import {RollResult, rollResults, ValueMap} from "./RollResult";
 
 export class DiceRoll {
   counts: Map<RollResult, number>;
@@ -28,15 +28,6 @@ export class DiceRoll {
     ]);
   }
 
-  set(key: RollResult, value: number): this {
-    // Can only let the constructor modify it
-    if (this.key !== undefined) {
-      throw new Error("Cannot modify a dice roll");
-    }
-    this.counts.set(key, value);
-    return this;
-  }
-
   get(key: RollResult): number | undefined {
     return this.counts.get(key);
   }
@@ -55,5 +46,38 @@ export class DiceRoll {
 
   get count(): number {
     return this.counts.size;
+  }
+
+  static getNextRolls(diceCount: number): {diceRoll: DiceRoll, count: number}[] {
+    const diceRollInfoByKey: Map<string, {diceRoll: DiceRoll, count: number}> = new Map();
+
+    for (const diceRoll of DiceRoll.iterateDiceRolls(diceCount)) {
+      if (!diceRollInfoByKey.has(diceRoll.key)) {
+        diceRollInfoByKey.set(diceRoll.key, { diceRoll, count: 0 });
+      }
+      diceRollInfoByKey.get(diceRoll.key)!.count += 1;
+    }
+
+    return Array.from(diceRollInfoByKey.values());
+  }
+
+  static *iterateDiceRolls(count: number): Iterable<DiceRoll> {
+    if (!count) {
+      return;
+    }
+    function *addLayer<T>(lists: Iterable<T[]>, layer: T[]): Iterable<T[]> {
+      for (const list of lists) {
+        for (const newItem of layer) {
+          yield [...list, newItem];
+        }
+      }
+    }
+    let items: Iterable<RollResult[]> = [[]];
+    for (const _1 in _.range(count)) {
+      items = addLayer(items, rollResults);
+    }
+    for (const item of items) {
+      yield DiceRoll.fromDice(item);
+    }
   }
 }

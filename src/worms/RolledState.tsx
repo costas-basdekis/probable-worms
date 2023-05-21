@@ -17,9 +17,9 @@ export class RolledState {
     return this.state.total;
   }
 
-  getNextStates(): {results: ResultState, nextStates: {state: State, pickedRoll: RollResult, pickedCount: number}[]} {
+  getNextStates(): {results: ResultState, nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, ratio: number}[]} {
     const results = ResultState.empty(this.state);
-    const nextStates: {state: State, pickedRoll: RollResult, pickedCount: number}[] = [];
+    const nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, ratio: number}[] = [];
     const rollCount = this.diceRoll.count;
     for (const [roll, diceCount] of this.diceRoll.entries()) {
       if (!this.state.canAdd(roll)) {
@@ -32,12 +32,13 @@ export class RolledState {
           state: nextState,
           pickedRoll: roll,
           pickedCount: diceCount,
+          ratio: 1 / rollCount,
         });
       } else {
         results.add(nextState.total, 1 / rollCount);
       }
     }
-    return { results, nextStates };
+    return {results, nextStates};
   }
 
   pick(roll: null | RollResult): State | ResultState {
