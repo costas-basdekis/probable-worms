@@ -64,11 +64,7 @@ export class StateEvaluator {
     if (this.nextRolledStates.some(({evaluator}) => !evaluator || !evaluator.evaluation)) {
       throw new Error("Some part of the evaluation tree is not completed");
     }
-    const totalCount = this.nextRolledStates.reduce((total, current) => total + current.count, 0);
-    return Evaluation.combineProbabilities(
-      this.nextRolledStates.map(
-        ({evaluator, count}) => ({evaluation: evaluator!.evaluation!, ratio: count / totalCount}))
-    );
+    return this.compilePartialEvaluation({useCached: false});
   }
 
   getCompletionProgress(): number {
@@ -78,5 +74,20 @@ export class StateEvaluator {
     const completedCount = this.nextRolledStates.reduce(
       (total, current) => total + (current.evaluator?.getCompletionProgress() ?? 0), 0);
     return completedCount / this.nextRolledStates.length;
+  }
+
+  compilePartialEvaluation({useCached = true}: {useCached?: boolean} = {}): Evaluation {
+    if (this.evaluation && useCached) {
+      return this.evaluation;
+    }
+    const totalCount = this.nextRolledStates.reduce((total, current) => total + current.count, 0);
+    return Evaluation.combineProbabilities(
+      this.nextRolledStates
+      .filter(({evaluator}) => evaluator)
+      .map(({evaluator, count}) => ({
+        evaluation: evaluator!.compilePartialEvaluation(),
+        ratio: count / totalCount,
+      }))
+    );
   }
 }
