@@ -14,6 +14,10 @@ export class Results {
     return this;
   }
 
+  keys(): Iterable<number> {
+    return this.counts.keys();
+  }
+
   entries(): Iterable<[number, number]> {
     return this.counts.entries();
   }

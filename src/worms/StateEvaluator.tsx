@@ -71,6 +71,9 @@ export class StateEvaluator {
     if (this.finished) {
       return 1;
     }
+    if (!this.nextRolledStates.length) {
+      return 1;
+    }
     const completedCount = this.nextRolledStates.reduce(
       (total, current) => total + (current.evaluator?.getCompletionProgress() ?? 0), 0);
     return completedCount / this.nextRolledStates.length;

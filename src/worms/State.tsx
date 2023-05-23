@@ -11,6 +11,10 @@ export class State {
     return new State(Chest.initial(), 8);
   }
 
+  static empty(): State {
+    return new State(Chest.initial(), 0);
+  }
+
   constructor(chest: Chest, remainingDiceCount: number) {
     this.chest = chest;
     this.remainingDiceCount = remainingDiceCount;

@@ -1,0 +1,123 @@
+.App {
+  font-family: sans-serif;
+  //text-align: center;
+}
+
+.dice {
+  display: flex;
+  flex-direction: row;
+}
+
+.die {
+  background-color: lightgrey;
+  border-radius: 10%;
+}
+
+.face {
+  padding: 4px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  color: royalblue;
+  border-radius: 50%;
+  background-color: white;
+
+  &.special {
+    color: crimson;
+  }
+
+  &.letter-face {
+    justify-content: space-around;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    &.start {
+      align-self: start;
+    }
+
+    &.middle {
+      align-self: center;
+    }
+
+    &.end {
+      align-self: end;
+    }
+  }
+
+  .dot {
+    display: block;
+    border-radius: 50%;
+    background-color: royalblue;
+  }
+
+  .letter {
+    align-self: center;
+  }
+}
+
+.die {
+  .face {
+    width: 104px;
+    height: 104px;
+
+    .dot {
+      width: 24px;
+      height: 24px;
+    }
+
+    .letter {
+      font-size: 100px;
+    }
+  }
+
+  &.medium {
+    .face {
+      width: 72px;
+      height: 72px;
+
+      .dot {
+        width: 12px;
+        height: 12px;
+      }
+
+      .letter {
+        font-size: 50px;
+      }
+    }
+  }
+  &.small {
+    .face {
+      width: 36px;
+      height: 36px;
+
+      .dot {
+        width: 6px;
+        height: 6px;
+      }
+
+      .letter {
+        font-size: 25px;
+      }
+    }
+  }
+
+  &.tiny {
+    .face {
+      width: 18px;
+      height: 18px;
+
+      .dot {
+        width: 3px;
+        height: 3px;
+      }
+
+      .letter {
+        font-size: 12px;
+      }
+    }
+  }
+}

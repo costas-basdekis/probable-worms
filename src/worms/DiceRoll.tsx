@@ -48,6 +48,26 @@ export class DiceRoll {
     return this.counts.size;
   }
 
+  get diceCount(): number {
+    return Array.from(this.counts.values()).reduce((total, current) => total + current, 0);
+  }
+
+  get dice(): RollResult[] {
+    return Array.from(this.counts.entries()).map(([roll, count]) => _.range(count).map(() => roll)).flat().sort((lhs, rhs) => {
+      return ValueMap.get(lhs)! - ValueMap.get(rhs)!;
+    });
+  }
+
+  replacing(roll: RollResult, count: number): DiceRoll {
+    const counts = new Map(this.counts.entries());
+    if (count) {
+      counts.set(roll, count);
+    } else if (counts.has(roll)) {
+      counts.delete(roll);
+    }
+    return new DiceRoll(counts.entries());
+  }
+
   static getNextRolls(diceCount: number): {diceRoll: DiceRoll, count: number}[] {
     const diceRollInfoByKey: Map<string, {diceRoll: DiceRoll, count: number}> = new Map();
 

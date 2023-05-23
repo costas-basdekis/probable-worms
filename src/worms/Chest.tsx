@@ -1,5 +1,6 @@
 import { DiceRoll } from "./DiceRoll";
 import { RollResult, Worm } from "./RollResult";
+import _ from "underscore";
 
 export class Chest {
   diceCounts: DiceRoll;
@@ -26,6 +27,14 @@ export class Chest {
     return this.diceCounts.total;
   }
 
+  get diceCount(): number {
+    return this.diceCounts.diceCount;
+  }
+
+  get dice(): RollResult[] {
+    return this.diceCounts.dice;
+  }
+
   canAdd(roll: RollResult): boolean {
     return !this.diceCounts.has(roll);
   }
@@ -38,5 +47,13 @@ export class Chest {
       this.diceCounts.adding(roll, diceCount), 
       this.hasWorms || roll === Worm,
     );
+  }
+
+  get(roll: RollResult): number {
+    return this.diceCounts.get(roll) || 0;
+  }
+
+  replacing(roll: RollResult, count: number): Chest {
+    return Chest.fromDiceRoll(this.diceCounts.replacing(roll, count));
   }
 }

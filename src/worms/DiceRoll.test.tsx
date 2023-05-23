@@ -39,4 +39,19 @@ describe("DiceRoll", () => {
       );
     });
   });
+
+  describe("dice", () => {
+    it("returns no dice for empty roll", () => {
+      expect(DiceRoll.fromDice([]).dice).toEqual([]);
+    });
+    it("returns 1 die for 1 die", () => {
+      expect(DiceRoll.fromDice([1]).dice).toEqual([1]);
+    });
+    it("returns as many dice of one face", () => {
+      expect(DiceRoll.fromDice([1, 1, 1]).dice).toEqual([1, 1, 1]);
+    });
+    it("returns as many dice of many faces", () => {
+      expect(DiceRoll.fromDice([1, 1, 1, 2, 2, 3, Worm, Worm]).dice).toEqual([1, 1, 1, 2, 2, 3, Worm, Worm]);
+    });
+  });
 });
