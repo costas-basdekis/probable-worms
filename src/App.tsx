@@ -146,6 +146,7 @@ interface AppState {
   evaluation: worms.Evaluation,
   searching: boolean,
   searchFinished: boolean,
+  cacheStats: worms.EvaluationCacheStats,
 }
 
 export default class App extends Component<AppProps, AppState> {
@@ -157,14 +158,19 @@ export default class App extends Component<AppProps, AppState> {
     evaluation: worms.Evaluation.empty(),
     searching: false,
     searchFinished: true,
+    cacheStats: {hitCount: 0, missCount: 0, entryCount: 0},
   };
 
-  onSearchResult = (searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation) => {
+  onSearchResult = (
+    searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
+    cacheStats: worms.EvaluationCacheStats,
+  ) => {
     this.setState({
       progress,
       evaluation,
       searchFinished,
       searching,
+      cacheStats,
     });
   };
 
@@ -175,7 +181,9 @@ export default class App extends Component<AppProps, AppState> {
   }
 
   render() {
-    const {initialChest, remainingDice, initialState, progress, evaluation, searching, searchFinished} = this.state;
+    const {
+      initialChest, remainingDice, initialState, progress, evaluation, searching, searchFinished, cacheStats,
+    } = this.state;
     return (
       <div className="App">
         <label>Initial Chest</label>
@@ -201,7 +209,12 @@ export default class App extends Component<AppProps, AppState> {
           Initial state:
           <RChest chest={initialState.chest} remainingDice={initialState.remainingDiceCount} />
         </label>
-        <label>Progress: {Math.floor(progress * 100)}%</label>
+        <label>
+          Progress: {Math.floor(progress * 100)}%
+          ({Math.floor(cacheStats.hitCount / ((cacheStats.hitCount + cacheStats.missCount) || 1) * 100)}%
+          cache hit rate{" - "}
+          {cacheStats.hitCount}/{(cacheStats.hitCount + cacheStats.missCount)} with {cacheStats.entryCount} entries)
+        </label>
         {searching ? (
           <button onClick={this.onSearchToggle}>Pause search</button>
         ) : (

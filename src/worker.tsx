@@ -30,7 +30,7 @@ class SearchWorker {
     if (!this.instancesById.has(instanceId)) {
       return;
     }
-    const {stateEvaluator, searching} = this.instancesById.get(instanceId)!;
+    const {stateEvaluator, searching, evaluationCache} = this.instancesById.get(instanceId)!;
     const progress = stateEvaluator.getCompletionProgress();
     this.postMessage({
       type: "result",
@@ -39,6 +39,7 @@ class SearchWorker {
       searching,
       searchFinished: progress === 1,
       evaluation: stateEvaluator.compilePartialEvaluation().serialise(),
+      cacheStats: evaluationCache.getStats(),
     });
   }
 

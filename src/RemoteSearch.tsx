@@ -36,6 +36,7 @@ export interface ResultSearchResponseMessage {
   searchFinished: boolean,
   progress: number,
   evaluation: worms.SerialisedEvaluation,
+  cacheStats: worms.EvaluationCacheStats,
 }
 export type SearchResponseMessage = ResultSearchResponseMessage;
 
@@ -72,6 +73,7 @@ export class RemoteSearch {
       resultResponse.searchFinished,
       resultResponse.progress,
       worms.Evaluation.deserialise(resultResponse.evaluation),
+      resultResponse.cacheStats,
     );
   }
 
@@ -125,7 +127,10 @@ export class RemoteSearch {
   }
 }
 
-export type OnSearchResult = (searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation) => void;
+export type OnSearchResult = (
+  searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
+  cacheStats: worms.EvaluationCacheStats,
+) => void;
 
 export class SearchInstance {
   id: number;
