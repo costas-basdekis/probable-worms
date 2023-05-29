@@ -126,7 +126,7 @@ class REvaluation extends Component<REvaluationProps> {
         <tr>
           <th>At least</th>
           {totals.map(total => (
-            <td key={total}>{Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100)}%</td>
+            <td key={total}>{total === 0 ? 100 : Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100)}%</td>
           ))}
         </tr>
         </tbody>
