@@ -3,7 +3,7 @@ import classnames from "classnames";
 import _ from "underscore";
 import "./styles.scss";
 import * as worms from "./worms";
-
+import {RemoteSearch, SearchInstance} from "./RemoteSearch";
 
 type PipColumnType = "start" | "middle" | "end" | null;
 interface PipsConfiguration {
@@ -11,6 +11,7 @@ interface PipsConfiguration {
   columns?: [PipColumnType, PipColumnType, PipColumnType],
 }
 
+const remoteSearch = RemoteSearch.default();
 
 class DiePips extends Component<{face: number}> {
   static pipsConfigurations: {[key: number]: PipsConfiguration} = {
@@ -140,9 +141,10 @@ interface AppProps {
 interface AppState {
   initialChest: worms.Chest,
   remainingDice: number,
-  evaluator: worms.StateEvaluator,
+  initialState: worms.State,
   progress: number,
   evaluation: worms.Evaluation,
+  searching: boolean,
   searchFinished: boolean,
 }
 
@@ -150,14 +152,30 @@ export default class App extends Component<AppProps, AppState> {
   state = {
     initialChest: worms.Chest.initial(),
     remainingDice: 8,
-    evaluator: worms.StateEvaluator.fromState(worms.State.empty()),
+    initialState: worms.State.empty(),
     progress: 1,
     evaluation: worms.Evaluation.empty(),
+    searching: false,
     searchFinished: true,
   };
 
+  onSearchResult = (searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation) => {
+    this.setState({
+      progress,
+      evaluation,
+      searchFinished,
+      searching,
+    });
+  };
+
+  searchInstance: SearchInstance = remoteSearch.newInstance(this.onSearchResult);
+
+  componentWillUnmount() {
+    this.searchInstance.removeSearch();
+  }
+
   render() {
-    const {initialChest, remainingDice, evaluator, progress, evaluation, searchFinished} = this.state;
+    const {initialChest, remainingDice, initialState, progress, evaluation, searching, searchFinished} = this.state;
     return (
       <div className="App">
         <label>Initial Chest</label>
@@ -181,10 +199,17 @@ export default class App extends Component<AppProps, AppState> {
         <h2>Search</h2>
         <label>
           Initial state:
-          <RChest chest={evaluator.state.chest} remainingDice={evaluator.state.remainingDiceCount} />
+          <RChest chest={initialState.chest} remainingDice={initialState.remainingDiceCount} />
         </label>
         <label>Progress: {Math.floor(progress * 100)}%</label>
-        <button onClick={this.onSearchStep} disabled={searchFinished}>Search step</button>
+        {searching ? (
+          <button onClick={this.onSearchToggle}>Pause search</button>
+        ) : (
+          <>
+            <button onClick={this.onSearchStep} disabled={searchFinished}>Search step</button>
+            <button onClick={this.onSearchToggle}>Start search</button>
+          </>
+        )}
         <label>Evaluation:</label>
         <br/>
         <REvaluation evaluation={evaluation} />
@@ -224,11 +249,12 @@ export default class App extends Component<AppProps, AppState> {
 
   onReset = () => {
     this.setState(({initialChest, remainingDice}) => {
-      const state = new worms.State(initialChest, remainingDice);
-      const evaluator = worms.StateEvaluator.fromState(state);
+      const initialState = new worms.State(initialChest, remainingDice);
+      const evaluator = worms.StateEvaluator.fromState(initialState);
       const progress = evaluator.getCompletionProgress();
+      this.searchInstance.setSearchState(initialState);
       return {
-        evaluator: evaluator,
+        initialState,
         progress,
         evaluation: evaluator.compilePartialEvaluation(),
         searchFinished: evaluator.finished,
@@ -237,16 +263,22 @@ export default class App extends Component<AppProps, AppState> {
   };
 
   onSearchStep = () => {
-    this.setState(({evaluator}) => {
-      if (evaluator.finished) {
-        return null;
-      }
-      evaluator.processOne();
-      this.setState({
-        progress: evaluator.getCompletionProgress(),
-        evaluation: evaluator.compilePartialEvaluation(),
-        searchFinished: evaluator.finished,
-      });
-    });
+    this.searchInstance.stepSearch();
   };
+
+  onSearchToggle = () => {
+    if (this.state.searching) {
+      this.stopSearch();
+    } else if (!this.state.searchFinished) {
+      this.startSearch();
+    }
+  };
+
+  startSearch() {
+    this.searchInstance.startSearch();
+  }
+
+  stopSearch() {
+    this.searchInstance.stopSearch();
+  }
 }
