@@ -143,7 +143,7 @@ export class StateEvaluator {
       return this.evaluation;
     }
     const totalCount = this.nextRolledStates.reduce((total, current) => total + current.count, 0);
-    return Evaluation.combineProbabilities(
+    const combined = Evaluation.combineProbabilities(
       this.nextRolledStates
       .filter(({evaluator, evaluation}) => evaluator || evaluation)
       .map(({evaluator, evaluation, count}) => ({
@@ -151,5 +151,8 @@ export class StateEvaluator {
         ratio: count / totalCount,
       }))
     );
+    // Because we can choose to stop, the current total has 100% chance of happening, if it's our target
+    combined.exactResultOccurrences.set(this.state.total, 1);
+    return combined;
   }
 }
