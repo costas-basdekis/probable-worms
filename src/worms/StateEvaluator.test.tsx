@@ -9,10 +9,10 @@ import {Worm} from "./RollResult";
 describe("StateEvaluator", () => {
   describe("getCacheKey", () => {
     it("returns the cache key for an empty state with no future states", () => {
-      expect(StateEvaluator.fromState(new State(Chest.initial(), 0)).getCacheKey()).toEqual("Scr0");
+      expect(StateEvaluator.fromState(new State(Chest.initial(), 0)).getCacheKey()).toEqual("St0cr0");
     });
     it("returns the cache key for an state with future states", () => {
-      expect(StateEvaluator.fromState(new State(Chest.fromDice([1, 1, 2, 3]), 4)).getCacheKey()).toEqual("Sc1,2,3r4");
+      expect(StateEvaluator.fromState(new State(Chest.fromDice([1, 1, 2, 3]), 4)).getCacheKey()).toEqual("St7c1,2,3r4");
     });
   });
   describe("processAll", () => {

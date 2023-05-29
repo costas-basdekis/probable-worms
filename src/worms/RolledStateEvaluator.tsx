@@ -120,6 +120,7 @@ export class RolledStateEvaluator {
   getCacheKey(): string {
     return [
       "R",
+      `t${this.rolledState.state.chest.total}`,
       `c${this.rolledState.state.chest.uniqueDice().join(",")}`,
       `d${this.rolledState.diceRoll.key}`,
     ].join("").replaceAll(/[[\]]/g, "");

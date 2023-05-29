@@ -113,6 +113,7 @@ export class StateEvaluator {
   getCacheKey(): string {
     return [
       "S",
+      `t${this.state.chest.total}`,
       `c${this.state.chest.uniqueDice().join(",")}`,
       `r${this.state.remainingDiceCount}`,
     ].join("").replaceAll(/[[\]]/g, "");
