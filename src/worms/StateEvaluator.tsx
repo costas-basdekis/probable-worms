@@ -1,11 +1,24 @@
-import { Evaluation } from "./Evaluation";
-import { RolledState } from "./RolledState";
-import { RolledStateEvaluator } from "./RolledStateEvaluator";
-import { State } from "./State";
+import {Evaluation} from "./Evaluation";
+import {RolledState} from "./RolledState";
+import {RolledStateEvaluator} from "./RolledStateEvaluator";
+import {State} from "./State";
+import {EvaluationCache} from "./EvaluationCache";
+
+interface NextRolledState {
+  rolledState: RolledState;
+  count: number;
+  evaluator: RolledStateEvaluator | null;
+  evaluation: Evaluation | null;
+}
+
+interface SearchOptions {
+  removeEvaluated?: boolean,
+  evaluationCache?: EvaluationCache,
+}
 
 export class StateEvaluator {
   state: State;
-  nextRolledStates: {rolledState: RolledState, count: number, evaluator: RolledStateEvaluator | null, evaluation: Evaluation | null}[];
+  nextRolledStates: NextRolledState[];
   evaluation: Evaluation | null = null;
 
   static fromState(state: State): StateEvaluator {
@@ -16,7 +29,7 @@ export class StateEvaluator {
     );
   }
 
-  constructor(state: State, nextRolledStates: {rolledState: RolledState, count: number, evaluator: RolledStateEvaluator | null, evaluation: Evaluation | null}[]) {
+  constructor(state: State, nextRolledStates: NextRolledState[]) {
     this.state = state;
     this.nextRolledStates = nextRolledStates;
   }
@@ -32,7 +45,7 @@ export class StateEvaluator {
     return this;
   }
 
-  processOne(options?: {removeEvaluated?: boolean}): boolean {
+  processOne(options?: SearchOptions): boolean {
     if (this.finished) {
       return false;
     }
@@ -43,7 +56,8 @@ export class StateEvaluator {
     return false;
   }
 
-  nestedProcessOne({removeEvaluated = false}: {removeEvaluated?: boolean} = {}): boolean {
+  nestedProcessOne(options?: SearchOptions): boolean {
+    const {removeEvaluated = false} = options ?? {};
     if (this.finished) {
       return false;
     }
@@ -53,10 +67,14 @@ export class StateEvaluator {
       }
       if (!nextRolledState.evaluator) {
         nextRolledState.evaluator = RolledStateEvaluator.fromRolledState(nextRolledState.rolledState);
+        if (this.useEvaluationCache(nextRolledState, options)) {
+          continue;
+        }
       }
       nextRolledState.evaluator.processOne();
       if (nextRolledState.evaluator.evaluation) {
         nextRolledState.evaluation = nextRolledState.evaluator.evaluation;
+        this.setEvaluationCache(nextRolledState, options);
         if (removeEvaluated) {
           nextRolledState.evaluator = null;
         }
@@ -64,6 +82,32 @@ export class StateEvaluator {
       return true;
     }
     return false;
+  }
+
+  useEvaluationCache(nextRolledState: NextRolledState, options?: SearchOptions): boolean {
+    if (!nextRolledState.evaluator) {
+      return false;
+    }
+    const {removeEvaluated = false, evaluationCache} = options ?? {};
+    const evaluation = evaluationCache?.get(nextRolledState.evaluator.getCacheKey());
+    if (evaluation) {
+      nextRolledState.evaluation = evaluation;
+      if (removeEvaluated) {
+        nextRolledState.evaluator = null;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  setEvaluationCache(nextRolledState: NextRolledState, options?: SearchOptions) {
+    if (!nextRolledState.evaluator || !nextRolledState.evaluation) {
+      return;
+    }
+    const {evaluationCache} = options ?? {};
+    if (evaluationCache) {
+      evaluationCache.set(nextRolledState.evaluator.getCacheKey(), nextRolledState.evaluation);
+    }
   }
 
   getCacheKey(): string {

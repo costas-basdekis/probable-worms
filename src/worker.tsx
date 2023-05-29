@@ -1,10 +1,12 @@
 import {SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
+import {EvaluationCache} from "./worms";
 
 interface InstanceInfo {
   id: number,
   stateEvaluator: worms.StateEvaluator,
   searching: boolean,
+  evaluationCache: EvaluationCache,
 }
 
 class SearchWorker {
@@ -66,6 +68,7 @@ class SearchWorker {
       id: instanceId,
       stateEvaluator: worms.StateEvaluator.fromState(state),
       searching: false,
+      evaluationCache: new EvaluationCache(),
     });
   }
 
@@ -73,8 +76,8 @@ class SearchWorker {
     if (!this.instancesById.has(instanceId)) {
       return;
     }
-    const {stateEvaluator} = this.instancesById.get(instanceId)!;
-    stateEvaluator.processOne();
+    const {stateEvaluator, evaluationCache} = this.instancesById.get(instanceId)!;
+    stateEvaluator.processOne({removeEvaluated: true, evaluationCache});
     this.postResult(instanceId);
   }
 
@@ -96,7 +99,7 @@ class SearchWorker {
     const iterator = () => {
       const startTime = new Date();
       while (instanceInfo.searching && !instanceInfo.stateEvaluator.finished) {
-        instanceInfo.stateEvaluator.processOne({removeEvaluated: true});
+        instanceInfo.stateEvaluator.processOne({removeEvaluated: true, evaluationCache: instanceInfo.evaluationCache});
         const endTime = new Date();
         if ((endTime.valueOf() - startTime.valueOf()) >= reportInterval) {
           self.setTimeout(iterator, 0);
