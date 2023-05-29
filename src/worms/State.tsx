@@ -3,6 +3,11 @@ import { DiceRoll } from "./DiceRoll";
 import { RolledState } from "./RolledState";
 import { RollResult } from "./RollResult";
 
+export interface SerialisedState {
+  chestDice: RollResult[],
+  remainingDiceCount: number,
+}
+
 export class State {
   chest: Chest;
   remainingDiceCount: number;
@@ -13,6 +18,10 @@ export class State {
 
   static empty(): State {
     return new State(Chest.initial(), 0);
+  }
+
+  static deserialise(serialised: SerialisedState): State {
+    return new State(Chest.fromDice(serialised.chestDice), serialised.remainingDiceCount);
   }
 
   constructor(chest: Chest, remainingDiceCount: number) {
@@ -45,5 +54,12 @@ export class State {
 
   add(roll: RollResult, diceCount: number): State {
     return new State(this.chest.add(roll, diceCount), this.remainingDiceCount - diceCount);
+  }
+
+  serialise(): SerialisedState {
+    return {
+      chestDice: this.chest.dice,
+      remainingDiceCount: this.remainingDiceCount,
+    };
   }
 }

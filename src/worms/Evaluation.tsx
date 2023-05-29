@@ -2,6 +2,11 @@ import _ from "underscore";
 
 import { Results } from "./Results";
 
+export interface SerialisedEvaluation {
+  minimumResultOccurrencesEntries: [number, number][],
+  exactResultOccurrencesEntries: [number, number][],
+}
+
 export class Evaluation {
   minimumResultOccurrences: Results;
   exactResultOccurrences: Results;
@@ -47,6 +52,13 @@ export class Evaluation {
     return new Evaluation(new Results(), new Results());
   }
 
+  static deserialise(serialised: SerialisedEvaluation): Evaluation {
+    return new Evaluation(
+      new Results(serialised.minimumResultOccurrencesEntries),
+      new Results(serialised.exactResultOccurrencesEntries),
+    );
+  }
+
   constructor(minimumResultOccurrences: Results, exactResultOccurrences: Results) {
     this.minimumResultOccurrences = minimumResultOccurrences;
     this.exactResultOccurrences = exactResultOccurrences;
@@ -57,5 +69,12 @@ export class Evaluation {
       this.minimumResultOccurrences.toFixed(),
       this.exactResultOccurrences.toFixed(),
     );
+  }
+
+  serialise(): SerialisedEvaluation {
+    return {
+      minimumResultOccurrencesEntries: Array.from(this.minimumResultOccurrences.entries()),
+      exactResultOccurrencesEntries: Array.from(this.exactResultOccurrences.entries()),
+    };
   }
 }
