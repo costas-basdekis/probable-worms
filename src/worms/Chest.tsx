@@ -35,6 +35,10 @@ export class Chest {
     return this.diceCounts.dice;
   }
 
+  get key(): string {
+    return this.diceCounts.key;
+  }
+
   canAdd(roll: RollResult): boolean {
     return !this.diceCounts.has(roll);
   }

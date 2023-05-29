@@ -54,4 +54,14 @@ describe("DiceRoll", () => {
       expect(DiceRoll.fromDice([1, 1, 1, 2, 2, 3, Worm, Worm]).dice).toEqual([1, 1, 1, 2, 2, 3, Worm, Worm]);
     });
   });
+
+  describe("key", () => {
+    it("returns an empty key for an empty roll", () => {
+      expect(DiceRoll.fromDice([]).key).toEqual("[]");
+    });
+    it("returns a nested list of sorted dice pairs", () => {
+      expect(DiceRoll.fromDice([1, 2, 3, 1, 2, 3]).key).toEqual("[[1,2],[2,2],[3,2]]")
+      expect(DiceRoll.fromDice([3, 3, 2, 2, 1, 1]).key).toEqual("[[1,2],[2,2],[3,2]]")
+    });
+  });
 });

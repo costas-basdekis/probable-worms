@@ -71,6 +71,14 @@ export class RolledStateEvaluator {
     return false;
   }
 
+  getCacheKey(): string {
+    return [
+      "R",
+      `c${this.rolledState.state.chest.uniqueDice().join(",")}`,
+      `d${this.rolledState.diceRoll.key}`,
+    ].join("").replaceAll(/[[\]]/g, "");
+  }
+
   compileEvaluation(): Evaluation {
     if (this.nextStates.some(({evaluation}) => !evaluation)) {
       throw new Error("Some part of the evaluation tree is not completed");

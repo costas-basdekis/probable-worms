@@ -9,6 +9,18 @@ import {Worm} from "./RollResult";
 import _ from "underscore";
 
 describe("RolledStateEvaluator", () => {
+  describe("getCacheKey", () => {
+    it("returns the cache key for an empty state with 1 rolled die", () => {
+      expect(RolledStateEvaluator.fromRolledState(new RolledState(new State(Chest.initial(), 1), DiceRoll.fromDice([1]))).getCacheKey()).toEqual(
+        "Rcd1,1"
+      );
+    });
+    it("returns the cache key for a state with many rolled die", () => {
+      expect(RolledStateEvaluator.fromRolledState(new RolledState(new State(Chest.fromDice([1, 1, 2, 2, 3, 3]), 3), DiceRoll.fromDice([1, 1, 3]))).getCacheKey()).toEqual(
+        "Rc1,2,3d1,2,3,1"
+      );
+    });
+  });
   describe("processAll", () => {
     it("processes an empty state with 1 non-worm rolled die", () => {
       expect(RolledStateEvaluator.fromRolledState(new RolledState(new State(Chest.initial(), 1), DiceRoll.fromDice([1]))).processAll().evaluation).toEqual(

@@ -66,6 +66,14 @@ export class StateEvaluator {
     return false;
   }
 
+  getCacheKey(): string {
+    return [
+      "S",
+      `c${this.state.chest.uniqueDice().join(",")}`,
+      `r${this.state.remainingDiceCount}`,
+    ].join("").replaceAll(/[[\]]/g, "");
+  }
+
   compileEvaluation(): Evaluation {
     if (this.nextRolledStates.some(({evaluation}) => !evaluation)) {
       throw new Error("Some part of the evaluation tree is not completed");
