@@ -7,7 +7,7 @@ import {StateEvaluator} from "./StateEvaluator";
 
 export class RolledStateEvaluator {
   rolledState: RolledState;
-  nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, ratio: number, evaluator: StateEvaluator | null}[];
+  nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, ratio: number, evaluator: StateEvaluator | null, evaluation: Evaluation | null}[];
   results: Results;
   evaluation: Evaluation | null = null;
 
@@ -15,12 +15,12 @@ export class RolledStateEvaluator {
     const { results, nextStates } = rolledState.getNextStates();
     return new RolledStateEvaluator(
       rolledState,
-      nextStates.map(nextState => ({...nextState, evaluator: null})),
+      nextStates.map(nextState => ({...nextState, evaluator: null, evaluation: null})),
       results.results,
     );
   }
 
-  constructor(rolledState: RolledState, nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, ratio: number, evaluator: StateEvaluator | null}[], results: Results) {
+  constructor(rolledState: RolledState, nextStates: {state: State, pickedRoll: RollResult, pickedCount: number, ratio: number, evaluator: StateEvaluator | null, evaluation: Evaluation | null}[], results: Results) {
     this.rolledState = rolledState;
     this.nextStates = nextStates;
     this.results = results;
@@ -37,36 +37,42 @@ export class RolledStateEvaluator {
     return this;
   }
 
-  processOne(): boolean {
+  processOne(options?: {removeEvaluated?: boolean}): boolean {
     if (this.finished) {
       return false;
     }
-    if (this.nestedProcessOne()) {
+    if (this.nestedProcessOne(options)) {
       return true;
     }
     this.evaluation = this.compileEvaluation();
     return false;
   }
 
-  nestedProcessOne(): boolean {
+  nestedProcessOne({removeEvaluated = false}: {removeEvaluated?: boolean} = {}): boolean {
     if (this.finished) {
       return false;
     }
     for (const nextState of this.nextStates) {
-      if (nextState.evaluator?.evaluation) {
+      if (nextState.evaluation) {
         continue;
       }
       if (!nextState.evaluator) {
         nextState.evaluator = StateEvaluator.fromState(nextState.state);
       }
       nextState.evaluator.processOne();
+      if (nextState.evaluator.evaluation) {
+        nextState.evaluation = nextState.evaluator.evaluation;
+        if (removeEvaluated) {
+          nextState.evaluator = null;
+        }
+      }
       return true;
     }
     return false;
   }
 
   compileEvaluation(): Evaluation {
-    if (this.nextStates.some(({evaluator}) => !evaluator || !evaluator.evaluation)) {
+    if (this.nextStates.some(({evaluation}) => !evaluation)) {
       throw new Error("Some part of the evaluation tree is not completed");
     }
     return this.compilePartialEvaluation({useCached: false});
@@ -77,7 +83,7 @@ export class RolledStateEvaluator {
       return 1;
     }
     const completedCount = this.nextStates.reduce(
-      (total, current) => total + (current.evaluator?.getCompletionProgress() ?? 0), 0);
+      (total, current) => total + (current.evaluation ? 1 : (current.evaluator?.getCompletionProgress() ?? 0)), 0);
     return completedCount / this.nextStates.length;
   }
 
@@ -87,8 +93,8 @@ export class RolledStateEvaluator {
     }
     const optionEvaluation = Evaluation.combineOptions(
       this.nextStates
-      .filter(({evaluator}) => evaluator)
-      .map(({evaluator}) => evaluator!.compilePartialEvaluation())
+      .filter(({evaluator, evaluation}) => evaluator || evaluation)
+      .map(({evaluator, evaluation}) => evaluation ?? evaluator!.compilePartialEvaluation())
     );
     return Evaluation.combineProbabilities([
       {evaluation: Evaluation.fromResults(this.results), ratio: this.results.total},
