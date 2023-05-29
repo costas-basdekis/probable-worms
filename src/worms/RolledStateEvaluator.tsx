@@ -78,7 +78,7 @@ export class RolledStateEvaluator {
           continue;
         }
       }
-      nextState.evaluator.processOne();
+      nextState.evaluator.processOne(options);
       if (nextState.evaluator.evaluation) {
         nextState.evaluation = nextState.evaluator.evaluation;
         this.setEvaluationCache(nextState, options);
