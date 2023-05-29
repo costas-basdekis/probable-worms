@@ -20,9 +20,11 @@ module.exports = {
   },
   plugins: ["react", "jest"],
   rules: {
-    "@typescript-eslint/no-unused-vars": ["error", { varsIgnorePattern: "^_" }],
-    "no-use-before-define": ["error", { functions: false, classes: false }],
+    "@typescript-eslint/no-unused-vars": ["warn", { varsIgnorePattern: "^_" }],
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": ["error", { functions: false, classes: false }],
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/no-empty-function": "warn",
   },
 };
