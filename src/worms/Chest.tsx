@@ -1,6 +1,5 @@
 import { DiceRoll } from "./DiceRoll";
 import { RollResult, Worm } from "./RollResult";
-import _ from "underscore";
 
 export class Chest {
   diceCounts: DiceRoll;
@@ -37,6 +36,10 @@ export class Chest {
 
   get key(): string {
     return this.diceCounts.key;
+  }
+
+  uniqueDice(): RollResult[] {
+    return Array.from(this.diceCounts.keys()).sort();
   }
 
   canAdd(roll: RollResult): boolean {
