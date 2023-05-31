@@ -2,6 +2,10 @@ import {SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
 import {EvaluationCache} from "./worms";
 
+const evaluationCacheUrlMap: Map<number, string> = new Map([
+  [8, "/evaluation-cache-8-dice.json"],
+]);
+
 interface InstanceInfo {
   id: number,
   stateEvaluator: worms.StateEvaluator,
@@ -66,16 +70,33 @@ class SearchWorker {
       case "load-evaluation-cache":
         this.onLoadEvaluationCache(data.id, data.jsonSerialised);
         break;
+      case "clear-evaluation-cache":
+        this.onClearEvaluationCache(data.id);
+        break;
     }
   };
 
   onSetState(instanceId: number, state: worms.State) {
     this.onStop(instanceId);
+    let evaluationCache;
+    const instance = this.instancesById.get(instanceId);
+    if (instance && instance.stateEvaluator.state.totalDiceCount === state.totalDiceCount) {
+      evaluationCache = instance.evaluationCache;
+    } else {
+      evaluationCache = new EvaluationCache();
+      const evaluationCacheUrl = evaluationCacheUrlMap.get(state.totalDiceCount);
+      if (evaluationCacheUrl) {
+        (async () => {
+          const response = await fetch(evaluationCacheUrl);
+          this.onLoadEvaluationCache(instanceId, await response.text());
+        })();
+      }
+    }
     this.instancesById.set(instanceId, {
       id: instanceId,
       stateEvaluator: worms.StateEvaluator.fromStateLazy(state),
       searching: false,
-      evaluationCache: new EvaluationCache(),
+      evaluationCache: evaluationCache,
     });
   }
 
@@ -122,7 +143,7 @@ class SearchWorker {
     try {
       instance.evaluationCache = EvaluationCache.deserialiseCompressed(JSON.parse(jsonSerialised));
     } catch (e) {
-      alert("File was not a valid cache file");
+      console.error("File was not a valid cache file");
       return;
     }
     this.postResult(instanceId);

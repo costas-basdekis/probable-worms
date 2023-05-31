@@ -37,6 +37,10 @@ export class State {
     }
   }
 
+  get totalDiceCount(): number {
+    return this.chest.diceCount + this.remainingDiceCount;
+  }
+
   getNextRolledStates(): {rolledState: RolledState, count: number}[] {
     return DiceRoll.getNextRolls(this.remainingDiceCount).map(({diceRoll, count}) => ({
       rolledState: this.withRoll(diceRoll), 
