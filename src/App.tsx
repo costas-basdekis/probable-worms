@@ -219,7 +219,11 @@ export default class App extends Component<AppProps, AppState> {
           {cacheStats.hitCount}/{(cacheStats.hitCount + cacheStats.missCount)} with {cacheStats.entryCount} entries)
         </label>
         {searching ? (
-          <button onClick={this.onSearchToggle}>Pause search</button>
+          searchFinished ? (
+            <button disabled>Search finished</button>
+          ) : (
+            <button onClick={this.onSearchToggle}>Pause search</button>
+          )
         ) : (
           <>
             <button onClick={this.onSearchStep} disabled={searchFinished}>Search step</button>
