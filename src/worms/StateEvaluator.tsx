@@ -21,25 +21,29 @@ export class StateEvaluator {
   state: State;
   nextRolledStates: NextRolledState[] | null;
   evaluation: Evaluation | null = null;
+  isRoot: boolean;
 
-  static fromState(state: State): StateEvaluator {
+  static fromState(state: State, isRoot: boolean): StateEvaluator {
     const nextRolledStates = state.getNextRolledStates();
     return new StateEvaluator(
       state,
       nextRolledStates.map(nextRolledState => ({...nextRolledState, evaluator: null, evaluation: null})),
+      isRoot,
     );
   }
 
-  static fromStateLazy(state: State): StateEvaluator {
+  static fromStateLazy(state: State, isRoot: boolean): StateEvaluator {
     return new StateEvaluator(
       state,
       null,
+      isRoot,
     );
   }
 
-  constructor(state: State, nextRolledStates: NextRolledState[] | null) {
+  constructor(state: State, nextRolledStates: NextRolledState[] | null, isRoot: boolean) {
     this.state = state;
     this.nextRolledStates = nextRolledStates;
+    this.isRoot = isRoot;
   }
 
   get finished(): boolean {
@@ -62,7 +66,9 @@ export class StateEvaluator {
     }
     if (!this.evaluation) {
       this.evaluation = this.compileEvaluation();
-      this.setEvaluationCache(options);
+      if (this.isRoot) {
+        this.setOwnEvaluationCache(options);
+      }
     }
     return false;
   }
@@ -97,6 +103,7 @@ export class StateEvaluator {
       nextRolledState.evaluator.processOne(options);
       if (nextRolledState.evaluator.evaluation) {
         nextRolledState.evaluation = nextRolledState.evaluator.evaluation;
+        this.setEvaluationCache(nextRolledState, options);
         if (removeEvaluated) {
           nextRolledState.evaluator = null;
         }
@@ -122,9 +129,24 @@ export class StateEvaluator {
     return false;
   }
 
-  setEvaluationCache(options?: SearchOptions) {
-    if (this.evaluation && options?.evaluationCache) {
-      options.evaluationCache.set(this.getCacheKey(), this.evaluation);
+
+  setEvaluationCache(nextRolledState: NextRolledState, options?: SearchOptions) {
+    if (!nextRolledState.evaluator || !nextRolledState.evaluation) {
+      return;
+    }
+    const {evaluationCache} = options ?? {};
+    if (evaluationCache) {
+      evaluationCache.set(nextRolledState.evaluator.getCacheKey(), nextRolledState.evaluation);
+    }
+  }
+
+  setOwnEvaluationCache(options?: SearchOptions) {
+    if (!this.evaluation) {
+      return;
+    }
+    const {evaluationCache} = options ?? {};
+    if (evaluationCache) {
+      evaluationCache.set(this.getCacheKey(), this.evaluation);
     }
   }
 

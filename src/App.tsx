@@ -278,7 +278,7 @@ export default class App extends Component<AppProps, AppState> {
   onReset = () => {
     this.setState(({initialChest, remainingDice}) => {
       const initialState = new worms.State(initialChest, remainingDice);
-      const evaluator = worms.StateEvaluator.fromStateLazy(initialState);
+      const evaluator = worms.StateEvaluator.fromStateLazy(initialState, true);
       const progress = evaluator.getCompletionProgress();
       this.searchInstance.setSearchState(initialState);
       return {

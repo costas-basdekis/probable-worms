@@ -65,7 +65,7 @@ export class RolledStateEvaluator {
         continue;
       }
       if (!nextState.evaluator) {
-        nextState.evaluator = StateEvaluator.fromState(nextState.state);
+        nextState.evaluator = StateEvaluator.fromState(nextState.state, false);
         if (this.useEvaluationCache(nextState, options)) {
           continue;
         }

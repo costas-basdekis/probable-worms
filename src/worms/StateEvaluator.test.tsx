@@ -8,20 +8,20 @@ import {Worm} from "./RollResult";
 describe("StateEvaluator", () => {
   describe("getCacheKey", () => {
     it("returns the cache key for an empty state with no future states", () => {
-      expect(StateEvaluator.fromState(State.fromDice([], 0)).getCacheKey()).toEqual("St0cr0");
+      expect(StateEvaluator.fromState(State.fromDice([], 0), true).getCacheKey()).toEqual("St0cr0");
     });
     it("returns the cache key for an state with future states", () => {
-      expect(StateEvaluator.fromState(State.fromDice([1, 1, 2, 3], 4)).getCacheKey()).toEqual("St7c1,2,3r4");
+      expect(StateEvaluator.fromState(State.fromDice([1, 1, 2, 3], 4), true).getCacheKey()).toEqual("St7c1,2,3r4");
     });
   });
   describe("processAll", () => {
     it("processes an empty state with no future states", () => {
-      expect(StateEvaluator.fromState(State.fromDice([], 0)).processAll().evaluation).toEqual(
+      expect(StateEvaluator.fromState(State.fromDice([], 0), true).processAll().evaluation).toEqual(
         new Evaluation(new Results(), new Results([[0, 1]]))
       );
     });
     it("processes an empty state with 1 die remaining", () => {
-      expect(StateEvaluator.fromState(State.fromDice([], 1)).processAll().evaluation!.toFixed()).toEqual(
+      expect(StateEvaluator.fromState(State.fromDice([], 1), true).processAll().evaluation!.toFixed()).toEqual(
         new Evaluation(
           new Results(_.range(1, 6).map(total => [total, 1 / 6])),
           new Results([[0, 1], [5, 1 / 6]]),
@@ -29,7 +29,7 @@ describe("StateEvaluator", () => {
       );
     });
     it("processes a state with 1 non-worm die picked and 1 die remaining", () => {
-      expect(StateEvaluator.fromState(State.fromDice([1], 1)).processAll().evaluation!.toFixed()).toEqual(
+      expect(StateEvaluator.fromState(State.fromDice([1], 1), true).processAll().evaluation!.toFixed()).toEqual(
         new Evaluation(
           new Results(_.range(1, 7).map(total => [total, 1 / 6])),
           new Results([[0, 1], [6, 1 / 6]]),
@@ -37,7 +37,7 @@ describe("StateEvaluator", () => {
       );
     });
     it("processes a state with 1 worm die picked and 1 die remaining", () => {
-      expect(StateEvaluator.fromState(State.fromDice([Worm], 1)).processAll().evaluation!.toFixed()).toEqual(
+      expect(StateEvaluator.fromState(State.fromDice([Worm], 1), true).processAll().evaluation!.toFixed()).toEqual(
         new Evaluation(
           new Results([[1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 5 / 6], [7, 4 / 6], [8, 3 / 6], [9, 2 / 6], [10, 1 / 6]]),
           new Results([[5, 1], [6, 1 / 6], [7, 1 / 6], [8, 1 / 6], [9, 1 / 6], [10, 1 / 6]]),
@@ -45,13 +45,13 @@ describe("StateEvaluator", () => {
       );
     });
     it("processes a state with 1 worm die picked and 2 dice remaining have 100% of at least 1-5", () => {
-      const evaluator = StateEvaluator.fromState(State.fromDice([Worm], 2)).processAll();
+      const evaluator = StateEvaluator.fromState(State.fromDice([Worm], 2), true).processAll();
       expect(Array.from(evaluator.evaluation!.toFixed().minimumResultOccurrences.entries()).filter(([total]) => total <= 5)).toEqual(
         Array.from(new Results([[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]).toFixed().entries())
       );
     });
     it("processes a state with 1 picked die and no dice remaining", () => {
-      expect(StateEvaluator.fromState(State.fromDice([Worm], 0)).processAll().evaluation!).toEqual(
+      expect(StateEvaluator.fromState(State.fromDice([Worm], 0), true).processAll().evaluation!).toEqual(
         new Evaluation(
           new Results([[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]),
           new Results([[5, 1]]),
@@ -60,7 +60,7 @@ describe("StateEvaluator", () => {
     });
     it("processes an empty state with 2 dice remaining", () => {
       // noinspection PointlessArithmeticExpressionJS,DuplicatedCode
-      expect(StateEvaluator.fromState(State.fromDice([], 2)).processAll().evaluation!.exactResultOccurrences.toFixed()).toEqual(
+      expect(StateEvaluator.fromState(State.fromDice([], 2), true).processAll().evaluation!.exactResultOccurrences.toFixed()).toEqual(
         new Results([
           [0, 1],
           // Calculation if we couldn't stop
