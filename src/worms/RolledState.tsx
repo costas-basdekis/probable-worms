@@ -8,6 +8,10 @@ export class RolledState {
   state: State;
   diceRoll: DiceRoll;
 
+  static fromDice(chestDice: RollResult[], rolledDice: RollResult[]): RolledState {
+    return new RolledState(State.fromDice(chestDice, rolledDice.length), DiceRoll.fromDice(rolledDice));
+  }
+
   constructor(state: State, diceRoll: DiceRoll) {
     this.state = state;
     this.diceRoll = diceRoll;
