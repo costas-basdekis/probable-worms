@@ -60,6 +60,12 @@ class SearchWorker {
       case "remove":
         this.onRemove(data.id);
         break;
+      case "download-evaluation-cache":
+        this.onDownloadEvaluationCache(data.id);
+        break;
+      case "load-evaluation-cache":
+        this.onLoadEvaluationCache(data.id, data.jsonSerialised);
+        break;
     }
   };
 
@@ -89,6 +95,37 @@ class SearchWorker {
       return;
     }
     self.setTimeout(iterator, 0);
+  }
+
+  onDownloadEvaluationCache(instanceId: number) {
+    if (!this.instancesById.has(instanceId)) {
+      return;
+    }
+    const {evaluationCache} = this.instancesById.get(instanceId)!;
+    const bytes = new TextEncoder().encode(JSON.stringify(evaluationCache.serialise()));
+    const blob = new Blob([bytes], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    self.postMessage({
+      type: "evaluation-cache-link",
+      id: instanceId,
+      link: url,
+    });
+  }
+
+  onLoadEvaluationCache(instanceId: number, jsonSerialised: string) {
+    if (!this.instancesById.has(instanceId)) {
+      return;
+    }
+    const instance = this.instancesById.get(instanceId)!;
+    try {
+      instance.evaluationCache = EvaluationCache.deserialise(JSON.parse(jsonSerialised));
+    } catch (e) {
+      alert("File was not a valid cache file");
+      return;
+    }
+    this.postResult(instanceId);
   }
 
   makeSearch(instanceId: number, reportInterval: number = 1000): (() => void) | null {

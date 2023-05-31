@@ -1,4 +1,5 @@
 import * as worms from "./worms";
+import {SerialisedEvaluationCache} from "./worms";
 
 export interface SetStateSearchRequestMessage {
   type: "set-state",
@@ -21,12 +22,23 @@ export interface RemoveSearchRequestMessage{
   type: "remove",
   id: number,
 }
+export interface DownloadEvaluationCacheRequestMessage {
+  type: "download-evaluation-cache",
+  id: number,
+}
+export interface LoadEvaluationCacheRequestMessage {
+  type: "load-evaluation-cache",
+  id: number,
+  jsonSerialised: string,
+}
 export type SearchRequestMessage = (
   SetStateSearchRequestMessage
   | StepSearchRequestMessage
   | StartSearchRequestMessage
   | StopSearchRequestMessage
   | RemoveSearchRequestMessage
+  | DownloadEvaluationCacheRequestMessage
+  | LoadEvaluationCacheRequestMessage
 );
 
 export interface ResultSearchResponseMessage {
@@ -38,7 +50,15 @@ export interface ResultSearchResponseMessage {
   evaluation: worms.SerialisedEvaluation,
   cacheStats: worms.EvaluationCacheStats,
 }
-export type SearchResponseMessage = ResultSearchResponseMessage;
+export interface EvaluationCacheLinkResponseMessage {
+  type: "evaluation-cache-link",
+  id: number,
+  link: string,
+}
+export type SearchResponseMessage = (
+  ResultSearchResponseMessage
+  | EvaluationCacheLinkResponseMessage
+);
 
 export class RemoteSearch {
   worker: Worker;
@@ -63,6 +83,9 @@ export class RemoteSearch {
       case "result":
         this.onResult(data);
         break;
+      case "evaluation-cache-link":
+        this.onEvaluationCacheLink(data);
+        break;
     }
   };
 
@@ -75,6 +98,17 @@ export class RemoteSearch {
       worms.Evaluation.deserialise(resultResponse.evaluation),
       resultResponse.cacheStats,
     );
+  }
+
+  onEvaluationCacheLink(resultResponse: EvaluationCacheLinkResponseMessage) {
+    this.downloadUrl(resultResponse.link, "evaluation-cache.json");
+  }
+
+  downloadUrl(url: string, filename: string) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
   }
 
   newInstance(onResult: OnSearchResult): SearchInstance {
@@ -125,6 +159,21 @@ export class RemoteSearch {
       id: instance.id,
     });
   }
+
+  downloadEvaluationCache(instance: SearchInstance) {
+    this.postMessage({
+      type: "download-evaluation-cache",
+      id: instance.id,
+    });
+  }
+
+  loadEvaluationCache(instance: SearchInstance, jsonSerialised: string) {
+    this.postMessage({
+      type: "load-evaluation-cache",
+      id: instance.id,
+      jsonSerialised,
+    });
+  }
 }
 
 export type OnSearchResult = (
@@ -161,5 +210,13 @@ export class SearchInstance {
 
   removeSearch() {
     this.remoteSearch.removeSearch(this);
+  }
+
+  downloadEvaluationCache() {
+    this.remoteSearch.downloadEvaluationCache(this);
+  }
+
+  loadEvaluationCache(jsonSerialised: string) {
+    this.remoteSearch.loadEvaluationCache(this, jsonSerialised);
   }
 }

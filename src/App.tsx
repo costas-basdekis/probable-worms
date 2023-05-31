@@ -1,4 +1,4 @@
-import React, {ChangeEvent, Component} from "react";
+import React, {ChangeEvent, Component, createRef, RefObject} from "react";
 import classnames from "classnames";
 import _ from "underscore";
 import "./styles.scss";
@@ -153,6 +153,8 @@ interface AppState {
 }
 
 export default class App extends Component<AppProps, AppState> {
+  loadCacheFileRef: RefObject<HTMLInputElement> = createRef();
+
   state = {
     initialChest: worms.Chest.initial(),
     remainingDice: 8,
@@ -230,6 +232,11 @@ export default class App extends Component<AppProps, AppState> {
             <button onClick={this.onSearchToggle}>Start search</button>
           </>
         )}
+        <button onClick={this.onDownloadCache}>Download cache</button>
+        <label>
+          <input ref={this.loadCacheFileRef} type={"file"} />
+          <button onClick={this.onLoadCache}>Load cache</button>
+        </label>
         <label>Evaluation:</label>
         <br/>
         <REvaluation evaluation={evaluation} />
@@ -292,6 +299,20 @@ export default class App extends Component<AppProps, AppState> {
     } else if (!this.state.searchFinished) {
       this.startSearch();
     }
+  };
+
+  onDownloadCache = () => {
+    this.searchInstance.downloadEvaluationCache();
+  };
+
+  onLoadCache = async () => {
+    if (!this.loadCacheFileRef?.current?.files?.length) {
+      alert("No file selected");
+      return;
+    }
+    const file = this.loadCacheFileRef.current.files[0];
+    const content = await file.text();
+    this.searchInstance.loadEvaluationCache(content);
   };
 
   startSearch() {
