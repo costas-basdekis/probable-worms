@@ -18,7 +18,7 @@ interface SearchOptions {
 
 export class StateEvaluator {
   state: State;
-  nextRolledStates: NextRolledState[];
+  nextRolledStates: NextRolledState[] | null;
   evaluation: Evaluation | null = null;
 
   static fromState(state: State): StateEvaluator {
@@ -29,7 +29,14 @@ export class StateEvaluator {
     );
   }
 
-  constructor(state: State, nextRolledStates: NextRolledState[]) {
+  static fromStateLazy(state: State): StateEvaluator {
+    return new StateEvaluator(
+      state,
+      null,
+    );
+  }
+
+  constructor(state: State, nextRolledStates: NextRolledState[] | null) {
     this.state = state;
     this.nextRolledStates = nextRolledStates;
   }
@@ -52,7 +59,10 @@ export class StateEvaluator {
     if (this.nestedProcessOne(options)) {
       return true;
     }
-    this.evaluation = this.compileEvaluation();
+    if (!this.evaluation) {
+      this.evaluation = this.compileEvaluation();
+      this.setEvaluationCache(options);
+    }
     return false;
   }
 
@@ -60,6 +70,18 @@ export class StateEvaluator {
     const {removeEvaluated = false} = options ?? {};
     if (this.finished) {
       return false;
+    }
+    if (!this.nextRolledStates) {
+      if (options?.evaluationCache) {
+        const evaluation = options.evaluationCache.get(this.getCacheKey());
+        if (evaluation) {
+          this.evaluation = evaluation;
+          return false;
+        }
+      }
+      this.nextRolledStates = this.state
+        .getNextRolledStates()
+        .map(nextRolledState => ({...nextRolledState, evaluator: null, evaluation: null}));
     }
     for (const nextRolledState of this.nextRolledStates) {
       if (nextRolledState.evaluation) {
@@ -74,7 +96,6 @@ export class StateEvaluator {
       nextRolledState.evaluator.processOne(options);
       if (nextRolledState.evaluator.evaluation) {
         nextRolledState.evaluation = nextRolledState.evaluator.evaluation;
-        this.setEvaluationCache(nextRolledState, options);
         if (removeEvaluated) {
           nextRolledState.evaluator = null;
         }
@@ -100,13 +121,9 @@ export class StateEvaluator {
     return false;
   }
 
-  setEvaluationCache(nextRolledState: NextRolledState, options?: SearchOptions) {
-    if (!nextRolledState.evaluator || !nextRolledState.evaluation) {
-      return;
-    }
-    const {evaluationCache} = options ?? {};
-    if (evaluationCache) {
-      evaluationCache.set(nextRolledState.evaluator.getCacheKey(), nextRolledState.evaluation);
+  setEvaluationCache(options?: SearchOptions) {
+    if (this.evaluation && options?.evaluationCache) {
+      options.evaluationCache.set(this.getCacheKey(), this.evaluation);
     }
   }
 
@@ -120,7 +137,7 @@ export class StateEvaluator {
   }
 
   compileEvaluation(): Evaluation {
-    if (this.nextRolledStates.some(({evaluation}) => !evaluation)) {
+    if (!this.nextRolledStates || this.nextRolledStates.some(({evaluation}) => !evaluation)) {
       throw new Error("Some part of the evaluation tree is not completed");
     }
     return this.compilePartialEvaluation({useCached: false});
@@ -129,6 +146,9 @@ export class StateEvaluator {
   getCompletionProgress(): number {
     if (this.finished) {
       return 1;
+    }
+    if (!this.nextRolledStates) {
+      return 0;
     }
     if (!this.nextRolledStates.length) {
       return 1;
@@ -141,6 +161,9 @@ export class StateEvaluator {
   compilePartialEvaluation({useCached = true}: {useCached?: boolean} = {}): Evaluation {
     if (this.evaluation && useCached) {
       return this.evaluation;
+    }
+    if (!this.nextRolledStates) {
+      return Evaluation.empty();
     }
     const totalCount = this.nextRolledStates.reduce((total, current) => total + current.count, 0);
     const combined = Evaluation.combineProbabilities(

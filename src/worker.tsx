@@ -73,7 +73,7 @@ class SearchWorker {
     this.onStop(instanceId);
     this.instancesById.set(instanceId, {
       id: instanceId,
-      stateEvaluator: worms.StateEvaluator.fromState(state),
+      stateEvaluator: worms.StateEvaluator.fromStateLazy(state),
       searching: false,
       evaluationCache: new EvaluationCache(),
     });
