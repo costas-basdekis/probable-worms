@@ -1,10 +1,15 @@
 import _ from "underscore";
 
-import { Results } from "./Results";
+import {CompressedSerialisedResults, Results, SerialisedResults} from "./Results";
 
 export interface SerialisedEvaluation {
-  minimumResultOccurrencesEntries: [number, number][],
-  exactResultOccurrencesEntries: [number, number][],
+  minimumResultOccurrencesEntries: SerialisedResults,
+  exactResultOccurrencesEntries: SerialisedResults,
+}
+
+export interface CompressedSerialisedEvaluation {
+  minimumResultOccurrencesEntries: CompressedSerialisedResults,
+  exactResultOccurrencesEntries: SerialisedResults,
 }
 
 export class Evaluation {
@@ -54,8 +59,15 @@ export class Evaluation {
 
   static deserialise(serialised: SerialisedEvaluation): Evaluation {
     return new Evaluation(
-      new Results(serialised.minimumResultOccurrencesEntries),
-      new Results(serialised.exactResultOccurrencesEntries),
+      Results.deserialise(serialised.minimumResultOccurrencesEntries),
+      Results.deserialise(serialised.exactResultOccurrencesEntries),
+    );
+  }
+
+  static deserialiseCompressed(serialised: CompressedSerialisedEvaluation): Evaluation {
+    return new Evaluation(
+      Results.deserialiseCompressed(serialised.minimumResultOccurrencesEntries),
+      Results.deserialise(serialised.exactResultOccurrencesEntries),
     );
   }
 
@@ -73,8 +85,15 @@ export class Evaluation {
 
   serialise(): SerialisedEvaluation {
     return {
-      minimumResultOccurrencesEntries: Array.from(this.minimumResultOccurrences.entries()),
-      exactResultOccurrencesEntries: Array.from(this.exactResultOccurrences.entries()),
+      minimumResultOccurrencesEntries: this.minimumResultOccurrences.serialise(),
+      exactResultOccurrencesEntries: this.exactResultOccurrences.serialise(),
+    };
+  }
+
+  serialiseCompressed(): CompressedSerialisedEvaluation {
+    return {
+      minimumResultOccurrencesEntries: this.minimumResultOccurrences.serialiseCompressed(),
+      exactResultOccurrencesEntries: this.exactResultOccurrences.serialise(),
     };
   }
 }

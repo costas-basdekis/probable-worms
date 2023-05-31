@@ -102,7 +102,7 @@ class SearchWorker {
       return;
     }
     const {evaluationCache} = this.instancesById.get(instanceId)!;
-    const bytes = new TextEncoder().encode(JSON.stringify(evaluationCache.serialise()));
+    const bytes = new TextEncoder().encode(JSON.stringify(evaluationCache.serialiseCompressed()));
     const blob = new Blob([bytes], {
       type: "application/json;charset=utf-8",
     });
@@ -120,7 +120,7 @@ class SearchWorker {
     }
     const instance = this.instancesById.get(instanceId)!;
     try {
-      instance.evaluationCache = EvaluationCache.deserialise(JSON.parse(jsonSerialised));
+      instance.evaluationCache = EvaluationCache.deserialiseCompressed(JSON.parse(jsonSerialised));
     } catch (e) {
       alert("File was not a valid cache file");
       return;

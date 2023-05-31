@@ -1,5 +1,21 @@
+import _ from "underscore";
+
+export type SerialisedResults = [number, number][];
+export type CompressedSerialisedResults = [number, number, number][];
+
 export class Results {
   counts: Map<number, number>;
+
+  static deserialise(serialised: SerialisedResults): Results {
+    return new Results(serialised);
+  }
+
+  static deserialiseCompressed(serialisedCompressed: CompressedSerialisedResults): Results {
+    const expandedTriples: [number, number][][] = serialisedCompressed.map(
+      ([min, max, ratio]) => _.range(min, max + 1).map(
+        (total) => [total, ratio]));
+    return new Results(expandedTriples.flat());
+  }
 
   constructor(items?: Iterable<readonly [number, number]>) {
     this.counts = new Map(items as Iterable<readonly [number, number]>);
@@ -53,5 +69,23 @@ export class Results {
         return [key, parseFloat(value.toFixed(6))] as [number, number];
       })
     );
+  }
+
+  serialise(): SerialisedResults {
+    return Array.from(this.entries())
+  }
+
+  serialiseCompressed(): CompressedSerialisedResults {
+    return this.serialise().sort(([lTotal], [rTotal]) => lTotal - rTotal).reduce((total, [rollTotal, ratio]): [number, number, number][] => {
+      const min = rollTotal, max = rollTotal;
+      if (!total.length) {
+        return [[min, max, ratio]];
+      }
+      const [lastMin, lastMax, lastRatio] = total[total.length - 1];
+      if (lastMax !== (max - 1) || lastRatio !== ratio) {
+        return [...total, [min, max, ratio]];
+      }
+      return [...total.slice(0, total.length - 1), [lastMin, max, lastRatio]];
+    }, [] as [number, number, number][]);
   }
 }

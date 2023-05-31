@@ -1,4 +1,5 @@
 import {Evaluation} from "./Evaluation";
+import {CompressedSerialisedResults, SerialisedResults} from "./Results";
 
 export interface EvaluationCacheStats {
   hitCount: number,
@@ -6,7 +7,8 @@ export interface EvaluationCacheStats {
   entryCount: number,
 }
 
-export type SerialisedEvaluationCache = [string, [number, number][], [number, number][]][];
+export type SerialisedEvaluationCache = [string, SerialisedResults, SerialisedResults][];
+export type CompressedSerialisedEvaluationCache = [string, CompressedSerialisedResults, SerialisedResults][];
 
 export class EvaluationCache {
   cache: Map<string, Evaluation> = new Map();
@@ -15,10 +17,21 @@ export class EvaluationCache {
 
   static deserialise(serialised: SerialisedEvaluationCache): EvaluationCache {
     const cache = new EvaluationCache();
-    for (const [key, exactResultOccurrencesEntries, minimumResultOccurrencesEntries] of serialised) {
+    for (const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries] of serialised) {
       cache.set(key, Evaluation.deserialise({
-        exactResultOccurrencesEntries,
         minimumResultOccurrencesEntries,
+        exactResultOccurrencesEntries,
+      }));
+    }
+    return cache;
+  }
+
+  static deserialiseCompressed(serialised: CompressedSerialisedEvaluationCache): EvaluationCache {
+    const cache = new EvaluationCache();
+    for (const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries] of serialised) {
+      cache.set(key, Evaluation.deserialiseCompressed({
+        minimumResultOccurrencesEntries,
+        exactResultOccurrencesEntries,
       }));
     }
     return cache;
@@ -51,8 +64,20 @@ export class EvaluationCache {
         const serialisedEvaluation = evaluation.serialise();
         return [
           key,
-          serialisedEvaluation.exactResultOccurrencesEntries,
           serialisedEvaluation.minimumResultOccurrencesEntries,
+          serialisedEvaluation.exactResultOccurrencesEntries,
+        ];
+      });
+  }
+
+  serialiseCompressed(): CompressedSerialisedEvaluationCache {
+    return Array.from(this.cache.entries()).map(
+      ([key, evaluation]) => {
+        const serialisedEvaluation = evaluation.serialiseCompressed();
+        return [
+          key,
+          serialisedEvaluation.minimumResultOccurrencesEntries,
+          serialisedEvaluation.exactResultOccurrencesEntries,
         ];
       });
   }
