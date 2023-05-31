@@ -91,6 +91,9 @@ class RChest extends Component<RChestProps> {
         {_.range(remainingDice).map(index => (
           <Die key={index} face={""} tiny />
         ))}
+        {!chest.diceCount && !remainingDice ? (
+          "No Dice Aside"
+        ) : null}
       </div>
     );
   }
