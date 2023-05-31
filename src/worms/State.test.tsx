@@ -1,6 +1,7 @@
 import {State} from "./State";
 import {DiceRoll} from "./DiceRoll";
 import {rollResults, Worm} from "./RollResult";
+import {RolledState} from "./RolledState";
 
 describe("State", () => {
   describe("getNextStates", () => {
@@ -9,22 +10,22 @@ describe("State", () => {
     });
     it("gets one state for each die side for state with 1 remaining die", () => {
       expect(State.fromDice([], 1).getNextRolledStates()).toEqual([
-        {rolledState: State.fromDice([], 1).withRoll(DiceRoll.fromDice([1])), count: 1},
-        {rolledState: State.fromDice([], 1).withRoll(DiceRoll.fromDice([2])), count: 1},
-        {rolledState: State.fromDice([], 1).withRoll(DiceRoll.fromDice([3])), count: 1},
-        {rolledState: State.fromDice([], 1).withRoll(DiceRoll.fromDice([4])), count: 1},
-        {rolledState: State.fromDice([], 1).withRoll(DiceRoll.fromDice([5])), count: 1},
-        {rolledState: State.fromDice([], 1).withRoll(DiceRoll.fromDice([Worm])), count: 1},
+        {rolledState: RolledState.fromDice([], [1]), count: 1},
+        {rolledState: RolledState.fromDice([], [2]), count: 1},
+        {rolledState: RolledState.fromDice([], [3]), count: 1},
+        {rolledState: RolledState.fromDice([], [4]), count: 1},
+        {rolledState: RolledState.fromDice([], [5]), count: 1},
+        {rolledState: RolledState.fromDice([], [Worm]), count: 1},
       ]);
     });
     it("gets one state for each die side that wasn't picked already for state with 1-wide chest and 1 remaining die", () => {
       expect(State.fromDice([1], 1).getNextRolledStates()).toEqual([
-        {rolledState: State.fromDice([1], 1).withRoll(DiceRoll.fromDice([1])), count: 1},
-        {rolledState: State.fromDice([1], 1).withRoll(DiceRoll.fromDice([2])), count: 1},
-        {rolledState: State.fromDice([1], 1).withRoll(DiceRoll.fromDice([3])), count: 1},
-        {rolledState: State.fromDice([1], 1).withRoll(DiceRoll.fromDice([4])), count: 1},
-        {rolledState: State.fromDice([1], 1).withRoll(DiceRoll.fromDice([5])), count: 1},
-        {rolledState: State.fromDice([1], 1).withRoll(DiceRoll.fromDice([Worm])), count: 1},
+        {rolledState: RolledState.fromDice([1], [1]), count: 1},
+        {rolledState: RolledState.fromDice([1], [2]), count: 1},
+        {rolledState: RolledState.fromDice([1], [3]), count: 1},
+        {rolledState: RolledState.fromDice([1], [4]), count: 1},
+        {rolledState: RolledState.fromDice([1], [5]), count: 1},
+        {rolledState: RolledState.fromDice([1], [Worm]), count: 1},
       ]);
     });
     it("gets one state for each unique 2-dice combination for state with 2 remaining dice", () => {

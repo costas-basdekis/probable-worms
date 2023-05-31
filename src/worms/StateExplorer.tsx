@@ -1,4 +1,3 @@
-import {DiceRoll} from "./DiceRoll";
 import {Results} from "./Results";
 import {RolledState} from "./RolledState";
 import {RollResult} from "./RollResult";
@@ -23,7 +22,7 @@ export class StateExplorer {
   }
 
   static fromFirstDice(dice: RollResult[]): StateExplorer {
-    return this.fromRolledState(State.initial().withRoll(DiceRoll.fromDice(dice)));
+    return this.fromRolledState(RolledState.fromDice([], dice));
   }
 
   constructor(nextRolledStates: {rolledState: RolledState, count: number}[], nextStates: {state: State, count: number}[]) {
