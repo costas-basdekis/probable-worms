@@ -39,5 +39,11 @@ describe("RolledStateEvaluator", () => {
         new Evaluation(new Results(_.range(1, 11).map(total => [total, 1])), new Results([[10, 1]]))
       );
     });
+    it("processes an state with 1 picked worm and 2 rolled dice of worm and 1, and has a 100% minimum of 1-5", () => {
+      const rolledStateEvaluator = RolledStateEvaluator.fromRolledState(RolledState.fromDice([Worm], [1, Worm])).processAll();
+      expect(Array.from(rolledStateEvaluator.evaluation!.toFixed().minimumResultOccurrences.entries()).filter(([total]) => total <= 5)).toEqual(
+        [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
+      );
+    });
   });
 });

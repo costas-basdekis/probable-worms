@@ -64,6 +64,10 @@ export class State {
     return new State(this.chest.add(roll, diceCount), this.remainingDiceCount - diceCount);
   }
 
+  finished(): State {
+    return new State(this.chest, 0);
+  }
+
   serialise(): SerialisedState {
     return {
       chestDice: this.chest.dice,

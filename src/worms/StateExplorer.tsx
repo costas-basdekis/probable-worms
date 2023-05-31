@@ -51,9 +51,8 @@ export class StateExplorer {
     }
     if (this.nextRolledStates.length) {
       const {rolledState, count} = this.nextRolledStates.shift()!;
-      const {results, nextStates} = rolledState.getNextStates();
-      this.results.mergeWith(results.results);
-      for (const {state: nextState} of nextStates) {
+      const nextStates = rolledState.getNextStates();
+      for (const nextState of nextStates) {
         this.nextStates.push({state: nextState, count});
       }
     } else {

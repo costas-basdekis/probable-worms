@@ -1,6 +1,4 @@
 import {Evaluation} from "./Evaluation";
-import {Results} from "./Results";
-import {RollResult} from "./RollResult";
 import {RolledState} from "./RolledState";
 import {State} from "./State";
 import {StateEvaluator} from "./StateEvaluator";
@@ -8,9 +6,6 @@ import {EvaluationCache} from "./EvaluationCache";
 
 interface NextState {
   state: State;
-  pickedRoll: RollResult;
-  pickedCount: number;
-  ratio: number;
   evaluator: StateEvaluator | null;
   evaluation: Evaluation | null;
 }
@@ -23,22 +18,19 @@ interface SearchOptions {
 export class RolledStateEvaluator {
   rolledState: RolledState;
   nextStates: NextState[];
-  results: Results;
   evaluation: Evaluation | null = null;
 
   static fromRolledState(rolledState: RolledState): RolledStateEvaluator {
-    const { results, nextStates } = rolledState.getNextStates();
+    const nextStates = rolledState.getNextStates();
     return new RolledStateEvaluator(
       rolledState,
-      nextStates.map(nextState => ({...nextState, evaluator: null, evaluation: null})),
-      results.results,
+      nextStates.map(state => ({state, evaluator: null, evaluation: null})),
     );
   }
 
-  constructor(rolledState: RolledState, nextStates: NextState[], results: Results) {
+  constructor(rolledState: RolledState, nextStates: NextState[]) {
     this.rolledState = rolledState;
     this.nextStates = nextStates;
-    this.results = results;
   }
 
   get finished(): boolean {
@@ -146,14 +138,10 @@ export class RolledStateEvaluator {
     if (this.evaluation && useCached) {
       return this.evaluation;
     }
-    const optionEvaluation = Evaluation.combineOptions(
+    return Evaluation.combineOptions(
       this.nextStates
       .filter(({evaluator, evaluation}) => evaluator || evaluation)
       .map(({evaluator, evaluation}) => evaluation ?? evaluator!.compilePartialEvaluation())
     );
-    return Evaluation.combineProbabilities([
-      {evaluation: Evaluation.fromResults(this.results), ratio: this.results.total},
-      {evaluation: optionEvaluation, ratio: this.nextStates.reduce((total, current) => total + current.ratio, 0)},
-    ]);
   }
 }

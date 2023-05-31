@@ -44,6 +44,20 @@ describe("StateEvaluator", () => {
         ).toFixed()
       );
     });
+    it("processes a state with 1 worm die picked and 2 dice remaining have 100% of at least 1-5", () => {
+      const evaluator = StateEvaluator.fromState(State.fromDice([Worm], 2)).processAll();
+      expect(Array.from(evaluator.evaluation!.toFixed().minimumResultOccurrences.entries()).filter(([total]) => total <= 5)).toEqual(
+        Array.from(new Results([[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]).toFixed().entries())
+      );
+    });
+    it("processes a state with 1 picked die and no dice remaining", () => {
+      expect(StateEvaluator.fromState(State.fromDice([Worm], 0)).processAll().evaluation!).toEqual(
+        new Evaluation(
+          new Results([[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]),
+          new Results([[5, 1]]),
+        ),
+      )
+    });
     it("processes an empty state with 2 dice remaining", () => {
       // noinspection PointlessArithmeticExpressionJS,DuplicatedCode
       expect(StateEvaluator.fromState(State.fromDice([], 2)).processAll().evaluation!.exactResultOccurrences.toFixed()).toEqual(
