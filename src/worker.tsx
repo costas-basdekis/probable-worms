@@ -1,16 +1,17 @@
 import {SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
-import {EvaluationCache} from "./worms";
 
 const evaluationCacheUrlMap: Map<number, string> = new Map([
   [8, "/evaluation-cache-8-dice.json"],
 ]);
+// Reusable evaluation caches
+const evaluationCacheMap: Map<number, worms.EvaluationCache> = new Map();
 
 interface InstanceInfo {
   id: number,
   stateEvaluator: worms.StateEvaluator,
   searching: boolean,
-  evaluationCache: EvaluationCache,
+  evaluationCache: worms.EvaluationCache,
 }
 
 class SearchWorker {
@@ -80,15 +81,22 @@ class SearchWorker {
     this.onStop(instanceId);
     let evaluationCache;
     const instance = this.instancesById.get(instanceId);
-    if (instance && instance.stateEvaluator.state.totalDiceCount === state.totalDiceCount) {
+    const totalDiceCount = state.totalDiceCount;
+    if (instance && instance.stateEvaluator.state.totalDiceCount === totalDiceCount) {
       evaluationCache = instance.evaluationCache;
+    } else if (evaluationCacheMap.has(totalDiceCount)) {
+      evaluationCache = evaluationCacheMap.get(totalDiceCount)!;
     } else {
-      evaluationCache = new EvaluationCache();
-      const evaluationCacheUrl = evaluationCacheUrlMap.get(state.totalDiceCount);
+      evaluationCache = new worms.EvaluationCache();
+      const evaluationCacheUrl = evaluationCacheUrlMap.get(totalDiceCount);
       if (evaluationCacheUrl) {
         (async () => {
           const response = await fetch(evaluationCacheUrl);
           this.onLoadEvaluationCache(instanceId, await response.text());
+          const instance = this.instancesById.get(instanceId);
+          if (instance) {
+            evaluationCacheMap.set(totalDiceCount, instance.evaluationCache);
+          }
         })();
       }
     }
@@ -141,7 +149,7 @@ class SearchWorker {
     }
     const instance = this.instancesById.get(instanceId)!;
     try {
-      instance.evaluationCache = EvaluationCache.deserialiseCompressed(JSON.parse(jsonSerialised));
+      instance.evaluationCache = worms.EvaluationCache.deserialiseCompressed(JSON.parse(jsonSerialised));
     } catch (e) {
       console.error("File was not a valid cache file");
       return;
