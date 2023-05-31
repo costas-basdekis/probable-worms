@@ -20,8 +20,12 @@ export class State {
     return new State(Chest.initial(), 0);
   }
 
+  static fromDice(dice: RollResult[], remainingDiceCount: number): State {
+    return new State(Chest.fromDice(dice), remainingDiceCount);
+  }
+
   static deserialise(serialised: SerialisedState): State {
-    return new State(Chest.fromDice(serialised.chestDice), serialised.remainingDiceCount);
+    return State.fromDice(serialised.chestDice, serialised.remainingDiceCount);
   }
 
   constructor(chest: Chest, remainingDiceCount: number) {
