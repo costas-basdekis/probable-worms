@@ -157,6 +157,15 @@ class SearchWorker {
     this.postResult(instanceId);
   }
 
+  onClearEvaluationCache(instanceId: number) {
+    if (!this.instancesById.has(instanceId)) {
+      return;
+    }
+    const instance = this.instancesById.get(instanceId)!;
+    instance.evaluationCache = new worms.EvaluationCache();
+    this.postResult(instanceId);
+  }
+
   makeSearch(instanceId: number, reportInterval: number = 1000): (() => void) | null {
     if (!this.instancesById.has(instanceId)) {
       return null;

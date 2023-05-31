@@ -236,6 +236,7 @@ export default class App extends Component<AppProps, AppState> {
         <label>
           <input ref={this.loadCacheFileRef} type={"file"} />
           <button onClick={this.onLoadCache}>Load cache</button>
+          <button onClick={this.onClearCache}>Clear cache</button>
         </label>
         <label>Evaluation:</label>
         <br/>
@@ -313,6 +314,10 @@ export default class App extends Component<AppProps, AppState> {
     const file = this.loadCacheFileRef.current.files[0];
     const content = await file.text();
     this.searchInstance.loadEvaluationCache(content);
+  };
+
+  onClearCache = () => {
+    this.searchInstance.clearEvaluationCache();
   };
 
   startSearch() {

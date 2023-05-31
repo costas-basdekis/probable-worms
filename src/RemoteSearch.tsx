@@ -31,6 +31,10 @@ export interface LoadEvaluationCacheRequestMessage {
   id: number,
   jsonSerialised: string,
 }
+export interface ClearEvaluationCacheRequestMessage {
+  type: "clear-evaluation-cache",
+  id: number,
+}
 export type SearchRequestMessage = (
   SetStateSearchRequestMessage
   | StepSearchRequestMessage
@@ -39,6 +43,7 @@ export type SearchRequestMessage = (
   | RemoveSearchRequestMessage
   | DownloadEvaluationCacheRequestMessage
   | LoadEvaluationCacheRequestMessage
+  | ClearEvaluationCacheRequestMessage
 );
 
 export interface ResultSearchResponseMessage {
@@ -174,6 +179,13 @@ export class RemoteSearch {
       jsonSerialised,
     });
   }
+
+  clearEvaluationCache(instance: SearchInstance) {
+    this.postMessage({
+      type: "clear-evaluation-cache",
+      id: instance.id,
+    });
+  }
 }
 
 export type OnSearchResult = (
@@ -218,5 +230,9 @@ export class SearchInstance {
 
   loadEvaluationCache(jsonSerialised: string) {
     this.remoteSearch.loadEvaluationCache(this, jsonSerialised);
+  }
+
+  clearEvaluationCache() {
+    this.remoteSearch.clearEvaluationCache(this);
   }
 }
