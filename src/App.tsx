@@ -172,7 +172,7 @@ export default class App extends Component<AppProps, AppState> {
   ) => {
     this.setState({
       progress,
-      evaluation,
+      evaluation: evaluation.toFixed(),
       searchFinished,
       searching,
       cacheStats,
