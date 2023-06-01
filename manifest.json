@@ -1,0 +1,28 @@
+{
+  "short_name": "Probable Worms",
+  "name": "Probable Worms",
+  "icons": [
+    {
+      "src": "/worm512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/worm128.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "/worm32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    }
+  ],
+  "id": "/",
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#ffffff",
+  "description": "Probabilities calculation for board game HeckMeck"
+}
