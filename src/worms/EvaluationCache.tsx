@@ -7,8 +7,8 @@ export interface EvaluationCacheStats {
   entryCount: number,
 }
 
-export type SerialisedEvaluationCache = [string, SerialisedResults, SerialisedResults][];
-export type CompressedSerialisedEvaluationCache = [string, CompressedSerialisedResults, SerialisedResults][];
+export type SerialisedEvaluationCache = [string, SerialisedResults, SerialisedResults, number][];
+export type CompressedSerialisedEvaluationCache = [string, CompressedSerialisedResults, SerialisedResults, number][];
 
 export class EvaluationCache {
   cache: Map<string, Evaluation> = new Map();
@@ -17,10 +17,11 @@ export class EvaluationCache {
 
   static deserialise(serialised: SerialisedEvaluationCache): EvaluationCache {
     const cache = new EvaluationCache();
-    for (const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries] of serialised) {
+    for (const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValue] of serialised) {
       cache.set(key, Evaluation.deserialise({
         minimumResultOccurrencesEntries,
         exactResultOccurrencesEntries,
+        expectedValue: expectedValue ?? 0,
       }));
     }
     return cache;
@@ -28,10 +29,11 @@ export class EvaluationCache {
 
   static deserialiseCompressed(serialised: CompressedSerialisedEvaluationCache): EvaluationCache {
     const cache = new EvaluationCache();
-    for (const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries] of serialised) {
+    for (const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValue] of serialised) {
       cache.set(key, Evaluation.deserialiseCompressed({
         minimumResultOccurrencesEntries,
         exactResultOccurrencesEntries,
+        expectedValue: expectedValue ?? 0,
       }));
     }
     return cache;
@@ -66,6 +68,7 @@ export class EvaluationCache {
           key,
           serialisedEvaluation.minimumResultOccurrencesEntries,
           serialisedEvaluation.exactResultOccurrencesEntries,
+          serialisedEvaluation.expectedValue,
         ];
       });
   }
@@ -78,6 +81,7 @@ export class EvaluationCache {
           key,
           serialisedEvaluation.minimumResultOccurrencesEntries,
           serialisedEvaluation.exactResultOccurrencesEntries,
+          serialisedEvaluation.expectedValue,
         ];
       });
   }

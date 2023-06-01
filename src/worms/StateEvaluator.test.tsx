@@ -1,3 +1,5 @@
+// noinspection PointlessArithmeticExpressionJS
+
 import {UnrolledStateEvaluator} from "./UnrolledStateEvaluator";
 import {UnrolledState} from "./UnrolledState";
 import {Evaluation} from "./Evaluation";
@@ -17,7 +19,7 @@ describe("UnrolledStateEvaluator", () => {
   describe("processAll", () => {
     it("processes an empty state with no future states", () => {
       expect(UnrolledStateEvaluator.fromUnrolledState(UnrolledState.fromDice([], 0), true).processAll().evaluation).toEqual(
-        new Evaluation(new Results(), new Results([[0, 1]]))
+        new Evaluation(new Results(), new Results([[0, 1]]), 0)
       );
     });
     it("processes an empty state with 1 die remaining", () => {
@@ -25,6 +27,7 @@ describe("UnrolledStateEvaluator", () => {
         new Evaluation(
           new Results(_.range(1, 6).map(total => [total, 1 / 6])),
           new Results([[0, 1], [5, 1 / 6]]),
+          5 / 6,
         ).toFixed()
       );
     });
@@ -33,6 +36,7 @@ describe("UnrolledStateEvaluator", () => {
         new Evaluation(
           new Results(_.range(1, 7).map(total => [total, 1 / 6])),
           new Results([[0, 1], [6, 1 / 6]]),
+          1,
         ).toFixed()
       );
     });
@@ -41,6 +45,7 @@ describe("UnrolledStateEvaluator", () => {
         new Evaluation(
           new Results([[1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 5 / 6], [7, 4 / 6], [8, 3 / 6], [9, 2 / 6], [10, 1 / 6]]),
           new Results([[5, 1], [6, 1 / 6], [7, 1 / 6], [8, 1 / 6], [9, 1 / 6], [10, 1 / 6]]),
+          5 * 1 / 6 + 6 * 1 / 6 + 7 * 1 / 6 + 8 * 1 / 6 + 9 * 1 / 6 + 10 * 1 / 6,
         ).toFixed()
       );
     });
@@ -55,6 +60,7 @@ describe("UnrolledStateEvaluator", () => {
         new Evaluation(
           new Results([[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]),
           new Results([[5, 1]]),
+          5,
         ),
       )
     });

@@ -164,6 +164,7 @@ class REvaluation extends Component<REvaluationProps> {
     const {evaluation} = this.props;
     const {maxTotal, totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this;
     return <>
+      <label>Expected value: <strong>{evaluation.expectedValue.toFixed(1)}</strong></label>
       <REvaluationTable
         evaluation={evaluation}
         maxTotal={maxTotal}
