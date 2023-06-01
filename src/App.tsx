@@ -4,7 +4,7 @@ import _ from "underscore";
 import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip} from 'recharts';
+import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 'recharts';
 import {createSelector} from "reselect";
 import {TooltipProps} from "recharts/types/component/Tooltip";
 
@@ -261,6 +261,15 @@ class REvaluationChartTooltip extends Component<TooltipProps<number, number>> {
 }
 
 class REvaluationChart extends Component<REvaluationChartProps> {
+  legendWrapperStyle = {
+    top: 40,
+    right: 20,
+    backgroundColor: '#f5f5f5',
+    border: '1px solid #d5d5d5',
+    borderRadius: 3,
+    lineHeight: '40px',
+  };
+
   chartDataSelector = createSelector(
     ({totals}: REvaluationChartProps) => totals,
     ({exactRoundedPercentagesEntries}: REvaluationChartProps) => exactRoundedPercentagesEntries,
@@ -281,13 +290,14 @@ class REvaluationChart extends Component<REvaluationChartProps> {
   render() {
     const {chartData} = this;
     return (
-      <LineChart width={600} height={300} data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+      <LineChart className={"probabilities-chart"} width={600} height={300} data={chartData} >
         <Line type={"monotone"} dataKey={"exactly"} stroke={"#8884d8"} isAnimationActive={false} />
         <Line type={"monotone"} dataKey={"atLeast"} stroke={"#d88884"} isAnimationActive={false} />
         <CartesianGrid stroke={"#ccc"} strokeDasharray={"5 5"} />
         <XAxis dataKey={"total"} />
         <YAxis />
         <Tooltip content={<REvaluationChartTooltip />}/>
+        <Legend width={100} wrapperStyle={this.legendWrapperStyle} />
       </LineChart>
     );
   }

@@ -122,8 +122,10 @@
   }
 }
 
-.custom-tooltip {
-  &.recharts-default-tooltip {
+.probabilities-chart {
+  margin: 5px 20px 5px 0;
+
+  .recharts-default-tooltip {
     margin: 0;
     padding: 10px;
     background-color: rgb(255, 255, 255);
