@@ -6,6 +6,7 @@ import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
 import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip} from 'recharts';
 import {createSelector} from "reselect";
+import {TooltipProps} from "recharts/types/component/Tooltip";
 
 type PipColumnType = "start" | "middle" | "end" | null;
 interface PipsConfiguration {
@@ -230,6 +231,35 @@ interface REvaluationChartProps {
   atLeastRoundedPercentagesEntries: [number, number][],
 }
 
+class REvaluationChartTooltip extends Component<TooltipProps<number, number>> {
+  render() {
+    const {payload, label, active} = this.props;
+    if (!active) {
+      return null;
+    }
+    const [exactlyPayload, atLeastPayload] = payload!;
+    return (
+      <div className={"custom-tooltip recharts-default-tooltip"}>
+        <p className={"recharts-tooltip-label"}>Result: {label}</p>
+        <ul className={"recharts-tooltip-item-list"}>
+          <li className={"recharts-tooltip-item"} style={{color: exactlyPayload.color}}>
+            <span className={"recharts-tooltip-item-name"}>Exactly {label}</span>
+            <span className={"recharts-tooltip-item-separator"}>: </span>
+            <span className={"recharts-tooltip-item-value"}>{exactlyPayload.value}</span>
+            <span className={"recharts-tooltip-item-unit"}>%</span>
+          </li>
+          <li className={"recharts-tooltip-item"} style={{color: atLeastPayload.color}}>
+            <span className={"recharts-tooltip-item-name"}>At least {label}</span>
+            <span className={"recharts-tooltip-item-separator"}>: </span>
+            <span className={"recharts-tooltip-item-value"}>{atLeastPayload.value}</span>
+            <span className={"recharts-tooltip-item-unit"}>%</span>
+          </li>
+        </ul>
+      </div>
+    );
+  }
+}
+
 class REvaluationChart extends Component<REvaluationChartProps> {
   chartDataSelector = createSelector(
     ({totals}: REvaluationChartProps) => totals,
@@ -257,7 +287,7 @@ class REvaluationChart extends Component<REvaluationChartProps> {
         <CartesianGrid stroke={"#ccc"} strokeDasharray={"5 5"} />
         <XAxis dataKey={"total"} />
         <YAxis />
-        <Tooltip />
+        <Tooltip content={<REvaluationChartTooltip />}/>
       </LineChart>
     );
   }
