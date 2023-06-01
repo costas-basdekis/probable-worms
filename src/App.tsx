@@ -106,22 +106,42 @@ interface REvaluationProps {
 class REvaluation extends Component<REvaluationProps> {
   render() {
     const {evaluation} = this.props;
+    const maxTotal = Math.max(0, Math.max(...evaluation.exactResultOccurrences.keys(), ...evaluation.minimumResultOccurrences.keys()));
+    const totals = _.range(maxTotal + 1);
+    const exactRoundedPercentagesEntries: [number, number][] = totals.map(
+      total => [total, Math.floor((evaluation.exactResultOccurrences.get(total) || 0) * 100)]);
+    const atLeastRoundedPercentagesEntries: [number, number][] = totals.map(
+      total => [total, total === 0 ? 100 : Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100)]);
     return <>
-      <REvaluationTable evaluation={evaluation} />
-      <REvaluationChart evaluation={evaluation} />
+      <REvaluationTable
+        evaluation={evaluation}
+        maxTotal={maxTotal}
+        totals={totals}
+        exactRoundedPercentagesEntries={exactRoundedPercentagesEntries}
+        atLeastRoundedPercentagesEntries={atLeastRoundedPercentagesEntries}
+      />
+      <REvaluationChart
+        evaluation={evaluation}
+        maxTotal={maxTotal}
+        totals={totals}
+        exactRoundedPercentagesEntries={exactRoundedPercentagesEntries}
+        atLeastRoundedPercentagesEntries={atLeastRoundedPercentagesEntries}
+      />
     </>;
   }
 }
 
 interface REvaluationTableProps {
   evaluation: worms.Evaluation,
+  maxTotal: number,
+  totals: number[],
+  exactRoundedPercentagesEntries: [number, number][],
+  atLeastRoundedPercentagesEntries: [number, number][],
 }
 
 class REvaluationTable extends Component<REvaluationTableProps> {
   render() {
-    const {evaluation} = this.props;
-    const maxTotal = Math.max(0, Math.max(...evaluation.exactResultOccurrences.keys(), ...evaluation.minimumResultOccurrences.keys()));
-    const totals = _.range(maxTotal + 1);
+    const {totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this.props;
     return (
       <table>
         <thead>
@@ -136,14 +156,14 @@ class REvaluationTable extends Component<REvaluationTableProps> {
         <tr/>
         <tr>
           <th>Exactly</th>
-          {totals.map(total => (
-            <td key={total}>{Math.floor((evaluation.exactResultOccurrences.get(total) || 0) * 100)}%</td>
+          {exactRoundedPercentagesEntries.map(([total, percentage]) => (
+            <td key={total}>{percentage}%</td>
           ))}
         </tr>
         <tr>
           <th>At least</th>
-          {totals.map(total => (
-            <td key={total}>{total === 0 ? 100 : Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100)}%</td>
+          {atLeastRoundedPercentagesEntries.map(([total, percentage]) => (
+            <td key={total}>{percentage}%</td>
           ))}
         </tr>
         </tbody>
@@ -154,17 +174,19 @@ class REvaluationTable extends Component<REvaluationTableProps> {
 
 interface REvaluationChartProps {
   evaluation: worms.Evaluation,
+  maxTotal: number,
+  totals: number[],
+  exactRoundedPercentagesEntries: [number, number][],
+  atLeastRoundedPercentagesEntries: [number, number][],
 }
 
 class REvaluationChart extends Component<REvaluationChartProps> {
   render() {
-    const {evaluation} = this.props;
-    const maxTotal = Math.max(0, Math.max(...evaluation.exactResultOccurrences.keys(), ...evaluation.minimumResultOccurrences.keys()));
-    const totals = _.range(maxTotal + 1);
+    const {totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this.props;
     const chartData = totals.map(total => ({
       total,
-      exactly: Math.floor((evaluation.exactResultOccurrences.get(total) || 0) * 100),
-      atLeast: total === 0 ? 100 : Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100),
+      exactly: exactRoundedPercentagesEntries[total][1],
+      atLeast: atLeastRoundedPercentagesEntries[total][1],
     }));
     return (
       <LineChart width={600} height={300} data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
