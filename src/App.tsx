@@ -1,4 +1,4 @@
-import React, {ChangeEvent, Component, createRef, RefObject} from "react";
+import React, {ChangeEvent, Component, createRef, ReactNode, ReactText, RefObject} from "react";
 import classnames from "classnames";
 import _ from "underscore";
 import "./styles.scss";
@@ -7,6 +7,7 @@ import {RemoteSearch, SearchInstance} from "./RemoteSearch";
 import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ReferenceLine} from 'recharts';
 import {createSelector} from "reselect";
 import {TooltipProps} from "recharts/types/component/Tooltip";
+import {LegendType} from "recharts/types/util/types";
 
 type PipColumnType = "start" | "middle" | "end" | null;
 interface PipsConfiguration {
@@ -299,11 +300,27 @@ class REvaluationChart extends Component<REvaluationChartProps> {
         <XAxis dataKey={"total"} />
         <YAxis />
         <Tooltip content={<REvaluationChartTooltip />}/>
-        <Legend width={100} wrapperStyle={this.legendWrapperStyle} />
+        <Legend width={100} wrapperStyle={this.legendWrapperStyle} formatter={this.formatLegend} />
         <ReferenceLine x={Math.floor(evaluation.expectedValue)} stroke={"green"} label={"EV"} />
       </LineChart>
     );
   }
+
+  legendLabels: {[key: string]: string} = {exactly: "Exactly", atLeast: "At least"};
+
+  formatLegend = (value: string, entry: {
+    value: number;
+    id?: string;
+    type?: LegendType;
+    color?: string;
+    payload?: {
+      strokeDasharray: string | number;
+    };
+  }): ReactNode => {
+    const {color} = entry;
+
+    return <span style={{color}}>{this.legendLabels[value] ?? value}</span>;
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
