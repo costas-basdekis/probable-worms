@@ -2,10 +2,10 @@ import * as worms from "./worms";
 
 export class EvaluationCacheCache {
   evaluationCacheUrlMap: Map<number, string> = new Map([
-    [5, "/evaluation-cache-5-dice.json"],
-    [6, "/evaluation-cache-6-dice.json"],
-    [7, "/evaluation-cache-7-dice.json"],
-    [8, "/evaluation-cache-8-dice.json"],
+    [5, "evaluation-cache-5-dice.json"],
+    [6, "evaluation-cache-6-dice.json"],
+    [7, "evaluation-cache-7-dice.json"],
+    [8, "evaluation-cache-8-dice.json"],
   ]);
   // Reusable evaluation caches
   evaluationCacheMap: Map<number, worms.EvaluationCache> = new Map();
@@ -32,7 +32,7 @@ export class EvaluationCacheCache {
     if (!evaluationCacheUrl) {
       return null;
     }
-    const response = await fetch(evaluationCacheUrl);
+    const response = await fetch(`${process.env.PUBLIC_URL}/${evaluationCacheUrl}`);
     try {
       return worms.EvaluationCache.deserialiseCompressed(JSON.parse(await response.text()));
     } catch (e) {
