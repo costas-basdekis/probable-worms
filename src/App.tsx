@@ -4,7 +4,7 @@ import _ from "underscore";
 import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 'recharts';
+import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ReferenceLine} from 'recharts';
 import {createSelector} from "reselect";
 import {TooltipProps} from "recharts/types/component/Tooltip";
 
@@ -290,6 +290,7 @@ class REvaluationChart extends Component<REvaluationChartProps> {
 
   render() {
     const {chartData} = this;
+    const {evaluation} = this.props;
     return (
       <LineChart className={"probabilities-chart"} width={600} height={300} data={chartData} >
         <Line type={"monotone"} dataKey={"exactly"} stroke={"#8884d8"} isAnimationActive={false} />
@@ -299,6 +300,7 @@ class REvaluationChart extends Component<REvaluationChartProps> {
         <YAxis />
         <Tooltip content={<REvaluationChartTooltip />}/>
         <Legend width={100} wrapperStyle={this.legendWrapperStyle} />
+        <ReferenceLine x={Math.floor(evaluation.expectedValue)} stroke={"green"} label={"EV"} />
       </LineChart>
     );
   }
