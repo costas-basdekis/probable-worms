@@ -316,6 +316,7 @@ interface AppState {
   searching: boolean,
   searchFinished: boolean,
   cacheStats: worms.EvaluationCacheStats,
+  attemptedInitialEvaluation: boolean,
 }
 
 export default class App extends Component<AppProps, AppState> {
@@ -330,14 +331,16 @@ export default class App extends Component<AppProps, AppState> {
     searching: false,
     searchFinished: true,
     cacheStats: {hitCount: 0, missCount: 0, entryCount: 0},
+    attemptedInitialEvaluation: false,
   };
 
   onSearchResult = (
     searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
     cacheStats: worms.EvaluationCacheStats,
   ) => {
-    if (this.state.initialUnrolledState.totalDiceCount === 8 && progress === 0 && cacheStats.entryCount > 0) {
+    if (!this.state.attemptedInitialEvaluation && this.state.initialUnrolledState.totalDiceCount === 8 && progress === 0 && cacheStats.entryCount > 0) {
       this.startSearch();
+      this.setState({attemptedInitialEvaluation: true});
     }
     this.setState({
       progress,
