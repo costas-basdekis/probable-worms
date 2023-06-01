@@ -6,5 +6,5 @@ export * from "./Results";
 export * from "./RollResult";
 export * from "./RolledState";
 export * from "./RolledStateEvaluator";
-export * from "./State";
-export * from "./StateEvaluator";
+export * from "./UnrolledState";
+export * from "./UnrolledStateEvaluator";

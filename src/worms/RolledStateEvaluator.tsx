@@ -1,12 +1,12 @@
 import {Evaluation} from "./Evaluation";
 import {RolledState} from "./RolledState";
-import {State} from "./State";
-import {StateEvaluator} from "./StateEvaluator";
+import {UnrolledState} from "./UnrolledState";
+import {UnrolledStateEvaluator} from "./UnrolledStateEvaluator";
 import {EvaluationCache} from "./EvaluationCache";
 
-interface NextState {
-  state: State;
-  evaluator: StateEvaluator | null;
+interface NextUnrolledState {
+  unrolledState: UnrolledState;
+  evaluator: UnrolledStateEvaluator | null;
   evaluation: Evaluation | null;
 }
 
@@ -17,20 +17,20 @@ interface SearchOptions {
 
 export class RolledStateEvaluator {
   rolledState: RolledState;
-  nextStates: NextState[];
+  nextUnrolledStates: NextUnrolledState[];
   evaluation: Evaluation | null = null;
 
   static fromRolledState(rolledState: RolledState): RolledStateEvaluator {
-    const nextStates = rolledState.getNextStates();
+    const nextUnrolledStates = rolledState.getNextUnrolledStates();
     return new RolledStateEvaluator(
       rolledState,
-      nextStates.map(state => ({state, evaluator: null, evaluation: null})),
+      nextUnrolledStates.map(unrolledState => ({unrolledState, evaluator: null, evaluation: null})),
     );
   }
 
-  constructor(rolledState: RolledState, nextStates: NextState[]) {
+  constructor(rolledState: RolledState, nextUnrolledStates: NextUnrolledState[]) {
     this.rolledState = rolledState;
-    this.nextStates = nextStates;
+    this.nextUnrolledStates = nextUnrolledStates;
   }
 
   get finished(): boolean {
@@ -60,22 +60,22 @@ export class RolledStateEvaluator {
     if (this.finished) {
       return false;
     }
-    for (const nextState of this.nextStates) {
-      if (nextState.evaluation) {
+    for (const nextUnrolledState of this.nextUnrolledStates) {
+      if (nextUnrolledState.evaluation) {
         continue;
       }
-      if (!nextState.evaluator) {
-        nextState.evaluator = StateEvaluator.fromState(nextState.state, false);
-        if (this.useEvaluationCache(nextState, options)) {
+      if (!nextUnrolledState.evaluator) {
+        nextUnrolledState.evaluator = UnrolledStateEvaluator.fromUnrolledState(nextUnrolledState.unrolledState, false);
+        if (this.useEvaluationCache(nextUnrolledState, options)) {
           continue;
         }
       }
-      nextState.evaluator.processOne(options);
-      if (nextState.evaluator.evaluation) {
-        nextState.evaluation = nextState.evaluator.evaluation;
-        this.setEvaluationCache(nextState, options);
+      nextUnrolledState.evaluator.processOne(options);
+      if (nextUnrolledState.evaluator.evaluation) {
+        nextUnrolledState.evaluation = nextUnrolledState.evaluator.evaluation;
+        this.setEvaluationCache(nextUnrolledState, options);
         if (removeEvaluated) {
-          nextState.evaluator = null;
+          nextUnrolledState.evaluator = null;
         }
       }
       return true;
@@ -83,43 +83,43 @@ export class RolledStateEvaluator {
     return false;
   }
 
-  useEvaluationCache(nextState: NextState, options?: SearchOptions): boolean {
-    if (!nextState.evaluator) {
+  useEvaluationCache(nextUnrolledState: NextUnrolledState, options?: SearchOptions): boolean {
+    if (!nextUnrolledState.evaluator) {
       return false;
     }
     const {removeEvaluated = false, evaluationCache} = options ?? {};
-    const evaluation = evaluationCache?.get(nextState.evaluator.getCacheKey());
+    const evaluation = evaluationCache?.get(nextUnrolledState.evaluator.getCacheKey());
     if (evaluation) {
-      nextState.evaluation = evaluation;
+      nextUnrolledState.evaluation = evaluation;
       if (removeEvaluated) {
-        nextState.evaluator = null;
+        nextUnrolledState.evaluator = null;
       }
       return true;
     }
     return false;
   }
 
-  setEvaluationCache(nextState: NextState, options?: SearchOptions) {
-    if (!nextState.evaluator || !nextState.evaluation) {
+  setEvaluationCache(nextUnrolledState: NextUnrolledState, options?: SearchOptions) {
+    if (!nextUnrolledState.evaluator || !nextUnrolledState.evaluation) {
       return;
     }
     const {evaluationCache} = options ?? {};
     if (evaluationCache) {
-      evaluationCache.set(nextState.evaluator.getCacheKey(), nextState.evaluation);
+      evaluationCache.set(nextUnrolledState.evaluator.getCacheKey(), nextUnrolledState.evaluation);
     }
   }
 
   getCacheKey(): string {
     return [
       "R",
-      `t${this.rolledState.state.chest.total}`,
-      `c${this.rolledState.state.chest.uniqueDice().join(",")}`,
+      `t${this.rolledState.unrolledState.chest.total}`,
+      `c${this.rolledState.unrolledState.chest.uniqueDice().join(",")}`,
       `d${this.rolledState.diceRoll.key}`,
     ].join("").replaceAll(/[[\]]/g, "");
   }
 
   compileEvaluation(): Evaluation {
-    if (this.nextStates.some(({evaluation}) => !evaluation)) {
+    if (this.nextUnrolledStates.some(({evaluation}) => !evaluation)) {
       throw new Error("Some part of the evaluation tree is not completed");
     }
     return this.compilePartialEvaluation({useCached: false});
@@ -129,9 +129,9 @@ export class RolledStateEvaluator {
     if (this.finished) {
       return 1;
     }
-    const completedCount = this.nextStates.reduce(
+    const completedCount = this.nextUnrolledStates.reduce(
       (total, current) => total + (current.evaluation ? 1 : (current.evaluator?.getCompletionProgress() ?? 0)), 0);
-    return completedCount / this.nextStates.length;
+    return completedCount / this.nextUnrolledStates.length;
   }
 
   compilePartialEvaluation({useCached = true}: {useCached?: boolean} = {}): Evaluation {
@@ -139,7 +139,7 @@ export class RolledStateEvaluator {
       return this.evaluation;
     }
     return Evaluation.combineOptions(
-      this.nextStates
+      this.nextUnrolledStates
       .filter(({evaluator, evaluation}) => evaluator || evaluation)
       .map(({evaluator, evaluation}) => evaluation ?? evaluator!.compilePartialEvaluation())
     );

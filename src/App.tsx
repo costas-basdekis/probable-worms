@@ -144,7 +144,7 @@ interface AppProps {
 interface AppState {
   initialChest: worms.Chest,
   remainingDice: number,
-  initialState: worms.State,
+  initialUnrolledState: worms.UnrolledState,
   progress: number,
   evaluation: worms.Evaluation,
   searching: boolean,
@@ -158,7 +158,7 @@ export default class App extends Component<AppProps, AppState> {
   state = {
     initialChest: worms.Chest.initial(),
     remainingDice: 8,
-    initialState: worms.State.empty(),
+    initialUnrolledState: worms.UnrolledState.empty(),
     progress: 1,
     evaluation: worms.Evaluation.empty(),
     searching: false,
@@ -187,7 +187,7 @@ export default class App extends Component<AppProps, AppState> {
 
   render() {
     const {
-      initialChest, remainingDice, initialState, progress, evaluation, searching, searchFinished, cacheStats,
+      initialChest, remainingDice, initialUnrolledState, progress, evaluation, searching, searchFinished, cacheStats,
     } = this.state;
     return (
       <div className="App">
@@ -212,7 +212,7 @@ export default class App extends Component<AppProps, AppState> {
         <h2>Search</h2>
         <label>
           Initial state:
-          <RChest chest={initialState.chest} remainingDice={initialState.remainingDiceCount} />
+          <RChest chest={initialUnrolledState.chest} remainingDice={initialUnrolledState.remainingDiceCount} />
         </label>
         <label>
           Progress: {Math.floor(progress * 100)}%
@@ -277,12 +277,12 @@ export default class App extends Component<AppProps, AppState> {
 
   onReset = () => {
     this.setState(({initialChest, remainingDice}) => {
-      const initialState = new worms.State(initialChest, remainingDice);
-      const evaluator = worms.StateEvaluator.fromStateLazy(initialState, true);
+      const initialUnrolledState = new worms.UnrolledState(initialChest, remainingDice);
+      const evaluator = worms.UnrolledStateEvaluator.fromUnrolledStateLazy(initialUnrolledState, true);
       const progress = evaluator.getCompletionProgress();
-      this.searchInstance.setSearchState(initialState);
+      this.searchInstance.setSearchUnrolledState(initialUnrolledState);
       return {
-        initialState,
+        initialUnrolledState,
         progress,
         evaluation: evaluator.compilePartialEvaluation(),
         searchFinished: evaluator.finished,

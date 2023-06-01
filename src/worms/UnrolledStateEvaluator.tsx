@@ -1,7 +1,7 @@
 import {Evaluation} from "./Evaluation";
 import {RolledState} from "./RolledState";
 import {RolledStateEvaluator} from "./RolledStateEvaluator";
-import {State} from "./State";
+import {UnrolledState} from "./UnrolledState";
 import {EvaluationCache} from "./EvaluationCache";
 import {Results} from "./Results";
 
@@ -17,31 +17,31 @@ interface SearchOptions {
   evaluationCache?: EvaluationCache,
 }
 
-export class StateEvaluator {
-  state: State;
+export class UnrolledStateEvaluator {
+  unrolledState: UnrolledState;
   nextRolledStates: NextRolledState[] | null;
   evaluation: Evaluation | null = null;
   isRoot: boolean;
 
-  static fromState(state: State, isRoot: boolean): StateEvaluator {
-    const nextRolledStates = state.getNextRolledStates();
-    return new StateEvaluator(
-      state,
+  static fromUnrolledState(unrolledState: UnrolledState, isRoot: boolean): UnrolledStateEvaluator {
+    const nextRolledStates = unrolledState.getNextRolledStates();
+    return new UnrolledStateEvaluator(
+      unrolledState,
       nextRolledStates.map(nextRolledState => ({...nextRolledState, evaluator: null, evaluation: null})),
       isRoot,
     );
   }
 
-  static fromStateLazy(state: State, isRoot: boolean): StateEvaluator {
-    return new StateEvaluator(
-      state,
+  static fromUnrolledStateLazy(unrolledState: UnrolledState, isRoot: boolean): UnrolledStateEvaluator {
+    return new UnrolledStateEvaluator(
+      unrolledState,
       null,
       isRoot,
     );
   }
 
-  constructor(state: State, nextRolledStates: NextRolledState[] | null, isRoot: boolean) {
-    this.state = state;
+  constructor(unrolledState: UnrolledState, nextRolledStates: NextRolledState[] | null, isRoot: boolean) {
+    this.unrolledState = unrolledState;
     this.nextRolledStates = nextRolledStates;
     this.isRoot = isRoot;
   }
@@ -50,7 +50,7 @@ export class StateEvaluator {
     return this.evaluation !== null;
   }
 
-  processAll(): StateEvaluator {
+  processAll(): UnrolledStateEvaluator {
     while (this.processOne()) {
       //
     }
@@ -86,7 +86,7 @@ export class StateEvaluator {
           return false;
         }
       }
-      this.nextRolledStates = this.state
+      this.nextRolledStates = this.unrolledState
         .getNextRolledStates()
         .map(nextRolledState => ({...nextRolledState, evaluator: null, evaluation: null}));
     }
@@ -153,9 +153,9 @@ export class StateEvaluator {
   getCacheKey(): string {
     return [
       "S",
-      `t${this.state.chest.total}`,
-      `c${this.state.chest.uniqueDice().join(",")}`,
-      `r${this.state.remainingDiceCount}`,
+      `t${this.unrolledState.chest.total}`,
+      `c${this.unrolledState.chest.uniqueDice().join(",")}`,
+      `r${this.unrolledState.remainingDiceCount}`,
     ].join("").replaceAll(/[[\]]/g, "");
   }
 
@@ -189,7 +189,7 @@ export class StateEvaluator {
       return Evaluation.empty();
     }
     if (!this.nextRolledStates.length) {
-      return Evaluation.fromResults(new Results([[this.state.total, 1]]));
+      return Evaluation.fromResults(new Results([[this.unrolledState.total, 1]]));
     }
     const totalCount = this.nextRolledStates.reduce((total, current) => total + current.count, 0);
     const combined = Evaluation.combineProbabilities(
@@ -201,7 +201,7 @@ export class StateEvaluator {
       }))
     );
     // Because we can choose to stop, the current total has 100% chance of happening, if it's our target
-    combined.exactResultOccurrences.set(this.state.total, 1);
+    combined.exactResultOccurrences.set(this.unrolledState.total, 1);
     return combined;
   }
 }

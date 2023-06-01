@@ -1,31 +1,31 @@
 import {DiceRoll} from "./DiceRoll";
 import {RollResult} from "./RollResult";
-import {State} from "./State";
+import {UnrolledState} from "./UnrolledState";
 
 export class RolledState {
-  state: State;
+  unrolledState: UnrolledState;
   diceRoll: DiceRoll;
 
   static fromDice(chestDice: RollResult[], rolledDice: RollResult[]): RolledState {
-    return new RolledState(State.fromDice(chestDice, rolledDice.length), DiceRoll.fromDice(rolledDice));
+    return new RolledState(UnrolledState.fromDice(chestDice, rolledDice.length), DiceRoll.fromDice(rolledDice));
   }
 
-  constructor(state: State, diceRoll: DiceRoll) {
-    this.state = state;
+  constructor(unrolledState: UnrolledState, diceRoll: DiceRoll) {
+    this.unrolledState = unrolledState;
     this.diceRoll = diceRoll;
   }
 
   get total(): number {
-    return this.state.total;
+    return this.unrolledState.total;
   }
 
-  getNextStates(): State[] {
-    const nextStates = Array.from(this.diceRoll.entries())
-      .filter(([roll]) => this.state.canAdd(roll))
-      .map(([roll, diceCount]) => this.state.add(roll, diceCount));
-    if (!nextStates.length) {
-      return [this.state.finished()];
+  getNextUnrolledStates(): UnrolledState[] {
+    const nextUnrolledStates = Array.from(this.diceRoll.entries())
+      .filter(([roll]) => this.unrolledState.canAdd(roll))
+      .map(([roll, diceCount]) => this.unrolledState.add(roll, diceCount));
+    if (!nextUnrolledStates.length) {
+      return [this.unrolledState.finished()];
     }
-    return nextStates;
+    return nextUnrolledStates;
   }
 }

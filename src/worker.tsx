@@ -4,7 +4,7 @@ import {EvaluationCacheCache} from "./EvaluationCacheCache";
 
 interface InstanceInfo {
   id: number,
-  stateEvaluator: worms.StateEvaluator,
+  unrolledStateEvaluator: worms.UnrolledStateEvaluator,
   searching: boolean,
   evaluationCache: worms.EvaluationCache,
 }
@@ -31,23 +31,23 @@ class SearchWorker {
     if (!this.instancesById.has(instanceId)) {
       return;
     }
-    const {stateEvaluator, searching, evaluationCache} = this.instancesById.get(instanceId)!;
-    const progress = stateEvaluator.getCompletionProgress();
+    const {unrolledStateEvaluator, searching, evaluationCache} = this.instancesById.get(instanceId)!;
+    const progress = unrolledStateEvaluator.getCompletionProgress();
     this.postMessage({
       type: "result",
       id: instanceId,
       progress,
       searching,
       searchFinished: progress === 1,
-      evaluation: stateEvaluator.compilePartialEvaluation().serialise(),
+      evaluation: unrolledStateEvaluator.compilePartialEvaluation().serialise(),
       cacheStats: evaluationCache.getStats(),
     });
   }
 
   onMessage = ({data}: MessageEvent<SearchRequestMessage>) => {
     switch (data.type) {
-      case "set-state":
-        this.onSetState(data.id, worms.State.deserialise(data.state));
+      case "set-unrolled-state":
+        this.onSetUnrolledState(data.id, worms.UnrolledState.deserialise(data.state));
         break;
       case "step":
         this.onStep(data.id);
@@ -73,13 +73,13 @@ class SearchWorker {
     }
   };
 
-  onSetState(instanceId: number, state: worms.State) {
+  onSetUnrolledState(instanceId: number, unrolledState: worms.UnrolledState) {
     this.onStop(instanceId);
     this.instancesById.set(instanceId, {
       id: instanceId,
-      stateEvaluator: worms.StateEvaluator.fromStateLazy(state, true),
+      unrolledStateEvaluator: worms.UnrolledStateEvaluator.fromUnrolledStateLazy(unrolledState, true),
       searching: false,
-      evaluationCache: this.evaluationCacheCache.getSync(state.totalDiceCount, evaluationCache => {
+      evaluationCache: this.evaluationCacheCache.getSync(unrolledState.totalDiceCount, evaluationCache => {
         const instance = this.instancesById.get(instanceId);
         if (!instance) {
           return;
@@ -94,8 +94,8 @@ class SearchWorker {
     if (!this.instancesById.has(instanceId)) {
       return;
     }
-    const {stateEvaluator, evaluationCache} = this.instancesById.get(instanceId)!;
-    stateEvaluator.processOne({removeEvaluated: true, evaluationCache});
+    const {unrolledStateEvaluator, evaluationCache} = this.instancesById.get(instanceId)!;
+    unrolledStateEvaluator.processOne({removeEvaluated: true, evaluationCache});
     this.postResult(instanceId);
   }
 
@@ -156,8 +156,8 @@ class SearchWorker {
     instanceInfo.searching = true;
     const iterator = () => {
       const startTime = new Date();
-      while (instanceInfo.searching && !instanceInfo.stateEvaluator.finished) {
-        instanceInfo.stateEvaluator.processOne({removeEvaluated: true, evaluationCache: instanceInfo.evaluationCache});
+      while (instanceInfo.searching && !instanceInfo.unrolledStateEvaluator.finished) {
+        instanceInfo.unrolledStateEvaluator.processOne({removeEvaluated: true, evaluationCache: instanceInfo.evaluationCache});
         const endTime = new Date();
         if ((endTime.valueOf() - startTime.valueOf()) >= reportInterval) {
           self.setTimeout(iterator, 0);

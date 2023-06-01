@@ -3,29 +3,29 @@ import { DiceRoll } from "./DiceRoll";
 import { RolledState } from "./RolledState";
 import { RollResult } from "./RollResult";
 
-export interface SerialisedState {
+export interface SerialisedUnrolledState {
   chestDice: RollResult[],
   remainingDiceCount: number,
 }
 
-export class State {
+export class UnrolledState {
   chest: Chest;
   remainingDiceCount: number;
 
-  static initial(): State {
-    return new State(Chest.initial(), 8);
+  static initial(): UnrolledState {
+    return new UnrolledState(Chest.initial(), 8);
   }
 
-  static empty(): State {
-    return new State(Chest.initial(), 0);
+  static empty(): UnrolledState {
+    return new UnrolledState(Chest.initial(), 0);
   }
 
-  static fromDice(dice: RollResult[], remainingDiceCount: number): State {
-    return new State(Chest.fromDice(dice), remainingDiceCount);
+  static fromDice(dice: RollResult[], remainingDiceCount: number): UnrolledState {
+    return new UnrolledState(Chest.fromDice(dice), remainingDiceCount);
   }
 
-  static deserialise(serialised: SerialisedState): State {
-    return State.fromDice(serialised.chestDice, serialised.remainingDiceCount);
+  static deserialise(serialised: SerialisedUnrolledState): UnrolledState {
+    return UnrolledState.fromDice(serialised.chestDice, serialised.remainingDiceCount);
   }
 
   constructor(chest: Chest, remainingDiceCount: number) {
@@ -60,15 +60,15 @@ export class State {
     return this.chest.canAdd(roll);
   }
 
-  add(roll: RollResult, diceCount: number): State {
-    return new State(this.chest.add(roll, diceCount), this.remainingDiceCount - diceCount);
+  add(roll: RollResult, diceCount: number): UnrolledState {
+    return new UnrolledState(this.chest.add(roll, diceCount), this.remainingDiceCount - diceCount);
   }
 
-  finished(): State {
-    return new State(this.chest, 0);
+  finished(): UnrolledState {
+    return new UnrolledState(this.chest, 0);
   }
 
-  serialise(): SerialisedState {
+  serialise(): SerialisedUnrolledState {
     return {
       chestDice: this.chest.dice,
       remainingDiceCount: this.remainingDiceCount,

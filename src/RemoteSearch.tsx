@@ -1,10 +1,9 @@
 import * as worms from "./worms";
-import {SerialisedEvaluationCache} from "./worms";
 
-export interface SetStateSearchRequestMessage {
-  type: "set-state",
+export interface SetUnrolledStateSearchRequestMessage {
+  type: "set-unrolled-state",
   id: number,
-  state: worms.SerialisedState,
+  state: worms.SerialisedUnrolledState,
 }
 export interface StepSearchRequestMessage {
   type: "step",
@@ -36,7 +35,7 @@ export interface ClearEvaluationCacheRequestMessage {
   id: number,
 }
 export type SearchRequestMessage = (
-  SetStateSearchRequestMessage
+  SetUnrolledStateSearchRequestMessage
   | StepSearchRequestMessage
   | StartSearchRequestMessage
   | StopSearchRequestMessage
@@ -129,11 +128,11 @@ export class RemoteSearch {
     this.worker.postMessage(message);
   }
 
-  setSearchState(instance: SearchInstance, state: worms.State) {
+  setSearchUnrolledState(instance: SearchInstance, unrolledState: worms.UnrolledState) {
     this.postMessage({
-      type: "set-state",
+      type: "set-unrolled-state",
       id: instance.id,
-      state: state.serialise(),
+      state: unrolledState.serialise(),
     });
   }
 
@@ -204,8 +203,8 @@ export class SearchInstance {
     this.onResult = onResult;
   }
 
-  setSearchState(state: worms.State) {
-    this.remoteSearch.setSearchState(this, state);
+  setSearchUnrolledState(state: worms.UnrolledState) {
+    this.remoteSearch.setSearchUnrolledState(this, state);
   }
 
   stepSearch() {
