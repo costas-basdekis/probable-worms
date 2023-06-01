@@ -295,6 +295,9 @@ export default class App extends Component<AppProps, AppState> {
     searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
     cacheStats: worms.EvaluationCacheStats,
   ) => {
+    if (this.state.initialUnrolledState.totalDiceCount === 8 && progress === 0 && cacheStats.entryCount > 0) {
+      this.startSearch();
+    }
     this.setState({
       progress,
       evaluation: evaluation.toFixed(),
@@ -305,6 +308,10 @@ export default class App extends Component<AppProps, AppState> {
   };
 
   searchInstance: SearchInstance = remoteSearch.newInstance(this.onSearchResult);
+
+  componentDidMount() {
+    this.onReset();
+  }
 
   componentWillUnmount() {
     this.searchInstance.removeSearch();
@@ -341,9 +348,6 @@ export default class App extends Component<AppProps, AppState> {
         </label>
         <label>
           Progress: {Math.floor(progress * 100)}%
-          ({Math.floor(cacheStats.hitCount / ((cacheStats.hitCount + cacheStats.missCount) || 1) * 100)}%
-          cache hit rate{" - "}
-          {cacheStats.hitCount}/{(cacheStats.hitCount + cacheStats.missCount)} with {cacheStats.entryCount} entries)
         </label>
         {searching ? (
           searchFinished ? (
@@ -357,12 +361,19 @@ export default class App extends Component<AppProps, AppState> {
             <button onClick={this.onSearchToggle}>Start search</button>
           </>
         )}
+        <br/>
+        <label>
+          ({Math.floor(cacheStats.hitCount / ((cacheStats.hitCount + cacheStats.missCount) || 1) * 100)}%
+          cache hit rate{" - "}
+          {cacheStats.hitCount}/{(cacheStats.hitCount + cacheStats.missCount)} with {cacheStats.entryCount} entries)
+        </label>
         <button onClick={this.onDownloadCache}>Download cache</button>
         <label>
           <input ref={this.loadCacheFileRef} type={"file"} />
           <button onClick={this.onLoadCache}>Load cache</button>
           <button onClick={this.onClearCache}>Clear cache</button>
         </label>
+        <br/>
         <label>Evaluation:</label>
         <br/>
         <REvaluation evaluation={evaluation} />
