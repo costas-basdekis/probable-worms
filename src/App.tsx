@@ -5,6 +5,7 @@ import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
 import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip} from 'recharts';
+import {createSelector} from "reselect";
 
 type PipColumnType = "start" | "middle" | "end" | null;
 interface PipsConfiguration {
@@ -104,14 +105,63 @@ interface REvaluationProps {
   evaluation: worms.Evaluation,
 }
 class REvaluation extends Component<REvaluationProps> {
+  maxTotalSelector = createSelector(
+    ({evaluation}: REvaluationProps) => evaluation,
+    (evaluation): number => {
+      return Math.max(
+        0,
+        Math.max(
+          ...evaluation.exactResultOccurrences.keys(),
+          ...evaluation.minimumResultOccurrences.keys(),
+        ),
+      );
+    },
+  );
+
+  get maxTotal(): number {
+    return this.maxTotalSelector(this.props);
+  }
+
+  totalsSelector = createSelector(
+    this.maxTotalSelector,
+    maxTotal => {
+      return _.range(maxTotal + 1);
+    },
+  );
+
+  get totals(): number[] {
+    return this.totalsSelector(this.props);
+  }
+
+  exactRoundedPercentagesEntriesSelector = createSelector(
+    ({evaluation}: REvaluationProps) => evaluation,
+    this.totalsSelector,
+    (evaluation, totals): [number, number][] => {
+      return totals.map(
+        total => [total, Math.floor((evaluation.exactResultOccurrences.get(total) || 0) * 100)])
+    },
+  );
+
+  get exactRoundedPercentagesEntries(): [number, number][] {
+    return this.exactRoundedPercentagesEntriesSelector(this.props);
+  }
+
+  atLeastRoundedPercentagesEntriesSelector = createSelector(
+    ({evaluation}: REvaluationProps) => evaluation,
+    this.totalsSelector,
+    (evaluation, totals): [number, number][] => {
+      return totals.map(
+        total => [total, total === 0 ? 100 : Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100)])
+    },
+  );
+
+  get atLeastRoundedPercentagesEntries(): [number, number][] {
+    return this.atLeastRoundedPercentagesEntriesSelector(this.props);
+  }
+
   render() {
     const {evaluation} = this.props;
-    const maxTotal = Math.max(0, Math.max(...evaluation.exactResultOccurrences.keys(), ...evaluation.minimumResultOccurrences.keys()));
-    const totals = _.range(maxTotal + 1);
-    const exactRoundedPercentagesEntries: [number, number][] = totals.map(
-      total => [total, Math.floor((evaluation.exactResultOccurrences.get(total) || 0) * 100)]);
-    const atLeastRoundedPercentagesEntries: [number, number][] = totals.map(
-      total => [total, total === 0 ? 100 : Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100)]);
+    const {maxTotal, totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this;
     return <>
       <REvaluationTable
         evaluation={evaluation}
@@ -181,13 +231,25 @@ interface REvaluationChartProps {
 }
 
 class REvaluationChart extends Component<REvaluationChartProps> {
+  chartDataSelector = createSelector(
+    ({totals}: REvaluationChartProps) => totals,
+    ({exactRoundedPercentagesEntries}: REvaluationChartProps) => exactRoundedPercentagesEntries,
+    ({atLeastRoundedPercentagesEntries}: REvaluationChartProps) => atLeastRoundedPercentagesEntries,
+    (totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries): {total: number, exactly: number, atLeast: number}[] => {
+      return totals.map(total => ({
+        total,
+        exactly: exactRoundedPercentagesEntries[total][1],
+        atLeast: atLeastRoundedPercentagesEntries[total][1],
+      }));
+    },
+  );
+
+  get chartData(): {total: number, exactly: number, atLeast: number}[] {
+    return this.chartDataSelector(this.props);
+  }
+
   render() {
-    const {totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this.props;
-    const chartData = totals.map(total => ({
-      total,
-      exactly: exactRoundedPercentagesEntries[total][1],
-      atLeast: atLeastRoundedPercentagesEntries[total][1],
-    }));
+    const {chartData} = this;
     return (
       <LineChart width={600} height={300} data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
         <Line type={"monotone"} dataKey={"exactly"} stroke={"#8884d8"} isAnimationActive={false} />
