@@ -1,6 +1,7 @@
 import _ from "underscore";
 
 import {CompressedSerialisedResults, Results, SerialisedResults} from "./Results";
+import {RollResult, ValueMap} from "./RollResult";
 
 export interface SerialisedEvaluation {
   minimumResultOccurrencesEntries: SerialisedResults,
@@ -42,14 +43,12 @@ export class Evaluation {
     return combined;
   }
 
-  static fromResults(results: Results): Evaluation {
+  static fromTotal(total: number): Evaluation {
     const evaluation = this.empty();
-    for (const [total, count] of results.entries()) {
-      for (const minTotal of _.range(1, total + 1)) {
-        evaluation.minimumResultOccurrences.set(minTotal, (evaluation.minimumResultOccurrences.get(total) || 0) + count);
-      }
+    for (const minTotal of _.range(1, total + 1)) {
+      evaluation.minimumResultOccurrences.set(minTotal, 1);
     }
-    evaluation.exactResultOccurrences.mergeWith(results);
+    evaluation.exactResultOccurrences.set(total, 1);
     return evaluation;
   }
 

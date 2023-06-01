@@ -3,7 +3,6 @@ import {RolledState} from "./RolledState";
 import {RolledStateEvaluator} from "./RolledStateEvaluator";
 import {UnrolledState} from "./UnrolledState";
 import {EvaluationCache} from "./EvaluationCache";
-import {Results} from "./Results";
 
 interface NextRolledState {
   rolledState: RolledState;
@@ -189,7 +188,7 @@ export class UnrolledStateEvaluator {
       return Evaluation.empty();
     }
     if (!this.nextRolledStates.length) {
-      return Evaluation.fromResults(new Results([[this.unrolledState.total, 1]]));
+      return Evaluation.fromTotal(this.unrolledState.total);
     }
     const totalCount = this.nextRolledStates.reduce((total, current) => total + current.count, 0);
     const combined = Evaluation.combineProbabilities(
