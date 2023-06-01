@@ -2,6 +2,9 @@ import {SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
 
 const evaluationCacheUrlMap: Map<number, string> = new Map([
+  [5, "/evaluation-cache-5-dice.json"],
+  [6, "/evaluation-cache-6-dice.json"],
+  [7, "/evaluation-cache-7-dice.json"],
   [8, "/evaluation-cache-8-dice.json"],
 ]);
 // Reusable evaluation caches
