@@ -4,6 +4,7 @@ import _ from "underscore";
 import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
+import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip} from 'recharts';
 
 type PipColumnType = "start" | "middle" | "end" | null;
 interface PipsConfiguration {
@@ -102,8 +103,21 @@ class RChest extends Component<RChestProps> {
 interface REvaluationProps {
   evaluation: worms.Evaluation,
 }
-
 class REvaluation extends Component<REvaluationProps> {
+  render() {
+    const {evaluation} = this.props;
+    return <>
+      <REvaluationTable evaluation={evaluation} />
+      <REvaluationChart evaluation={evaluation} />
+    </>;
+  }
+}
+
+interface REvaluationTableProps {
+  evaluation: worms.Evaluation,
+}
+
+class REvaluationTable extends Component<REvaluationTableProps> {
   render() {
     const {evaluation} = this.props;
     const maxTotal = Math.max(0, Math.max(...evaluation.exactResultOccurrences.keys(), ...evaluation.minimumResultOccurrences.keys()));
@@ -134,6 +148,33 @@ class REvaluation extends Component<REvaluationProps> {
         </tr>
         </tbody>
       </table>
+    );
+  }
+}
+
+interface REvaluationChartProps {
+  evaluation: worms.Evaluation,
+}
+
+class REvaluationChart extends Component<REvaluationChartProps> {
+  render() {
+    const {evaluation} = this.props;
+    const maxTotal = Math.max(0, Math.max(...evaluation.exactResultOccurrences.keys(), ...evaluation.minimumResultOccurrences.keys()));
+    const totals = _.range(maxTotal + 1);
+    const chartData = totals.map(total => ({
+      total,
+      exactly: Math.floor((evaluation.exactResultOccurrences.get(total) || 0) * 100),
+      atLeast: total === 0 ? 100 : Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100),
+    }));
+    return (
+      <LineChart width={600} height={300} data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+        <Line type={"monotone"} dataKey={"exactly"} stroke={"#8884d8"} isAnimationActive={false} />
+        <Line type={"monotone"} dataKey={"atLeast"} stroke={"#d88884"} isAnimationActive={false} />
+        <CartesianGrid stroke={"#ccc"} strokeDasharray={"5 5"} />
+        <XAxis dataKey={"total"} />
+        <YAxis />
+        <Tooltip />
+      </LineChart>
     );
   }
 }
