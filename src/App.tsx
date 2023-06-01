@@ -1,4 +1,4 @@
-import React, {ChangeEvent, Component, createRef, ReactNode, ReactText, RefObject} from "react";
+import React, {ChangeEvent, Component, createRef, ReactNode, RefObject} from "react";
 import classnames from "classnames";
 import _ from "underscore";
 import "./styles.scss";
