@@ -1,14 +1,6 @@
 import {SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
-
-const evaluationCacheUrlMap: Map<number, string> = new Map([
-  [5, "/evaluation-cache-5-dice.json"],
-  [6, "/evaluation-cache-6-dice.json"],
-  [7, "/evaluation-cache-7-dice.json"],
-  [8, "/evaluation-cache-8-dice.json"],
-]);
-// Reusable evaluation caches
-const evaluationCacheMap: Map<number, worms.EvaluationCache> = new Map();
+import {EvaluationCacheCache} from "./EvaluationCacheCache";
 
 interface InstanceInfo {
   id: number,
@@ -20,6 +12,7 @@ interface InstanceInfo {
 class SearchWorker {
   instancesById: Map<number, InstanceInfo> = new Map();
   worker: Worker;
+  evaluationCacheCache: EvaluationCacheCache = new EvaluationCacheCache();
 
   static default(): SearchWorker {
     return new SearchWorker(self as unknown as Worker);
@@ -82,32 +75,18 @@ class SearchWorker {
 
   onSetState(instanceId: number, state: worms.State) {
     this.onStop(instanceId);
-    let evaluationCache;
-    const instance = this.instancesById.get(instanceId);
-    const totalDiceCount = state.totalDiceCount;
-    if (instance && instance.stateEvaluator.state.totalDiceCount === totalDiceCount) {
-      evaluationCache = instance.evaluationCache;
-    } else if (evaluationCacheMap.has(totalDiceCount)) {
-      evaluationCache = evaluationCacheMap.get(totalDiceCount)!;
-    } else {
-      evaluationCache = new worms.EvaluationCache();
-      const evaluationCacheUrl = evaluationCacheUrlMap.get(totalDiceCount);
-      if (evaluationCacheUrl) {
-        (async () => {
-          const response = await fetch(evaluationCacheUrl);
-          this.onLoadEvaluationCache(instanceId, await response.text());
-          const instance = this.instancesById.get(instanceId);
-          if (instance) {
-            evaluationCacheMap.set(totalDiceCount, instance.evaluationCache);
-          }
-        })();
-      }
-    }
     this.instancesById.set(instanceId, {
       id: instanceId,
       stateEvaluator: worms.StateEvaluator.fromStateLazy(state, true),
       searching: false,
-      evaluationCache: evaluationCache,
+      evaluationCache: this.evaluationCacheCache.getSync(state.totalDiceCount, evaluationCache => {
+        const instance = this.instancesById.get(instanceId);
+        if (!instance) {
+          return;
+        }
+        instance.evaluationCache = evaluationCache;
+        this.postResult(instanceId);
+      }),
     });
   }
 
