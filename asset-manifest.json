@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/probable-worms/static/css/main.dcee0ee3.css",
-    "main.js": "/probable-worms/static/js/main.d33f8fcd.js",
+    "main.css": "/probable-worms/static/css/main.0ae5d275.css",
+    "main.js": "/probable-worms/static/js/main.025c6d8e.js",
     "static/js/150.19926742.chunk.js": "/probable-worms/static/js/150.19926742.chunk.js",
     "static/js/871.6b4d62fe.chunk.js": "/probable-worms/static/js/871.6b4d62fe.chunk.js",
     "index.html": "/probable-worms/index.html",
-    "main.dcee0ee3.css.map": "/probable-worms/static/css/main.dcee0ee3.css.map",
-    "main.d33f8fcd.js.map": "/probable-worms/static/js/main.d33f8fcd.js.map",
+    "main.0ae5d275.css.map": "/probable-worms/static/css/main.0ae5d275.css.map",
+    "main.025c6d8e.js.map": "/probable-worms/static/js/main.025c6d8e.js.map",
     "150.19926742.chunk.js.map": "/probable-worms/static/js/150.19926742.chunk.js.map",
     "871.6b4d62fe.chunk.js.map": "/probable-worms/static/js/871.6b4d62fe.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.dcee0ee3.css",
-    "static/js/main.d33f8fcd.js"
+    "static/css/main.0ae5d275.css",
+    "static/js/main.025c6d8e.js"
   ]
 }
