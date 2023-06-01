@@ -8,4 +8,3 @@ export * from "./RolledState";
 export * from "./RolledStateEvaluator";
 export * from "./State";
 export * from "./StateEvaluator";
-export * from "./StateExplorer";
