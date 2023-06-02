@@ -52,6 +52,10 @@ export class EvaluationCache {
     this.cache.set(key, evaluation);
   }
 
+  get size(): number {
+    return this.cache.size;
+  }
+
   getStats(): EvaluationCacheStats {
     return {
       hitCount: this.hitCount,

@@ -11,20 +11,36 @@ export class EvaluationCacheCache {
   evaluationCacheMap: Map<number, worms.EvaluationCache> = new Map();
 
   async get(diceCount: number): Promise<worms.EvaluationCache> {
-    if (!this.evaluationCacheMap.has(diceCount)) {
-      this.evaluationCacheMap.set(diceCount, await this.fetchEvaluationCache(diceCount) ?? new worms.EvaluationCache());
+    if (this.shouldFetchEvaluationCache(diceCount)) {
+      this.evaluationCacheMap.set(diceCount, (
+        await this.fetchEvaluationCache(diceCount)
+        ?? this.evaluationCacheMap.get(diceCount)
+        ?? new worms.EvaluationCache()
+      ));
+    } else if (this.shouldSetEmptyEvaluationCache(diceCount)) {
+      this.evaluationCacheMap.set(diceCount, new worms.EvaluationCache());
     }
     return this.evaluationCacheMap.get(diceCount)!;
   }
 
   getSync(diceCount: number, callback: (evaluationCache: worms.EvaluationCache) => void): worms.EvaluationCache {
-    if (!this.evaluationCacheMap.has(diceCount)) {
+    if (this.shouldFetchEvaluationCache(diceCount)) {
       (async () => {
         callback(await this.get(diceCount));
       })();
+    }
+    if (this.shouldSetEmptyEvaluationCache(diceCount)) {
       this.evaluationCacheMap.set(diceCount, new worms.EvaluationCache());
     }
     return this.evaluationCacheMap.get(diceCount)!;
+  }
+
+  shouldFetchEvaluationCache(diceCount: number): boolean {
+    return !this.evaluationCacheMap.get(diceCount)?.size && this.evaluationCacheUrlMap.has(diceCount);
+  }
+
+  shouldSetEmptyEvaluationCache(diceCount: number): boolean {
+    return !this.evaluationCacheMap.has(diceCount);
   }
 
   async fetchEvaluationCache(diceCount: number): Promise<worms.EvaluationCache | null> {
