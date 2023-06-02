@@ -8,6 +8,7 @@ import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Reference
 import {createSelector} from "reselect";
 import {TooltipProps} from "recharts/types/component/Tooltip";
 import {LegendType} from "recharts/types/util/types";
+import {Button, Header, Modal} from "semantic-ui-react";
 
 type PipColumnType = "start" | "middle" | "end" | null;
 interface PipsConfiguration {
@@ -323,12 +324,104 @@ class REvaluationChart extends Component<REvaluationChartProps> {
   };
 }
 
+interface InitialStateModalProps {
+  trigger: ReactNode,
+  onChangeInitialState: (state: worms.UnrolledState) => void,
+}
+
+interface InitialStateModalState {
+  open: boolean,
+  initialChest: worms.Chest,
+  remainingDice: number,
+}
+
+class InitialStateModal extends Component<InitialStateModalProps, InitialStateModalState> {
+  state = {
+    open: false,
+    initialChest: worms.Chest.initial(),
+    remainingDice: 8,
+  };
+
+  render() {
+    const {open, initialChest, remainingDice} = this.state;
+    const {trigger} = this.props;
+    return (
+      <Modal
+        onClose={this.onClose}
+        onOpen={this.onOpen}
+        open={open}
+        trigger={trigger}
+        size={"tiny"}
+      >
+        <Modal.Header>Change initial state</Modal.Header>
+        <Modal.Content>
+          <Header>Initial Chest</Header>
+          <br/>
+          {worms.rollResults.map(face => (
+            <InitialCountSelect
+              key={face}
+              initialChest={initialChest}
+              roll={face}
+              onChange={this.onInitialChestCountChange}
+            />
+          ))}
+          <label>
+            Remaining:
+            <select value={remainingDice} onChange={this.onRemainingDiceChange}>
+              {_.range(11).map(count => <option key={count} value={count}>{count}</option>)}
+            </select>
+          </label>
+          <RChest chest={initialChest} remainingDice={remainingDice} />
+        </Modal.Content>
+        <Modal.Actions>
+          <Button color='black' onClick={this.onClose}>
+            Cancel
+          </Button>
+          <Button
+            content={"Update"}
+            // labelPosition={"right"}
+            // icon={"checkmark"}
+            onClick={this.onChangeInitialState}
+            positive
+          />
+        </Modal.Actions>
+      </Modal>
+    )
+  }
+
+  onOpen = () => {
+    this.setState({open: true});
+  };
+
+  onClose = () => {
+    this.setState({open: false});
+  };
+
+  onChangeInitialState = () => {
+    const {initialChest, remainingDice} = this.state;
+    this.props.onChangeInitialState(new worms.UnrolledState(initialChest, remainingDice));
+    this.onClose();
+  };
+
+  onInitialChestCountChange = (roll: worms.RollResult, count: number) => {
+    this.setState(({initialChest, remainingDice}) => {
+      const newInitialChest = initialChest.replacing(roll, count);
+      return {
+        initialChest: newInitialChest,
+        remainingDice: Math.max(0, Math.min(10, initialChest.diceCount + remainingDice - newInitialChest.diceCount)),
+      };
+    });
+  };
+
+  onRemainingDiceChange = ({target: {value}}: ChangeEvent<HTMLSelectElement>) => {
+    this.setState({remainingDice: parseInt(value, 10)});
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface AppProps {
 }
 interface AppState {
-  initialChest: worms.Chest,
-  remainingDice: number,
   initialUnrolledState: worms.UnrolledState,
   progress: number,
   evaluation: worms.Evaluation,
@@ -341,9 +434,7 @@ export default class App extends Component<AppProps, AppState> {
   loadCacheFileRef: RefObject<HTMLInputElement> = createRef();
 
   state = {
-    initialChest: worms.Chest.initial(),
-    remainingDice: 8,
-    initialUnrolledState: worms.UnrolledState.empty(),
+    initialUnrolledState: worms.UnrolledState.initial(),
     progress: 1,
     evaluation: worms.Evaluation.empty(),
     searching: false,
@@ -376,33 +467,16 @@ export default class App extends Component<AppProps, AppState> {
 
   render() {
     const {
-      initialChest, remainingDice, initialUnrolledState, progress, evaluation, searching, searchFinished, cacheStats,
+      initialUnrolledState, progress, evaluation, searching, searchFinished, cacheStats,
     } = this.state;
     return (
       <div className="App">
-        <label>Initial Chest</label>
-        <br/>
-        {worms.rollResults.map(face => (
-          <InitialCountSelect
-            key={face}
-            initialChest={initialChest}
-            roll={face}
-            onChange={this.onInitialChestCountChange}
-          />
-        ))}
-        <label>
-          Remaining:
-          <select value={remainingDice} onChange={this.onRemainingDiceChange}>
-            {_.range(11).map(count => <option key={count} value={count}>{count}</option>)}
-          </select>
-        </label>
-        <RChest chest={initialChest} remainingDice={remainingDice} />
-        <button onClick={this.onReset}>Reset search</button>
         <h2>Search</h2>
         <label>
           Initial state:
           <RChest chest={initialUnrolledState.chest} remainingDice={initialUnrolledState.remainingDiceCount} />
         </label>
+        <InitialStateModal trigger={<Button>Change</Button>} onChangeInitialState={this.onChangeInitialState} />
         <label>
           Progress: {Math.floor(progress * 100)}%
         </label>
@@ -454,23 +528,13 @@ export default class App extends Component<AppProps, AppState> {
     );
   }
 
-  onInitialChestCountChange = (roll: worms.RollResult, count: number) => {
-    this.setState(({initialChest, remainingDice}) => {
-      const newInitialChest = initialChest.replacing(roll, count);
-      return {
-        initialChest: newInitialChest,
-        remainingDice: Math.max(0, Math.min(10, initialChest.diceCount + remainingDice - newInitialChest.diceCount)),
-      };
-    });
-  };
-
-  onRemainingDiceChange = ({target: {value}}: ChangeEvent<HTMLSelectElement>) => {
-    this.setState({remainingDice: parseInt(value, 10)});
+  onChangeInitialState = (initialUnrolledState: worms.UnrolledState) => {
+    this.setState({initialUnrolledState});
+    this.searchInstance.setSearchUnrolledState(initialUnrolledState);
   };
 
   onReset = () => {
-    const {initialChest, remainingDice} = this.state;
-    const initialUnrolledState = new worms.UnrolledState(initialChest, remainingDice);
+    const {initialUnrolledState} = this.state;
     this.searchInstance.setSearchUnrolledState(initialUnrolledState);
   };
 
