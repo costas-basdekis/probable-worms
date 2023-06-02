@@ -1,4 +1,5 @@
 export * from "./Die";
+export * from "./DiceSelector";
 export * from "./CacheControls";
 export * from "./InitialStateModal";
 export * from "./RChest";

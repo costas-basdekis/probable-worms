@@ -3,30 +3,8 @@ import * as worms from "../worms";
 import {Button, Header, Modal} from "semantic-ui-react";
 import _ from "underscore";
 import {RChest} from "./RChest";
-
-interface InitialCountSelectProps {
-  initialChest: worms.Chest,
-  roll: worms.RollResult,
-  onChange: (face: worms.RollResult, count: number) => void,
-}
-
-class InitialCountSelect extends Component<InitialCountSelectProps> {
-  render() {
-    const {initialChest, roll} = this.props;
-    return (
-      <label>
-        {roll}:
-        <select value={initialChest.get(roll)} onChange={this.onChange}>
-          {_.range(11).map(count => <option key={count} value={count}>{count}</option>)}
-        </select>
-      </label>
-    );
-  }
-
-  onChange = ({target: {value}}: ChangeEvent<HTMLSelectElement>) => {
-    this.props.onChange(this.props.roll, parseInt(value, 10));
-  };
-}
+import {DiceSelector} from "./DiceSelector";
+import {Chest, DiceRoll} from "../worms";
 
 interface InitialStateModalProps {
   trigger: ReactNode,
@@ -36,6 +14,7 @@ interface InitialStateModalProps {
 interface InitialStateModalState {
   open: boolean,
   initialChest: worms.Chest,
+  diceCount: number,
   remainingDice: number,
 }
 
@@ -43,11 +22,12 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
   state = {
     open: false,
     initialChest: worms.Chest.initial(),
+    diceCount: 8,
     remainingDice: 8,
   };
 
   render() {
-    const {open, initialChest, remainingDice} = this.state;
+    const {open, initialChest, diceCount, remainingDice} = this.state;
     const {trigger} = this.props;
     return (
       <Modal
@@ -61,17 +41,10 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
         <Modal.Content>
           <Header>Initial Chest</Header>
           <br/>
-          {worms.rollResults.map(face => (
-            <InitialCountSelect
-              key={face}
-              initialChest={initialChest}
-              roll={face}
-              onChange={this.onInitialChestCountChange}
-            />
-          ))}
+          <DiceSelector counts={initialChest.diceCounts} count={diceCount} tiny onChange={this.onDiceChange} />
           <label>
-            Remaining:
-            <select value={remainingDice} onChange={this.onRemainingDiceChange}>
+            Dice count:
+            <select value={diceCount} onChange={this.onDiceCountChange}>
               {_.range(11).map(count => <option key={count} value={count}>{count}</option>)}
             </select>
           </label>
@@ -107,17 +80,14 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
     this.onClose();
   };
 
-  onInitialChestCountChange = (roll: worms.RollResult, count: number) => {
-    this.setState(({initialChest, remainingDice}) => {
-      const newInitialChest = initialChest.replacing(roll, count);
-      return {
-        initialChest: newInitialChest,
-        remainingDice: Math.max(0, Math.min(10, initialChest.diceCount + remainingDice - newInitialChest.diceCount)),
-      };
+  onDiceChange = (diceCounts: DiceRoll, remainingDice: number) => {
+    this.setState({
+      initialChest: Chest.fromDiceRoll(diceCounts),
+      remainingDice,
     });
   };
 
-  onRemainingDiceChange = ({target: {value}}: ChangeEvent<HTMLSelectElement>) => {
-    this.setState({remainingDice: parseInt(value, 10)});
+  onDiceCountChange = ({target: {value}}: ChangeEvent<HTMLSelectElement>) => {
+    this.setState({diceCount: parseInt(value, 10)});
   };
 }

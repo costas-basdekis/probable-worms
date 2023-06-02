@@ -57,7 +57,7 @@ export class Chest {
   }
 
   get(roll: RollResult): number {
-    return this.diceCounts.get(roll) || 0;
+    return this.diceCounts.get(roll);
   }
 
   replacing(roll: RollResult, count: number): Chest {

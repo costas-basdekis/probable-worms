@@ -8,9 +8,18 @@
   flex-direction: row;
 }
 
+.dice-column {
+  display: flex;
+  flex-direction: column;
+}
+
 .die {
   background-color: lightgrey;
   border-radius: 10%;
+
+  &.selected {
+    background-color: seagreen;
+  }
 }
 
 .face {
@@ -56,6 +65,7 @@
 
   .letter {
     align-self: center;
+    user-select: none;
   }
 }
 

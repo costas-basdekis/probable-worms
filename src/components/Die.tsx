@@ -39,13 +39,15 @@ export interface DieProps {
   small?: boolean,
   tiny?: boolean,
   special?: boolean,
+  selected?: boolean,
+  onClick?: () => void,
 }
 
 export class Die extends Component<DieProps> {
   render() {
-    const {face, medium = false, small = false, tiny = false, special = false} = this.props;
+    const {face, medium = false, small = false, tiny = false, special = false, selected = false} = this.props;
     return (
-      <span className={classnames("die", {medium, small, tiny})}>
+      <span className={classnames("die", {medium, small, tiny, selected})} onClick={this.props.onClick}>
         <span className={classnames("face", {"letter-face": typeof face !== "number", special})}>
           {typeof face === "number" ? <DiePips face={face}/> : <span className={"letter"}>{face}</span>}
         </span>

@@ -28,8 +28,12 @@ export class DiceRoll {
     ]);
   }
 
-  get(key: RollResult): number | undefined {
-    return this.counts.get(key);
+  copy(): DiceRoll {
+    return new DiceRoll(this.counts.entries());
+  }
+
+  get(key: RollResult): number {
+    return this.counts.get(key) ?? 0;
   }
 
   has(key: RollResult): boolean {
@@ -59,13 +63,16 @@ export class DiceRoll {
   }
 
   replacing(roll: RollResult, count: number): DiceRoll {
-    const counts = new Map(this.counts.entries());
+    return this.copy().replace(roll, count);
+  }
+
+  replace(roll: RollResult, count: number): DiceRoll {
     if (count) {
-      counts.set(roll, count);
-    } else if (counts.has(roll)) {
-      counts.delete(roll);
+      this.counts.set(roll, count);
+    } else if (this.has(roll)) {
+      this.counts.delete(roll);
     }
-    return new DiceRoll(counts.entries());
+    return this;
   }
 
   static getNextRolls(diceCount: number): {diceRoll: DiceRoll, count: number}[] {
