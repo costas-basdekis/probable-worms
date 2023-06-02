@@ -89,6 +89,9 @@ class SearchWorker {
     };
     this.instancesById.set(instanceId, instance);
     this.setEvaluationCache(instance, instance.evaluationCache);
+    if (!instance.unrolledStateEvaluator.finished && !instance.searching && instance.unrolledStateEvaluator.unrolledState.totalDiceCount <= 4) {
+      this.onStart(instance.id);
+    }
   }
 
   onStep(instanceId: number) {
