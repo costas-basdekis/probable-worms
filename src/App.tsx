@@ -2,8 +2,8 @@ import React, {Component, createRef, RefObject} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {Button, Progress} from "semantic-ui-react";
-import {InitialStateModal, RChest, REvaluation} from "./components";
+import {Button} from "semantic-ui-react";
+import {InitialStateModal, RChest, REvaluation, SearchControls} from "./components";
 
 const remoteSearch = RemoteSearch.default();
 
@@ -66,14 +66,14 @@ export default class App extends Component<AppProps, AppState> {
           <RChest chest={initialUnrolledState.chest} remainingDice={initialUnrolledState.remainingDiceCount} />
         </label>
         <InitialStateModal trigger={<Button>Change</Button>} onChangeInitialState={this.onChangeInitialState} />
-        <Progress percent={Math.floor(progress * 100)} progress={"percent"} indicating={searching && !searchFinished} autoSuccess />
-        <Button.Group>
-          <Button content={"Step"} icon={"step forward"} labelPosition={"right"} onClick={this.onSearchStep} disabled={searching || searchFinished} />
-          <Button content={"Start"} icon={"play"} labelPosition={"right"} onClick={this.onSearchToggle} disabled={searching || searchFinished} />
-          <Button content={"Pause"} icon={"pause"} labelPosition={"right"} onClick={this.onSearchToggle} disabled={!searching || searchFinished} />
-          <Button content={"Restart"} icon={"undo"} labelPosition={"right"} onClick={this.onSearchRestart} disabled={!searchFinished} />
-        </Button.Group>
-        <br/>
+        <SearchControls
+          progress={progress}
+          searching={searching}
+          searchFinished={searchFinished}
+          onSearchStep={this.onSearchStep}
+          onSearchToggle={this.onSearchToggle}
+          onSearchRestart={this.onSearchRestart}
+        />
         <label>
           ({Math.floor(cacheStats.hitCount / ((cacheStats.hitCount + cacheStats.missCount) || 1) * 100)}%
           cache hit rate{" - "}

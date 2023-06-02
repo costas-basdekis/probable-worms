@@ -4,3 +4,4 @@ export * from "./RChest";
 export * from "./REvaluation";
 export * from "./REvaluationChart";
 export * from "./REvaluationTable";
+export * from "./SearchControls";
