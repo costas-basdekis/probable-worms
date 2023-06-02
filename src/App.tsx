@@ -71,7 +71,10 @@ export default class App extends Component<AppProps, AppState> {
         </label>
         {searching ? (
           searchFinished ? (
-            <button disabled>Search finished</button>
+            <>
+              <button disabled>Search finished</button>
+              <button onClick={this.onSearchRestart}>Restart</button>
+            </>
           ) : (
             <button onClick={this.onSearchToggle}>Pause search</button>
           )
@@ -121,6 +124,11 @@ export default class App extends Component<AppProps, AppState> {
     } else if (!this.state.searchFinished) {
       this.startSearch();
     }
+  };
+
+  onSearchRestart = () => {
+    this.setState({searching: false, searchFinished: false});
+    this.searchInstance.setSearchUnrolledState(this.state.initialUnrolledState);
   };
 
   onDownloadCache = () => {
