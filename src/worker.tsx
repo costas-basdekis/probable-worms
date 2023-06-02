@@ -145,10 +145,11 @@ class SearchWorker {
   }
 
   setEvaluationCache(instance: InstanceInfo, evaluationCache: worms.EvaluationCache) {
+    instance.evaluationCache = evaluationCache;
     const evaluator = instance.unrolledStateEvaluator;
     const cacheKey = evaluator.getCacheKey();
-    if (!evaluator.finished && evaluationCache.has(cacheKey)) {
-      evaluator.evaluation = evaluationCache.get(cacheKey)!;
+    if (!evaluator.finished && instance.evaluationCache.has(cacheKey)) {
+      evaluator.evaluation = instance.evaluationCache.get(cacheKey)!;
       instance.searching = true;
     }
     this.postResult(instance.id);
