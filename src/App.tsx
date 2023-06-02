@@ -475,18 +475,9 @@ export default class App extends Component<AppProps, AppState> {
   };
 
   onReset = () => {
-    this.setState(({initialChest, remainingDice}) => {
-      const initialUnrolledState = new worms.UnrolledState(initialChest, remainingDice);
-      const evaluator = worms.UnrolledStateEvaluator.fromUnrolledStateLazy(initialUnrolledState, true);
-      const progress = evaluator.getCompletionProgress();
-      this.searchInstance.setSearchUnrolledState(initialUnrolledState);
-      return {
-        initialUnrolledState,
-        progress,
-        evaluation: evaluator.compilePartialEvaluation(),
-        searchFinished: evaluator.finished,
-      };
-    });
+    const {initialChest, remainingDice} = this.state;
+    const initialUnrolledState = new worms.UnrolledState(initialChest, remainingDice);
+    this.searchInstance.setSearchUnrolledState(initialUnrolledState);
   };
 
   onSearchStep = () => {
