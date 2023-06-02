@@ -160,8 +160,8 @@ class SearchWorker {
       return;
     }
     const instance = this.instancesById.get(instanceId)!;
-    instance.evaluationCache = new worms.EvaluationCache();
-    this.evaluationCacheCache.clear(instance.unrolledStateEvaluator.unrolledState.totalDiceCount);
+    instance.evaluationCache = this.evaluationCacheCache
+      .clear(instance.unrolledStateEvaluator.unrolledState.totalDiceCount);
     this.postResult(instanceId);
   }
 
