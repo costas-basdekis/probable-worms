@@ -75,7 +75,7 @@ class SearchWorker {
 
   onSetUnrolledState(instanceId: number, unrolledState: worms.UnrolledState) {
     this.onStop(instanceId);
-    this.instancesById.set(instanceId, {
+    const instance = {
       id: instanceId,
       unrolledStateEvaluator: worms.UnrolledStateEvaluator.fromUnrolledStateLazy(unrolledState, true),
       searching: false,
@@ -84,10 +84,11 @@ class SearchWorker {
         if (!instance) {
           return;
         }
-        instance.evaluationCache = evaluationCache;
-        this.postResult(instanceId);
+        this.setEvaluationCache(instance, evaluationCache);
       }),
-    });
+    };
+    this.instancesById.set(instanceId, instance);
+    this.setEvaluationCache(instance, instance.evaluationCache);
   }
 
   onStep(instanceId: number) {
@@ -130,13 +131,24 @@ class SearchWorker {
       return;
     }
     const instance = this.instancesById.get(instanceId)!;
+    let evaluationCache;
     try {
-      instance.evaluationCache = worms.EvaluationCache.deserialiseCompressed(JSON.parse(jsonSerialised));
+      evaluationCache = worms.EvaluationCache.deserialiseCompressed(JSON.parse(jsonSerialised));
     } catch (e) {
       console.error("File was not a valid cache file");
       return;
     }
-    this.postResult(instanceId);
+    this.setEvaluationCache(instance, evaluationCache);
+  }
+
+  setEvaluationCache(instance: InstanceInfo, evaluationCache: worms.EvaluationCache) {
+    const evaluator = instance.unrolledStateEvaluator;
+    const cacheKey = evaluator.getCacheKey();
+    if (!evaluator.finished && evaluationCache.has(cacheKey)) {
+      evaluator.evaluation = evaluationCache.get(cacheKey)!;
+      instance.searching = true;
+    }
+    this.postResult(instance.id);
   }
 
   onClearEvaluationCache(instanceId: number) {

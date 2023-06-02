@@ -39,6 +39,10 @@ export class EvaluationCache {
     return cache;
   }
 
+  has(key: string): boolean {
+    return this.cache.has(key);
+  }
+
   get(key: string): Evaluation | undefined {
     if (this.cache.has(key)) {
       this.hitCount++;
