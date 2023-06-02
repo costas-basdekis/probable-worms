@@ -148,3 +148,9 @@
     padding-bottom: 4px;
   }
 }
+
+.cache-drop-target {
+  &.drag-over {
+    border: 2px solid red;
+  }
+}
