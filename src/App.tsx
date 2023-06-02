@@ -1,10 +1,9 @@
-import React, {Component, createRef, RefObject} from "react";
+import React, {Component} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {Button, Card, Popup} from "semantic-ui-react";
-import {InitialStateModal, RChest, REvaluation, SearchControls} from "./components";
-import classNames from "classnames";
+import {Button} from "semantic-ui-react";
+import {CacheControls, InitialStateModal, RChest, REvaluation, SearchControls} from "./components";
 
 const remoteSearch = RemoteSearch.default();
 
@@ -18,12 +17,9 @@ interface AppState {
   searching: boolean,
   searchFinished: boolean,
   cacheStats: worms.EvaluationCacheStats,
-  cacheFileDragging: boolean,
 }
 
 export default class App extends Component<AppProps, AppState> {
-  loadCacheFileRef: RefObject<HTMLInputElement> = createRef();
-
   state = {
     initialUnrolledState: worms.UnrolledState.initial(),
     progress: 1,
@@ -31,7 +27,6 @@ export default class App extends Component<AppProps, AppState> {
     searching: false,
     searchFinished: true,
     cacheStats: {hitCount: 0, missCount: 0, entryCount: 0},
-    cacheFileDragging: false,
   };
 
   onSearchResult = (
@@ -59,7 +54,7 @@ export default class App extends Component<AppProps, AppState> {
 
   render() {
     const {
-      initialUnrolledState, progress, evaluation, searching, searchFinished, cacheStats, cacheFileDragging,
+      initialUnrolledState, progress, evaluation, searching, searchFinished, cacheStats,
     } = this.state;
     return (
       <div className="App">
@@ -77,30 +72,7 @@ export default class App extends Component<AppProps, AppState> {
           onSearchToggle={this.onSearchToggle}
           onSearchRestart={this.onSearchRestart}
         />
-        <div className={classNames("cache-drop-target", {"drag-over": cacheFileDragging})} onDrop={this.onCacheDrop} onDragOver={this.onDragOver} onDragEnter={this.onCacheDragEnter} onDragLeave={this.onCacheDragLeave}>
-          <input ref={this.loadCacheFileRef} type={"file"} style={{display: "none"}} onChange={this.onLoadCache} />
-          <Popup trigger={<Button>Cache{cacheStats.entryCount ? "" : " is Empty"} </Button>} flowing hoverable>
-            <Card>
-              <Card.Content>
-                <Card.Header>
-                  {Math.floor(cacheStats.hitCount / ((cacheStats.hitCount + cacheStats.missCount) || 1) * 100)}%
-                  cache hit rate
-                </Card.Header>
-                <Card.Meta>{cacheStats.entryCount} entries</Card.Meta>
-                <Card.Description>
-                  {cacheStats.hitCount}/{(cacheStats.hitCount + cacheStats.missCount)} hits/total
-                </Card.Description>
-              </Card.Content>
-              <Card.Content extra>
-                <Button.Group>
-                  <Button basic color={"green"} onClick={this.onDownloadCache}>Download</Button>
-                  <Button basic color={"green"} onClick={this.onLoadCacheClick}>Upload</Button>
-                  <Button basic color={"red"} onClick={this.onClearCache}>Clear</Button>
-                </Button.Group>
-              </Card.Content>
-            </Card>
-          </Popup>
-        </div>
+        <CacheControls cacheStats={cacheStats} searchInstance={this.searchInstance} />
         <br/>
         <label>Evaluation:</label>
         <br/>
@@ -134,64 +106,6 @@ export default class App extends Component<AppProps, AppState> {
   onSearchRestart = () => {
     this.setState({searching: false, searchFinished: false});
     this.searchInstance.setSearchUnrolledState(this.state.initialUnrolledState);
-  };
-
-  onDownloadCache = () => {
-    this.searchInstance.downloadEvaluationCache();
-  };
-
-  onCacheDrop = async (ev: React.DragEvent<HTMLDivElement>) => {
-    ev.preventDefault();
-
-    let file: File | null = null;
-    // noinspection PointlessBooleanExpressionJS
-    if (!file) {
-      const fileItem = Array.from(ev.dataTransfer.items).find(item => item.kind === "file");
-      if (fileItem) {
-        file = fileItem.getAsFile();
-      }
-    }
-    if (!file) {
-      file = Array.from(ev.dataTransfer.files)[0] ?? null;
-    }
-    if (!file) {
-      return;
-    }
-    const content = await file.text();
-    this.searchInstance.loadEvaluationCache(content);
-  };
-
-  onDragOver = (ev: React.DragEvent<HTMLDivElement>) => {
-    ev.stopPropagation();
-    ev.preventDefault();
-  };
-
-  onCacheDragEnter = (ev: React.DragEvent<HTMLDivElement>) => {
-    this.setState({
-      cacheFileDragging: ev.dataTransfer.files.length > 0 || Array.from(ev.dataTransfer.items).some(item => item.kind === "file"),
-    });
-  };
-
-  onCacheDragLeave = () => {
-    this.setState({cacheFileDragging: false});
-  };
-
-  onLoadCacheClick = () => {
-    this.loadCacheFileRef.current?.click();
-  };
-
-  onLoadCache = async () => {
-    if (!this.loadCacheFileRef?.current?.files?.length) {
-      alert("No file selected");
-      return;
-    }
-    const file = this.loadCacheFileRef.current.files[0];
-    const content = await file.text();
-    this.searchInstance.loadEvaluationCache(content);
-  };
-
-  onClearCache = () => {
-    this.searchInstance.clearEvaluationCache();
   };
 
   startSearch() {
