@@ -1,5 +1,6 @@
 import * as worms from "../worms";
 import React, {Component} from "react";
+import {Segment, Table} from "semantic-ui-react";
 
 interface REvaluationTableProps {
   evaluation: worms.Evaluation,
@@ -13,31 +14,32 @@ export class REvaluationTable extends Component<REvaluationTableProps> {
   render() {
     const {totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this.props;
     return (
-      <table>
-        <thead>
-        <tr>
-          <th/>
-          {totals.map(total => (
-            <th key={total}>{total}</th>
-          ))}
-        </tr>
-        </thead>
-        <tbody>
-        <tr/>
-        <tr>
-          <th>Exactly</th>
-          {exactRoundedPercentagesEntries.map(([total, percentage]) => (
-            <td key={total}>{percentage}%</td>
-          ))}
-        </tr>
-        <tr>
-          <th>At least</th>
-          {atLeastRoundedPercentagesEntries.map(([total, percentage]) => (
-            <td key={total}>{percentage}%</td>
-          ))}
-        </tr>
-        </tbody>
-      </table>
+      <Segment style={{width: "100%", overflowX: "scroll"}}>
+        <Table definition collapsing size={"small"}>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell collapsing />
+              {totals.map(total => (
+                <Table.HeaderCell collapsing key={total}>{total}</Table.HeaderCell>
+              ))}
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            <Table.Row>
+              <Table.Cell>Exactly</Table.Cell>
+              {exactRoundedPercentagesEntries.map(([total, percentage]) => (
+                <Table.Cell key={total}>{percentage}%</Table.Cell>
+              ))}
+            </Table.Row>
+            <Table.Row>
+              <Table.Cell>At least</Table.Cell>
+              {atLeastRoundedPercentagesEntries.map(([total, percentage]) => (
+                <Table.Cell key={total}>{percentage}%</Table.Cell>
+              ))}
+            </Table.Row>
+          </Table.Body>
+        </Table>
+      </Segment>
     );
   }
 }
