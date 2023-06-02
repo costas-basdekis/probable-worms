@@ -69,4 +69,8 @@ export class EvaluationCacheCache {
     this.evaluationCacheMap.set(diceCount, new worms.EvaluationCache());
     return this.evaluationCacheMap.get(diceCount)!;
   }
+
+  set(diceCount: number, evaluationCache: worms.EvaluationCache) {
+    this.evaluationCacheMap.set(diceCount, evaluationCache);
+  }
 }

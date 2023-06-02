@@ -145,6 +145,7 @@ class SearchWorker {
   }
 
   setEvaluationCache(instance: InstanceInfo, evaluationCache: worms.EvaluationCache) {
+    this.evaluationCacheCache.set(instance.unrolledStateEvaluator.unrolledState.totalDiceCount, evaluationCache);
     instance.evaluationCache = evaluationCache;
     const evaluator = instance.unrolledStateEvaluator;
     const cacheKey = evaluator.getCacheKey();
