@@ -7,6 +7,7 @@ export class EvaluationCacheCache {
     [7, "evaluation-cache-7-dice.json"],
     [8, "evaluation-cache-8-dice.json"],
   ]);
+  hasFetchedEvaluationCacheMap: Map<number, boolean> = new Map();
   // Reusable evaluation caches
   evaluationCacheMap: Map<number, worms.EvaluationCache> = new Map();
 
@@ -36,7 +37,11 @@ export class EvaluationCacheCache {
   }
 
   shouldFetchEvaluationCache(diceCount: number): boolean {
-    return !this.evaluationCacheMap.get(diceCount)?.size && this.evaluationCacheUrlMap.has(diceCount);
+    return (
+      !this.evaluationCacheMap.get(diceCount)?.size
+      && this.evaluationCacheUrlMap.has(diceCount)
+      && !(this.hasFetchedEvaluationCacheMap.get(diceCount) ?? false)
+    );
   }
 
   shouldSetEmptyEvaluationCache(diceCount: number): boolean {
@@ -49,12 +54,15 @@ export class EvaluationCacheCache {
       return null;
     }
     const response = await fetch(`${process.env.PUBLIC_URL}/${evaluationCacheUrl}`);
+    let evaluationCache;
     try {
-      return worms.EvaluationCache.deserialiseCompressed(JSON.parse(await response.text()));
+      evaluationCache = worms.EvaluationCache.deserialiseCompressed(JSON.parse(await response.text()));
     } catch (e) {
       console.error("File was not a valid cache file");
       return null;
     }
+    this.hasFetchedEvaluationCacheMap.set(diceCount, true);
+    return evaluationCache;
   }
 
   clear(diceCount: number): worms.EvaluationCache {
