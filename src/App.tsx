@@ -67,21 +67,12 @@ export default class App extends Component<AppProps, AppState> {
         </label>
         <InitialStateModal trigger={<Button>Change</Button>} onChangeInitialState={this.onChangeInitialState} />
         <Progress percent={Math.floor(progress * 100)} progress={"percent"} indicating={searching && !searchFinished} autoSuccess />
-        {searching ? (
-          searchFinished ? (
-            <>
-              <button disabled>Search finished</button>
-              <button onClick={this.onSearchRestart}>Restart</button>
-            </>
-          ) : (
-            <button onClick={this.onSearchToggle}>Pause search</button>
-          )
-        ) : (
-          <>
-            <button onClick={this.onSearchStep} disabled={searchFinished}>Search step</button>
-            <button onClick={this.onSearchToggle}>Start search</button>
-          </>
-        )}
+        <Button.Group>
+          <Button content={"Step"} icon={"step forward"} labelPosition={"right"} onClick={this.onSearchStep} disabled={searching || searchFinished} />
+          <Button content={"Start"} icon={"play"} labelPosition={"right"} onClick={this.onSearchToggle} disabled={searching || searchFinished} />
+          <Button content={"Pause"} icon={"pause"} labelPosition={"right"} onClick={this.onSearchToggle} disabled={!searching || searchFinished} />
+          <Button content={"Restart"} icon={"undo"} labelPosition={"right"} onClick={this.onSearchRestart} disabled={!searchFinished} />
+        </Button.Group>
         <br/>
         <label>
           ({Math.floor(cacheStats.hitCount / ((cacheStats.hitCount + cacheStats.missCount) || 1) * 100)}%
