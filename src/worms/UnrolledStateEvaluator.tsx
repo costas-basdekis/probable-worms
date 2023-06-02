@@ -190,10 +190,12 @@ export class UnrolledStateEvaluator {
     if (!this.nextRolledStates.length) {
       return Evaluation.fromTotal(this.unrolledState.total);
     }
-    const totalCount = this.nextRolledStates.reduce((total, current) => total + current.count, 0);
+    const nextRolledStatesWithEvaluation = this.nextRolledStates
+      .filter(({evaluator, evaluation}) => evaluator || evaluation);
+    const totalCount = nextRolledStatesWithEvaluation.reduce(
+      (total, current) => total + current.count, 0);
     const combined = Evaluation.combineProbabilities(
-      this.nextRolledStates
-      .filter(({evaluator, evaluation}) => evaluator || evaluation)
+      nextRolledStatesWithEvaluation
       .map(({evaluator, evaluation, count}) => ({
         evaluation: evaluation ?? evaluator!.compilePartialEvaluation(),
         ratio: count / totalCount,
