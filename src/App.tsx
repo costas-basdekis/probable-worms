@@ -2,7 +2,7 @@ import React, {Component, createRef, RefObject} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {Button} from "semantic-ui-react";
+import {Button, Progress} from "semantic-ui-react";
 import {InitialStateModal, RChest, REvaluation} from "./components";
 
 const remoteSearch = RemoteSearch.default();
@@ -66,9 +66,7 @@ export default class App extends Component<AppProps, AppState> {
           <RChest chest={initialUnrolledState.chest} remainingDice={initialUnrolledState.remainingDiceCount} />
         </label>
         <InitialStateModal trigger={<Button>Change</Button>} onChangeInitialState={this.onChangeInitialState} />
-        <label>
-          Progress: {Math.floor(progress * 100)}%
-        </label>
+        <Progress percent={Math.floor(progress * 100)} progress={"percent"} indicating={searching && !searchFinished} autoSuccess />
         {searching ? (
           searchFinished ? (
             <>
