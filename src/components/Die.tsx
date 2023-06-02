@@ -33,7 +33,15 @@ class DiePips extends Component<{ face: number }> {
   }
 }
 
-export class Die extends Component<{ face: number | string, medium?: boolean, small?: boolean, tiny?: boolean, special?: boolean }> {
+export interface DieProps {
+  face?: number | string | null | undefined,
+  medium?: boolean,
+  small?: boolean,
+  tiny?: boolean,
+  special?: boolean,
+}
+
+export class Die extends Component<DieProps> {
   render() {
     const {face, medium = false, small = false, tiny = false, special = false} = this.props;
     return (
