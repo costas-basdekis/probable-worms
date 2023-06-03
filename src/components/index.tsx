@@ -1,6 +1,7 @@
 export * from "./Die";
 export * from "./DiceSelector";
 export * from "./CacheControls";
+export * from "./EvaluationControls";
 export * from "./InitialStateModal";
 export * from "./RChest";
 export * from "./REvaluation";

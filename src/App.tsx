@@ -2,8 +2,8 @@ import React, {Component} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {Accordion, Button, Icon, Label} from "semantic-ui-react";
-import {CacheControls, InitialStateModal, RChest, REvaluation, SearchControls} from "./components";
+import {Button} from "semantic-ui-react";
+import {EvaluationControls, InitialStateModal, RChest, REvaluation} from "./components";
 
 const remoteSearch = RemoteSearch.default();
 
@@ -17,7 +17,6 @@ interface AppState {
   searching: boolean,
   searchFinished: boolean,
   cacheStats: worms.EvaluationCacheStats,
-  showEvaluation: boolean,
 }
 
 export default class App extends Component<AppProps, AppState> {
@@ -28,7 +27,6 @@ export default class App extends Component<AppProps, AppState> {
     searching: false,
     searchFinished: true,
     cacheStats: {hitCount: 0, missCount: 0, entryCount: 0},
-    showEvaluation: false,
   };
 
   onSearchResult = (
@@ -56,7 +54,7 @@ export default class App extends Component<AppProps, AppState> {
 
   render() {
     const {
-      initialUnrolledState, progress, evaluation, searching, searchFinished, cacheStats, showEvaluation,
+      initialUnrolledState, progress, evaluation, searching, searchFinished, cacheStats,
     } = this.state;
     return (
       <div className="App">
@@ -66,25 +64,16 @@ export default class App extends Component<AppProps, AppState> {
           <RChest chest={initialUnrolledState.chest} remainingDice={initialUnrolledState.remainingDiceCount} />
         </label>
         <InitialStateModal trigger={<Button>Change</Button>} onChangeInitialState={this.onChangeInitialState} />
-        <Accordion>
-          <Accordion.Title index={0} active={showEvaluation} onClick={this.toggleShowEvaluation}>
-            <Icon name='dropdown' />
-            <Label color={progress === 1 ? "olive" : searching ? "yellow" : "orange"}>
-              {progress === 1 ? "Evaluation complete" : searching ? "Evaluating..." : "Evaluation paused"}
-            </Label>
-          </Accordion.Title>
-          <Accordion.Content active={showEvaluation}>
-            <SearchControls
-              progress={progress}
-              searching={searching}
-              searchFinished={searchFinished}
-              onSearchStep={this.onSearchStep}
-              onSearchToggle={this.onSearchToggle}
-              onSearchRestart={this.onSearchRestart}
-            />
-            <CacheControls cacheStats={cacheStats} searchInstance={this.searchInstance} />
-          </Accordion.Content>
-        </Accordion>
+        <EvaluationControls
+          progress={progress}
+          searching={searching}
+          searchFinished={searchFinished}
+          onSearchStep={this.onSearchStep}
+          onSearchToggle={this.onSearchToggle}
+          onSearchRestart={this.onSearchRestart}
+          cacheStats={cacheStats}
+          searchInstance={this.searchInstance}
+        />
         <REvaluation evaluation={evaluation} />
       </div>
     );
@@ -124,8 +113,4 @@ export default class App extends Component<AppProps, AppState> {
   stopSearch() {
     this.searchInstance.stopSearch();
   }
-
-  toggleShowEvaluation = () => {
-    this.setState(({showEvaluation}) => ({showEvaluation: !showEvaluation}));
-  };
 }
