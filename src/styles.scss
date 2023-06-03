@@ -176,3 +176,13 @@
     background-color: #f2711c;
   }
 }
+
+tr.table-row-exactly td {
+  --percentage: 40%;
+  background: linear-gradient(to top, #8884d8 var(--percentage), transparent var(--percentage)) no-repeat;
+}
+
+tr.table-row-at-least td {
+  --percentage: 40%;
+  background: linear-gradient(to top, #d88884 var(--percentage), transparent var(--percentage)) no-repeat;
+}

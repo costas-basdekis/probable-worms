@@ -25,16 +25,16 @@ export class REvaluationTable extends Component<REvaluationTableProps> {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          <Table.Row>
+          <Table.Row className={"table-row-exactly"}>
             <Table.Cell>Exactly</Table.Cell>
             {exactRoundedPercentagesEntries.map(([total, percentage]) => (
-              <Table.Cell key={total}>{percentage}%</Table.Cell>
+              <Table.Cell key={total} style={{"--percentage": `${percentage}%`}}>{percentage}%</Table.Cell>
             ))}
           </Table.Row>
-          <Table.Row>
+          <Table.Row className={"table-row-at-least"}>
             <Table.Cell>At least</Table.Cell>
             {atLeastRoundedPercentagesEntries.map(([total, percentage]) => (
-              <Table.Cell key={total}>{percentage}%</Table.Cell>
+              <Table.Cell key={total} style={{"--percentage": `${percentage}%`}}>{percentage}%</Table.Cell>
             ))}
           </Table.Row>
         </Table.Body>
