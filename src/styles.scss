@@ -164,3 +164,15 @@
     border: 2px solid red;
   }
 }
+
+.ui.table thead th.graded {
+  background-color: #fbbd08;
+
+  &.high {
+    background-color: #b5cc18;
+  }
+
+  &.low {
+    background-color: #f2711c;
+  }
+}

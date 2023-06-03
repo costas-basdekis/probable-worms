@@ -4,6 +4,7 @@ import _ from "underscore";
 import {REvaluationTable} from "./REvaluationTable";
 import {REvaluationChart} from "./REvaluationChart";
 import * as worms from "../worms";
+import {Label, Segment} from "semantic-ui-react";
 
 interface REvaluationProps {
   evaluation: worms.Evaluation,
@@ -68,14 +69,19 @@ export class REvaluation extends Component<REvaluationProps> {
     const {evaluation} = this.props;
     const {maxTotal, totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this;
     return <>
-      <label>Expected value: <strong>{evaluation.expectedValue.toFixed(1)}</strong></label>
-      <REvaluationTable
-        evaluation={evaluation}
-        maxTotal={maxTotal}
-        totals={totals}
-        exactRoundedPercentagesEntries={exactRoundedPercentagesEntries}
-        atLeastRoundedPercentagesEntries={atLeastRoundedPercentagesEntries}
-      />
+      <Segment style={{width: "100%", overflowX: "scroll"}}>
+        <Label attached={"top left"} color={evaluation.expectedValue > 25 ? "olive" : evaluation.expectedValue < 21 ? "orange" : "yellow"}>
+          Expected value:
+          <Label.Detail><strong>{evaluation.expectedValue.toFixed(1)}</strong></Label.Detail>
+        </Label>
+        <REvaluationTable
+          evaluation={evaluation}
+          maxTotal={maxTotal}
+          totals={totals}
+          exactRoundedPercentagesEntries={exactRoundedPercentagesEntries}
+          atLeastRoundedPercentagesEntries={atLeastRoundedPercentagesEntries}
+        />
+      </Segment>
       <REvaluationChart
         evaluation={evaluation}
         maxTotal={maxTotal}

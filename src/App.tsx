@@ -74,8 +74,6 @@ export default class App extends Component<AppProps, AppState> {
         />
         <CacheControls cacheStats={cacheStats} searchInstance={this.searchInstance} />
         <br/>
-        <label>Evaluation:</label>
-        <br/>
         <REvaluation evaluation={evaluation} />
       </div>
     );
