@@ -6,6 +6,36 @@ import {RChest} from "./RChest";
 import {DiceSelector} from "./DiceSelector";
 import {Chest, DiceRoll} from "../worms";
 
+interface InitialStateSelectorProps {
+  initialChest: worms.Chest;
+  diceCount: number;
+  remainingDice: number;
+  onDiceChange?: (roll: DiceRoll, remainingDice: number) => void,
+  onDiceCountChange?: (diceCount: number) => void,
+}
+
+export class InitialStateSelector extends Component<InitialStateSelectorProps> {
+  render() {
+    const {initialChest, diceCount, remainingDice} = this.props;
+    return <>
+      <Header>Initial Chest</Header>
+      <br/>
+      <DiceSelector counts={initialChest.diceCounts} count={diceCount} tiny onChange={this.props.onDiceChange} />
+      <label>
+        Dice count:
+        <select value={diceCount} onChange={this.onDiceCountChange}>
+          {_.range(11).map(count => <option key={count} value={count}>{count}</option>)}
+        </select>
+      </label>
+      <RChest chest={initialChest} remainingDice={remainingDice}/>
+    </>;
+  }
+
+  onDiceCountChange = ({target: {value}}: ChangeEvent<HTMLSelectElement>) => {
+    this.props.onDiceCountChange?.(parseInt(value, 10));
+  };
+}
+
 interface InitialStateModalProps {
   trigger: ReactNode,
   onChangeInitialState: (state: worms.UnrolledState) => void,
@@ -39,16 +69,13 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
       >
         <Modal.Header>Change initial state</Modal.Header>
         <Modal.Content>
-          <Header>Initial Chest</Header>
-          <br/>
-          <DiceSelector counts={initialChest.diceCounts} count={diceCount} tiny onChange={this.onDiceChange} />
-          <label>
-            Dice count:
-            <select value={diceCount} onChange={this.onDiceCountChange}>
-              {_.range(11).map(count => <option key={count} value={count}>{count}</option>)}
-            </select>
-          </label>
-          <RChest chest={initialChest} remainingDice={remainingDice}/>
+          <InitialStateSelector
+            initialChest={initialChest}
+            diceCount={diceCount}
+            remainingDice={remainingDice}
+            onDiceChange={this.onDiceChange}
+            onDiceCountChange={this.onDiceCountChange}
+          />
         </Modal.Content>
         <Modal.Actions>
           <Button color='black' onClick={this.onClose}>
@@ -87,7 +114,7 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
     });
   };
 
-  onDiceCountChange = ({target: {value}}: ChangeEvent<HTMLSelectElement>) => {
-    this.setState({diceCount: parseInt(value, 10)});
+  onDiceCountChange = (diceCount :number) => {
+    this.setState({diceCount});
   };
 }
