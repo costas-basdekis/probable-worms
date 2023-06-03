@@ -14,20 +14,20 @@ type Story = StoryObj<typeof DiceSelector>;
 export const Tiny: Story = {
   args: {
     count: 8,
-    tiny: true,
+    size: "tiny",
   },
 };
 
 export const Small: Story = {
   args: {
     count: 8,
-    small: true,
+    size: "small",
   },
 };
 
 export const Medium: Story = {
   args: {
     count: 8,
-    medium: true,
+    size: "medium",
   },
 };

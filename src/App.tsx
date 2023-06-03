@@ -61,9 +61,9 @@ export default class App extends Component<AppProps, AppState> {
         <h2>Search</h2>
         <label>
           Initial state:
-          <RChest chest={initialUnrolledState.chest} remainingDice={initialUnrolledState.remainingDiceCount} />
+          <RChest chest={initialUnrolledState.chest} remainingDice={initialUnrolledState.remainingDiceCount} size={"tiny"} />
         </label>
-        <InitialStateModal trigger={<Button>Change</Button>} onChangeInitialState={this.onChangeInitialState} />
+        <InitialStateModal size={"tiny"} trigger={<Button>Change</Button>} onChangeInitialState={this.onChangeInitialState} />
         <EvaluationControls
           progress={progress}
           searching={searching}

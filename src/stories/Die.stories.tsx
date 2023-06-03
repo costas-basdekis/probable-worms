@@ -30,20 +30,20 @@ const render = (props: Partial<DieProps>) => {
 export const Tiny: Story = {
   render,
   args: {
-    tiny: true,
+    size: "tiny",
   },
 };
 
 export const Small: Story = {
   render,
   args: {
-    small: true,
+    size: "small",
   },
 };
 
 export const Medium: Story = {
   render,
   args: {
-    medium: true,
+    size: "medium",
   },
 };

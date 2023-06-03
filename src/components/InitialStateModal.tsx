@@ -5,11 +5,10 @@ import _ from "underscore";
 import {RChest} from "./RChest";
 import {DiceSelector} from "./DiceSelector";
 import {Chest, DiceRoll} from "../worms";
+import {DieSize} from "./Die";
 
 interface InitialStateSelectorProps {
-  tiny?: boolean,
-  small?: boolean,
-  medium?: boolean,
+  size?: DieSize,
   initialChest: worms.Chest;
   diceCount: number;
   remainingDice: number;
@@ -19,19 +18,18 @@ interface InitialStateSelectorProps {
 
 export class InitialStateSelector extends Component<InitialStateSelectorProps> {
   render() {
-    const {tiny = true, small, medium, initialChest, diceCount, remainingDice} = this.props;
-    const sizeProps = {tiny, small, medium};
+    const {size, initialChest, diceCount, remainingDice} = this.props;
     return <>
       <Header>Initial Chest</Header>
       <br/>
-      <DiceSelector counts={initialChest.diceCounts} count={diceCount} {...sizeProps} onChange={this.props.onDiceChange} />
+      <DiceSelector counts={initialChest.diceCounts} count={diceCount} size={size} onChange={this.props.onDiceChange} />
       <label>
         Dice count:
         <select value={diceCount} onChange={this.onDiceCountChange}>
           {_.range(11).map(count => <option key={count} value={count}>{count}</option>)}
         </select>
       </label>
-      <RChest chest={initialChest} remainingDice={remainingDice} {...sizeProps} />
+      <RChest chest={initialChest} remainingDice={remainingDice} size={size} />
     </>;
   }
 
@@ -48,9 +46,7 @@ interface InitialStateModalState {
 }
 
 interface InitialStateModalProps {
-  tiny?: boolean,
-  small?: boolean,
-  medium?: boolean,
+  size?: DieSize,
   trigger: ReactNode,
   onChangeInitialState: (state: worms.UnrolledState) => void,
 }
@@ -65,8 +61,7 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
 
   render() {
     const {open, initialChest, diceCount, remainingDice} = this.state;
-    const {tiny = true, small, medium, trigger} = this.props;
-    const sizeProps = {tiny, small, medium};
+    const {size, trigger} = this.props;
     return (
       <Modal
         onClose={this.onClose}
@@ -83,7 +78,7 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
             remainingDice={remainingDice}
             onDiceChange={this.onDiceChange}
             onDiceCountChange={this.onDiceCountChange}
-            {...sizeProps}
+            size={size}
           />
         </Modal.Content>
         <Modal.Actions>
