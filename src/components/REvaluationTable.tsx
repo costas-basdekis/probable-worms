@@ -15,7 +15,7 @@ export class REvaluationTable extends Component<REvaluationTableProps> {
     const {totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this.props;
     return (
       <Segment style={{width: "100%", overflowX: "scroll"}}>
-        <Table definition collapsing size={"small"}>
+        <Table definition collapsing unstackable size={"small"}>
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell collapsing />
