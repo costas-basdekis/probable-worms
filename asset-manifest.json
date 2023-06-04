@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.css": "/probable-worms/static/css/main.fce0739d.css",
-    "main.js": "/probable-worms/static/js/main.9d7324bd.js",
-    "static/js/150.81e5ed05.chunk.js": "/probable-worms/static/js/150.81e5ed05.chunk.js",
+    "main.css": "/probable-worms/static/css/main.6daf61cc.css",
+    "main.js": "/probable-worms/static/js/main.82470673.js",
+    "static/js/150.f7b16085.chunk.js": "/probable-worms/static/js/150.f7b16085.chunk.js",
     "static/js/871.6b4d62fe.chunk.js": "/probable-worms/static/js/871.6b4d62fe.chunk.js",
     "static/media/brand-icons.svg": "/probable-worms/static/media/brand-icons.6729d29753e000c17489.svg",
     "static/media/icons.svg": "/probable-worms/static/media/icons.62d9dae4e0040e81c980.svg",
@@ -21,13 +21,13 @@
     "static/media/outline-icons.woff": "/probable-worms/static/media/outline-icons.ddae9b1ba9b0b42f5880.woff",
     "static/media/outline-icons.woff2": "/probable-worms/static/media/outline-icons.687a4990ea22bb1a49d4.woff2",
     "index.html": "/probable-worms/index.html",
-    "main.fce0739d.css.map": "/probable-worms/static/css/main.fce0739d.css.map",
-    "main.9d7324bd.js.map": "/probable-worms/static/js/main.9d7324bd.js.map",
-    "150.81e5ed05.chunk.js.map": "/probable-worms/static/js/150.81e5ed05.chunk.js.map",
+    "main.6daf61cc.css.map": "/probable-worms/static/css/main.6daf61cc.css.map",
+    "main.82470673.js.map": "/probable-worms/static/js/main.82470673.js.map",
+    "150.f7b16085.chunk.js.map": "/probable-worms/static/js/150.f7b16085.chunk.js.map",
     "871.6b4d62fe.chunk.js.map": "/probable-worms/static/js/871.6b4d62fe.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.fce0739d.css",
-    "static/js/main.9d7324bd.js"
+    "static/css/main.6daf61cc.css",
+    "static/js/main.82470673.js"
   ]
 }
