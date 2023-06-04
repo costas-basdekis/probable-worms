@@ -95,10 +95,13 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       <Segment>
         <Table definition collapsing unstackable size={"small"}>
           <Table.Header>
-            <Table.HeaderCell />
-            <Table.HeaderCell>Pick</Table.HeaderCell>
-            <Table.HeaderCell>Expected Value</Table.HeaderCell>
-            <Table.HeaderCell>Visible</Table.HeaderCell>
+            <Table.Row>
+              <Table.HeaderCell />
+              <Table.HeaderCell>Pick</Table.HeaderCell>
+              <Table.HeaderCell>Expected Value</Table.HeaderCell>
+              <Table.HeaderCell>Visible</Table.HeaderCell>
+              <Table.HeaderCell />
+            </Table.Row>
           </Table.Header>
           <Table.Body>
             {evaluationsAndPickedRolls.map(({evaluation, pickedRoll, pickedCount}) => (
