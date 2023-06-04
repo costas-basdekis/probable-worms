@@ -2,13 +2,14 @@ import { Chest } from "./Chest";
 import { DiceRoll } from "./DiceRoll";
 import { RolledState } from "./RolledState";
 import { RollResult } from "./RollResult";
+import {State} from "./State";
 
 export interface SerialisedUnrolledState {
   chestDice: RollResult[],
   remainingDiceCount: number,
 }
 
-export class UnrolledState {
+export class UnrolledState implements State {
   chest: Chest;
   remainingDiceCount: number;
 
@@ -33,16 +34,28 @@ export class UnrolledState {
     this.remainingDiceCount = remainingDiceCount;
   }
 
+  get pickedDice(): DiceRoll {
+    return this.chest.diceCounts.copy();
+  }
+
+  get rolledDice(): null {
+    return null;
+  }
+
+  get totalDiceCount(): number {
+    return this.chest.diceCount + this.remainingDiceCount;
+  }
+
+  get selectedDiceCount(): number {
+    return this.chest.diceCount;
+  }
+
   get total(): number {
     if (this.chest.hasWorms) {
       return this.chest.total;
     } else {
       return 0;
     }
-  }
-
-  get totalDiceCount(): number {
-    return this.chest.diceCount + this.remainingDiceCount;
   }
 
   getNextRolledStates(): {rolledState: RolledState, count: number}[] {

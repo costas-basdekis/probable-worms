@@ -1,8 +1,9 @@
 import {DiceRoll} from "./DiceRoll";
 import {RollResult} from "./RollResult";
 import {UnrolledState} from "./UnrolledState";
+import {State} from "./State";
 
-export class RolledState {
+export class RolledState implements State {
   unrolledState: UnrolledState;
   diceRoll: DiceRoll;
 
@@ -13,6 +14,22 @@ export class RolledState {
   constructor(unrolledState: UnrolledState, diceRoll: DiceRoll) {
     this.unrolledState = unrolledState;
     this.diceRoll = diceRoll;
+  }
+
+  get pickedDice(): DiceRoll {
+    return this.unrolledState.pickedDice;
+  }
+
+  get rolledDice(): DiceRoll {
+    return this.diceRoll;
+  }
+
+  get totalDiceCount(): number {
+    return this.unrolledState.totalDiceCount;
+  }
+
+  get selectedDiceCount(): number {
+    return this.unrolledState.selectedDiceCount + this.diceRoll.diceCount;
   }
 
   get total(): number {

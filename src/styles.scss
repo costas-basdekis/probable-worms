@@ -20,6 +20,10 @@
   &.selected {
     background-color: seagreen;
   }
+
+  &.disabled {
+    background-color: crimson;
+  }
 }
 
 .face {

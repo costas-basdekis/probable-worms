@@ -75,6 +75,39 @@ export class DiceRoll {
     return this;
   }
 
+  limitToCount(diceCount: number): DiceRoll {
+    if (diceCount <= this.diceCount) {
+      return this;
+    }
+    const diceRoll = new DiceRoll();
+    let remainingDiceCount = diceCount;
+    for (const roll of rollResults) {
+      const rollCount = Math.min(remainingDiceCount, this.get(roll));
+      diceRoll.counts.set(roll, rollCount);
+      remainingDiceCount -= rollCount;
+    }
+    return diceRoll;
+  }
+
+  getFaces(): RollResult[] {
+    return rollResults.filter(face => this.has(face));
+  }
+
+  getOppositeFaces(): RollResult[] {
+    return rollResults.filter(face => !this.has(face));
+  }
+
+  limitToFaces(faces: RollResult[]): DiceRoll {
+    if (!faces.some(face => this.has(face))) {
+      return this;
+    }
+    const diceRoll = new DiceRoll();
+    for (const face of faces) {
+      diceRoll.replace(face, this.get(face));
+    }
+    return diceRoll;
+  }
+
   static getNextRolls(diceCount: number): {diceRoll: DiceRoll, count: number}[] {
     const diceRollInfoByKey: Map<string, {diceRoll: DiceRoll, count: number}> = new Map();
 
