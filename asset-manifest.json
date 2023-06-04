@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/probable-worms/static/css/main.6daf61cc.css",
-    "main.js": "/probable-worms/static/js/main.82470673.js",
+    "main.css": "/probable-worms/static/css/main.0835e8a6.css",
+    "main.js": "/probable-worms/static/js/main.9d64dc70.js",
     "static/js/150.f7b16085.chunk.js": "/probable-worms/static/js/150.f7b16085.chunk.js",
     "static/js/871.6b4d62fe.chunk.js": "/probable-worms/static/js/871.6b4d62fe.chunk.js",
     "static/media/brand-icons.svg": "/probable-worms/static/media/brand-icons.6729d29753e000c17489.svg",
@@ -21,13 +21,13 @@
     "static/media/outline-icons.woff": "/probable-worms/static/media/outline-icons.ddae9b1ba9b0b42f5880.woff",
     "static/media/outline-icons.woff2": "/probable-worms/static/media/outline-icons.687a4990ea22bb1a49d4.woff2",
     "index.html": "/probable-worms/index.html",
-    "main.6daf61cc.css.map": "/probable-worms/static/css/main.6daf61cc.css.map",
-    "main.82470673.js.map": "/probable-worms/static/js/main.82470673.js.map",
+    "main.0835e8a6.css.map": "/probable-worms/static/css/main.0835e8a6.css.map",
+    "main.9d64dc70.js.map": "/probable-worms/static/js/main.9d64dc70.js.map",
     "150.f7b16085.chunk.js.map": "/probable-worms/static/js/150.f7b16085.chunk.js.map",
     "871.6b4d62fe.chunk.js.map": "/probable-worms/static/js/871.6b4d62fe.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.6daf61cc.css",
-    "static/js/main.82470673.js"
+    "static/css/main.0835e8a6.css",
+    "static/js/main.9d64dc70.js"
   ]
 }
