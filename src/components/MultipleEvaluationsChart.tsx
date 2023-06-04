@@ -101,6 +101,7 @@ class CustomizedDot extends Component<DotProps & CustomizedDotProps> {
 
 interface MultipleEvaluationsChartProps {
   evaluationsByPickedRoll: Map<worms.RollResult, worms.Evaluation>,
+  diceCount: number,
   maxTotal: number,
   totals: number[],
   exactRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
@@ -141,25 +142,26 @@ export class MultipleEvaluationsChart extends Component<MultipleEvaluationsChart
 
   render() {
     const {chartData} = this;
-    const {evaluationsByPickedRoll, visibleRollPicks} = this.props;
+    const {evaluationsByPickedRoll, diceCount, visibleRollPicks} = this.props;
     return (
       <LineChart className={"probabilities-chart"} width={600} height={300} data={chartData}>
         {Array.from(evaluationsByPickedRoll.keys()).filter(roll => visibleRollPicks?.includes(roll) ?? true).map(roll => (
-          <Line key={`exactlyWith${roll}`} type={"monotone"} dataKey={`exactlyWith${roll}`} stroke={"#8884d8"} isAnimationActive={false} dot={<CustomizedDot />}/>
+          <Line yAxisId={"percentage"} key={`exactlyWith${roll}`} type={"monotone"} dataKey={`exactlyWith${roll}`} stroke={"#8884d8"} isAnimationActive={false} dot={<CustomizedDot />}/>
         ))}
         {Array.from(evaluationsByPickedRoll.keys()).filter(roll => visibleRollPicks?.includes(roll) ?? true).map(roll => (
-          <Line key={`atLeastWith${roll}`} type={"monotone"} dataKey={`atLeastWith${roll}`} stroke={"#d88884"} isAnimationActive={false} dot={<CustomizedDot />}/>
+          <Line yAxisId={"percentage"} key={`atLeastWith${roll}`} type={"monotone"} dataKey={`atLeastWith${roll}`} stroke={"#d88884"} isAnimationActive={false} dot={<CustomizedDot />}/>
         ))}
         {Array.from(evaluationsByPickedRoll.keys()).filter(roll => visibleRollPicks?.includes(roll) ?? true).map(roll => (
-          <Line key={`expectedValueOfAtLeastWith${roll}`} type={"monotone"} dataKey={`expectedValueOfAtLeastWith${roll}`} stroke={"#88d884"} isAnimationActive={false} dot={<CustomizedDot />}/>
+          <Line yAxisId={"expected-value"} key={`expectedValueOfAtLeastWith${roll}`} type={"monotone"} dataKey={`expectedValueOfAtLeastWith${roll}`} stroke={"#88d884"} isAnimationActive={false} dot={<CustomizedDot />}/>
         ))}
         <CartesianGrid stroke={"#ccc"} strokeDasharray={"5 5"}/>
         <XAxis dataKey={"total"}/>
-        <YAxis/>
+        <YAxis yAxisId={"percentage"} domain={[0, 100]} />
+        <YAxis yAxisId={"expected-value"} orientation={"right"} domain={[0, diceCount * 5]} />
         <Tooltip content={<MultipleEvaluationsChartTooltip/>}/>
         {/*<Legend width={100} wrapperStyle={this.legendWrapperStyle} formatter={this.formatLegend} />*/}
         {Array.from(evaluationsByPickedRoll.entries()).filter(([roll]) => visibleRollPicks?.includes(roll) ?? true).map(([roll, evaluation]) => (
-          <ReferenceLine key={roll} x={Math.floor(evaluation.expectedValue)} stroke={"green"} label={`${roll}`}/>
+          <ReferenceLine yAxisId={"percentage"} key={roll} x={Math.floor(evaluation.expectedValue)} stroke={"green"} label={`${roll}`}/>
         ))}
       </LineChart>
     );

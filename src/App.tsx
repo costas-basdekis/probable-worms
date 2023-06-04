@@ -85,7 +85,7 @@ export default class App extends Component<AppProps, AppState> {
           cacheStats={cacheStats}
           searchInstance={this.searchInstance}
         />
-        <REvaluation evaluation={evaluation} />
+        <REvaluation evaluation={evaluation} diceCount={state.totalDiceCount} />
         {dicePickEvaluations ? <>
           <MultipleEvaluations
             rolledState={state as worms.RolledState}

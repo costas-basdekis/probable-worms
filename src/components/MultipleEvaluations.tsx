@@ -111,7 +111,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       expectedValueOfAtLeastRoundedEntriesByPickedRolls,
     } = this;
     const {visibleRollPicks} = this.state;
-    const {evaluationsAndPickedRolls} = this.props;
+    const {rolledState, evaluationsAndPickedRolls} = this.props;
     return <>
       <Segment>
         <Table definition collapsing unstackable size={"small"}>
@@ -139,6 +139,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       </Segment>
       <MultipleEvaluationsChart
         evaluationsByPickedRoll={evaluationsByPickedRoll}
+        diceCount={rolledState.totalDiceCount}
         maxTotal={maxTotal}
         totals={totals}
         exactRoundedPercentagesEntriesByPickedRolls={exactRoundedPercentagesEntriesByPickedRolls}

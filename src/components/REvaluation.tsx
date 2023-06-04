@@ -8,6 +8,7 @@ import {Label, Segment} from "semantic-ui-react";
 
 interface REvaluationProps {
   evaluation: worms.Evaluation,
+  diceCount: number,
 }
 
 export class REvaluation extends Component<REvaluationProps> {
@@ -79,7 +80,7 @@ export class REvaluation extends Component<REvaluationProps> {
   }
 
   render() {
-    const {evaluation} = this.props;
+    const {evaluation, diceCount} = this.props;
     const {maxTotal, totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries, expectedValueOfAtLeastRoundedEntries} = this;
     return <>
       <Segment style={{width: "100%", overflowX: "scroll"}}>
@@ -98,6 +99,7 @@ export class REvaluation extends Component<REvaluationProps> {
       </Segment>
       <REvaluationChart
         evaluation={evaluation}
+        diceCount={diceCount}
         maxTotal={maxTotal}
         totals={totals}
         exactRoundedPercentagesEntries={exactRoundedPercentagesEntries}

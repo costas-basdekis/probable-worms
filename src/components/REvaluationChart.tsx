@@ -41,6 +41,7 @@ class REvaluationChartTooltip extends Component<TooltipProps<number, number>> {
 
 interface REvaluationChartProps {
   evaluation: worms.Evaluation,
+  diceCount: number,
   maxTotal: number,
   totals: number[],
   exactRoundedPercentagesEntries: [number, number][],
@@ -86,18 +87,19 @@ export class REvaluationChart extends Component<REvaluationChartProps> {
 
   render() {
     const {chartData} = this;
-    const {evaluation} = this.props;
+    const {evaluation, diceCount} = this.props;
     return (
       <LineChart className={"probabilities-chart"} width={600} height={450} data={chartData}>
-        <Line type={"monotone"} dataKey={"exactly"} stroke={"#8884d8"} isAnimationActive={false}/>
-        <Line type={"monotone"} dataKey={"atLeast"} stroke={"#d88884"} isAnimationActive={false}/>
-        <Line type={"monotone"} dataKey={"expectedValueOfAtLeast"} stroke={"#88d884"} isAnimationActive={false}/>
+        <Line yAxisId={"percentage"} type={"monotone"} dataKey={"exactly"} stroke={"#8884d8"} isAnimationActive={false}/>
+        <Line yAxisId={"percentage"} type={"monotone"} dataKey={"atLeast"} stroke={"#d88884"} isAnimationActive={false}/>
+        <Line yAxisId={"expected-value"} type={"monotone"} dataKey={"expectedValueOfAtLeast"} stroke={"#88d884"} isAnimationActive={false}/>
         <CartesianGrid stroke={"#ccc"} strokeDasharray={"5 5"}/>
         <XAxis dataKey={"total"}/>
-        <YAxis/>
+        <YAxis yAxisId={"percentage"} domain={[0, 100]} />
+        <YAxis yAxisId={"expected-value"} orientation={"right"} domain={[0, diceCount * 5]} />
         <Tooltip content={<REvaluationChartTooltip/>}/>
         <Legend width={100} wrapperStyle={this.legendWrapperStyle} formatter={this.formatLegend}/>
-        <ReferenceLine x={Math.floor(evaluation.expectedValue)} stroke={"green"} label={"EV"}/>
+        <ReferenceLine yAxisId={"percentage"} x={Math.floor(evaluation.expectedValue)} stroke={"green"} label={"EV"}/>
       </LineChart>
     );
   }
