@@ -1,7 +1,7 @@
 import React, {Component, FormEvent} from "react";
 import {createSelector} from "reselect";
 import _ from "underscore";
-import {MultipleEvaluationsChart} from "./MultipleEvaluationsChart";
+import {ChartLineName, MultipleEvaluationsChart} from "./MultipleEvaluationsChart";
 import * as worms from "../worms";
 import {Button, Checkbox, Segment, Table} from "semantic-ui-react";
 import {RChest} from "./RChest";
@@ -15,11 +15,13 @@ interface MultipleEvaluationsProps {
 
 interface MultipleEvaluationsState{
   visibleRollPicks: worms.RollResult[],
+  visibleChartLines: ChartLineName[],
 }
 
 export class MultipleEvaluations extends Component<MultipleEvaluationsProps, MultipleEvaluationsState> {
-  state = {
+  state: MultipleEvaluationsState = {
     visibleRollPicks: worms.rollResults,
+    visibleChartLines: ["exactly", "at-least", "expected-value-of-at-least"],
   };
 
   evaluationsByPickedRollSelector = createSelector(
@@ -110,7 +112,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
       expectedValueOfAtLeastRoundedEntriesByPickedRolls,
     } = this;
-    const {visibleRollPicks} = this.state;
+    const {visibleRollPicks, visibleChartLines} = this.state;
     const {rolledState, evaluationsAndPickedRolls} = this.props;
     return <>
       <Segment>
@@ -136,6 +138,22 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
             ))}
           </Table.Body>
         </Table>
+        <Table collapsing unstackable size={"small"}>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>Show Exactly lines</Table.HeaderCell>
+              <Table.HeaderCell>Show At Least lines</Table.HeaderCell>
+              <Table.HeaderCell>Show EV of At Least Lines</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            <Table.Row>
+              <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("exactly")} onChange={this.makeOnChartLineVisibleChange("exactly")}/></Table.Cell>
+              <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("at-least")} onChange={this.makeOnChartLineVisibleChange("at-least")}/></Table.Cell>
+              <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("expected-value-of-at-least")} onChange={this.makeOnChartLineVisibleChange("expected-value-of-at-least")}/></Table.Cell>
+            </Table.Row>
+          </Table.Body>
+        </Table>
       </Segment>
       <MultipleEvaluationsChart
         evaluationsByPickedRoll={evaluationsByPickedRoll}
@@ -146,6 +164,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
         atLeastRoundedPercentagesEntriesByPickedRolls={atLeastRoundedPercentagesEntriesByPickedRolls}
         expectedValueOfAtLeastRoundedEntriesByPickedRolls={expectedValueOfAtLeastRoundedEntriesByPickedRolls}
         visibleRollPicks={visibleRollPicks}
+        visibleChartLines={visibleChartLines}
       />
     </>;
   }
@@ -167,6 +186,20 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
   makeOnContinueFromHere(pickedRoll: worms.RollResult): () => void {
     return () => {
       this.props.onSetUnrolledState?.(this.props.rolledState.pick(pickedRoll));
+    };
+  }
+
+  makeOnChartLineVisibleChange(chartLine: ChartLineName): (ev: FormEvent<HTMLInputElement>, data: CheckboxProps) => void {
+    return (_ev: FormEvent<HTMLInputElement>, {checked}) => {
+      this.setState(({visibleChartLines}) => {
+        if (checked && !visibleChartLines.includes(chartLine)) {
+          return {visibleChartLines: [...visibleChartLines, chartLine]};
+        } else if (!checked && visibleChartLines.includes(chartLine)) {
+          return {visibleChartLines: visibleChartLines.filter(otherChartLine => otherChartLine !== chartLine)};
+        } else {
+          return null;
+        }
+      });
     };
   }
 }
