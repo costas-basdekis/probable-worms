@@ -65,9 +65,22 @@ export class REvaluation extends Component<REvaluationProps> {
     return this.atLeastRoundedPercentagesEntriesSelector(this.props);
   }
 
+  expectedValueOfAtLeastRoundedEntriesSelector = createSelector(
+    ({evaluation}: REvaluationProps) => evaluation,
+    this.totalsSelector,
+    (evaluation, totals): [number, number][] => {
+      return totals.map(
+        total => [total, total === 0 ? Math.floor(evaluation.expectedValue) : Math.floor(evaluation.expectedValueOfAtLeast.get(total) || 0)])
+    },
+  );
+
+  get expectedValueOfAtLeastRoundedEntries(): [number, number][] {
+    return this.expectedValueOfAtLeastRoundedEntriesSelector(this.props);
+  }
+
   render() {
     const {evaluation} = this.props;
-    const {maxTotal, totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this;
+    const {maxTotal, totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries, expectedValueOfAtLeastRoundedEntries} = this;
     return <>
       <Segment style={{width: "100%", overflowX: "scroll"}}>
         <Label attached={"top left"} color={evaluation.expectedValue > 25 ? "olive" : evaluation.expectedValue < 21 ? "orange" : "yellow"}>
@@ -80,6 +93,7 @@ export class REvaluation extends Component<REvaluationProps> {
           totals={totals}
           exactRoundedPercentagesEntries={exactRoundedPercentagesEntries}
           atLeastRoundedPercentagesEntries={atLeastRoundedPercentagesEntries}
+          expectedValueOfAtLeastRoundedEntries={expectedValueOfAtLeastRoundedEntries}
         />
       </Segment>
       <REvaluationChart
@@ -88,6 +102,7 @@ export class REvaluation extends Component<REvaluationProps> {
         totals={totals}
         exactRoundedPercentagesEntries={exactRoundedPercentagesEntries}
         atLeastRoundedPercentagesEntries={atLeastRoundedPercentagesEntries}
+        expectedValueOfAtLeastRoundedEntries={expectedValueOfAtLeastRoundedEntries}
       />
     </>;
   }

@@ -89,8 +89,27 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
     return this.atLeastRoundedPercentagesEntriesByPickedRollsSelector(this.props);
   }
 
+  expectedValueOfAtLeastRoundedEntriesByPickedRollsSelector = createSelector(
+    ({evaluationsAndPickedRolls}: MultipleEvaluationsProps) => evaluationsAndPickedRolls,
+    this.totalsSelector,
+    (evaluationsAndPickedRolls, totals): Map<worms.RollResult, [number, number][]> => {
+      return new Map(evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => [
+        pickedRoll,
+        totals.map(total => [total, Math.floor(evaluation.expectedValueOfAtLeast.get(total) || 0)]),
+      ]));
+    },
+  );
+
+  get expectedValueOfAtLeastRoundedEntriesByPickedRolls(): Map<worms.RollResult, [number, number][]> {
+    return this.expectedValueOfAtLeastRoundedEntriesByPickedRollsSelector(this.props);
+  }
+
   render() {
-    const {evaluationsByPickedRoll, maxTotal, totals, exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls} = this;
+    const {
+      evaluationsByPickedRoll, maxTotal, totals,
+      exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
+      expectedValueOfAtLeastRoundedEntriesByPickedRolls,
+    } = this;
     const {visibleRollPicks} = this.state;
     const {evaluationsAndPickedRolls} = this.props;
     return <>
@@ -124,6 +143,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
         totals={totals}
         exactRoundedPercentagesEntriesByPickedRolls={exactRoundedPercentagesEntriesByPickedRolls}
         atLeastRoundedPercentagesEntriesByPickedRolls={atLeastRoundedPercentagesEntriesByPickedRolls}
+        expectedValueOfAtLeastRoundedEntriesByPickedRolls={expectedValueOfAtLeastRoundedEntriesByPickedRolls}
         visibleRollPicks={visibleRollPicks}
       />
     </>;

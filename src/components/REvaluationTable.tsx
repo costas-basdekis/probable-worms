@@ -9,11 +9,12 @@ interface REvaluationTableProps {
   totals: number[],
   exactRoundedPercentagesEntries: [number, number][],
   atLeastRoundedPercentagesEntries: [number, number][],
+  expectedValueOfAtLeastRoundedEntries: [number, number][],
 }
 
 export class REvaluationTable extends Component<REvaluationTableProps> {
   render() {
-    const {totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries} = this.props;
+    const {totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries, expectedValueOfAtLeastRoundedEntries} = this.props;
     return (
       <Table definition collapsing unstackable size={"small"}>
         <Table.Header>
@@ -35,6 +36,12 @@ export class REvaluationTable extends Component<REvaluationTableProps> {
             <Table.Cell>At least</Table.Cell>
             {atLeastRoundedPercentagesEntries.map(([total, percentage]) => (
               <Table.Cell key={total} style={{"--percentage": `${percentage}%`}}>{percentage}%</Table.Cell>
+            ))}
+          </Table.Row>
+          <Table.Row className={"table-row-expected-value-of-at-least"}>
+            <Table.Cell>EV of At least</Table.Cell>
+            {expectedValueOfAtLeastRoundedEntries.map(([total, expectedValue]) => (
+              <Table.Cell key={total} style={{"--percentage": `${expectedValue}%`}}>{expectedValue}</Table.Cell>
             ))}
           </Table.Row>
         </Table.Body>

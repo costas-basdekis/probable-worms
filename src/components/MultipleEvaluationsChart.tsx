@@ -14,10 +14,13 @@ class MultipleEvaluationsChartTooltip extends Component<TooltipProps<number, str
     const rollsIncluded = worms.rollResults.filter(roll => payload.some(({dataKey}) => dataKey === `exactlyWith${roll}`));
     const exactlyValues = payload.filter(({dataKey, value}) => typeof dataKey === "string" && dataKey.includes("exactly") && value !== undefined).map(({value}) => value as number);
     const atLeastValues = payload.filter(({dataKey, value}) => typeof dataKey === "string" && dataKey.includes("atLeast") && value !== undefined).map(({value}) => value as number);
+    const expectedValueOfAtLeastValues = payload.filter(({dataKey, value}) => typeof dataKey === "string" && dataKey.includes("expectedValueOfAtLeastWith") && value !== undefined).map(({value}) => value as number);
     const minExactlyValue = Math.min(...exactlyValues);
     const maxExactlyValue = Math.max(...exactlyValues);
     const minAtLeastValue = Math.min(...atLeastValues);
     const maxAtLeastValue = Math.max(...atLeastValues);
+    const minExpectedValueOfAtLeastValue = Math.min(...expectedValueOfAtLeastValues);
+    const maxExpectedValueOfAtLeastValue = Math.max(...expectedValueOfAtLeastValues);
     return (
       <div className={"custom-tooltip recharts-default-tooltip"}>
         <p className={"recharts-tooltip-label"}>Result: {label}</p>
@@ -29,10 +32,12 @@ class MultipleEvaluationsChartTooltip extends Component<TooltipProps<number, str
                 const isBest = (
                   payload.some(({dataKey, value}) => dataKey === `exactlyWith${roll}` && value === maxExactlyValue)
                   && payload.some(({dataKey, value}) => dataKey === `atLeastWith${roll}` && value === maxAtLeastValue)
+                  && payload.some(({dataKey, value}) => dataKey === `expectedValueOfAtLeastWith${roll}` && value === maxExpectedValueOfAtLeastValue)
                 );
                 const isWorst = (
                   payload.some(({dataKey, value}) => dataKey === `exactlyWith${roll}` && value === minExactlyValue)
                   && payload.some(({dataKey, value}) => dataKey === `atLeastWith${roll}` && value === minAtLeastValue)
+                  && payload.some(({dataKey, value}) => dataKey === `expectedValueOfAtLeastWith$${roll}` && value === minExpectedValueOfAtLeastValue)
                 );
                 return (
                   <th key={roll} className={classNames({"best-multi-value": isBest, "worst-multi-value": isWorst})}>{roll}</th>
@@ -56,6 +61,15 @@ class MultipleEvaluationsChartTooltip extends Component<TooltipProps<number, str
                 const value = payload.find(({dataKey}) => dataKey === `atLeastWith${roll}`)?.value;
                 return (
                   <td key={roll} className={classNames({"best-multi-value": value === maxAtLeastValue, "worst-multi-value": value === minAtLeastValue})}>{value ?? ""}</td>
+                );
+              })}
+            </tr>
+            <tr>
+              <th style={{color: "#88d884"}}>EV of At least</th>
+              {rollsIncluded.map(roll => {
+                const value = payload.find(({dataKey}) => dataKey === `expectedValueOfAtLeastWith${roll}`)?.value;
+                return (
+                  <td key={roll} className={classNames({"best-multi-value": value === maxExpectedValueOfAtLeastValue, "worst-multi-value": value === minExpectedValueOfAtLeastValue})}>{value ?? ""}</td>
                 );
               })}
             </tr>
@@ -91,6 +105,7 @@ interface MultipleEvaluationsChartProps {
   totals: number[],
   exactRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   atLeastRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
+  expectedValueOfAtLeastRoundedEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   visibleRollPicks?: worms.RollResult[],
 }
 
@@ -98,6 +113,7 @@ interface ChartDataEntry {
   total: number,
   exactlyWith1: number, exactlyWith2: number, exactlyWith3: number, exactlyWith4: number, exactlyWith5: number, exactlyWithW: number,
   atLeastWith1: number, atLeastWith2: number, atLeastWith3: number, atLeastWith4: number, atLeastWith5: number, atLeastWithW: number,
+  expectedValueOfAtLeastWith1: number, expectedValueOfAtLeastWith2: number, expectedValueOfAtLeastWith3: number, expectedValueOfAtLeastWith4: number, expectedValueOfAtLeastWith5: number, expectedValueOfAtLeastWithW: number,
 }
 
 export class MultipleEvaluationsChart extends Component<MultipleEvaluationsChartProps> {
@@ -105,11 +121,16 @@ export class MultipleEvaluationsChart extends Component<MultipleEvaluationsChart
     ({totals}: MultipleEvaluationsChartProps) => totals,
     ({exactRoundedPercentagesEntriesByPickedRolls}: MultipleEvaluationsChartProps) => exactRoundedPercentagesEntriesByPickedRolls,
     ({atLeastRoundedPercentagesEntriesByPickedRolls}: MultipleEvaluationsChartProps) => atLeastRoundedPercentagesEntriesByPickedRolls,
-    (totals, exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls): ChartDataEntry[] => {
+    ({expectedValueOfAtLeastRoundedEntriesByPickedRolls}: MultipleEvaluationsChartProps) => expectedValueOfAtLeastRoundedEntriesByPickedRolls,
+    (
+      totals, exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
+      expectedValueOfAtLeastRoundedEntriesByPickedRolls,
+    ): ChartDataEntry[] => {
       return totals.map(total => ({
         total,
         ...Object.fromEntries(worms.rollResults.map(roll => [`exactlyWith${roll}`, exactRoundedPercentagesEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0])),
         ...Object.fromEntries(worms.rollResults.map(roll => [`atLeastWith${roll}`, atLeastRoundedPercentagesEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0])),
+        ...Object.fromEntries(worms.rollResults.map(roll => [`expectedValueOfAtLeastWith${roll}`, expectedValueOfAtLeastRoundedEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0])),
       } as ChartDataEntry));
     },
   );
@@ -128,6 +149,9 @@ export class MultipleEvaluationsChart extends Component<MultipleEvaluationsChart
         ))}
         {Array.from(evaluationsByPickedRoll.keys()).filter(roll => visibleRollPicks?.includes(roll) ?? true).map(roll => (
           <Line key={`atLeastWith${roll}`} type={"monotone"} dataKey={`atLeastWith${roll}`} stroke={"#d88884"} isAnimationActive={false} dot={<CustomizedDot />}/>
+        ))}
+        {Array.from(evaluationsByPickedRoll.keys()).filter(roll => visibleRollPicks?.includes(roll) ?? true).map(roll => (
+          <Line key={`expectedValueOfAtLeastWith${roll}`} type={"monotone"} dataKey={`expectedValueOfAtLeastWith${roll}`} stroke={"#88d884"} isAnimationActive={false} dot={<CustomizedDot />}/>
         ))}
         <CartesianGrid stroke={"#ccc"} strokeDasharray={"5 5"}/>
         <XAxis dataKey={"total"}/>

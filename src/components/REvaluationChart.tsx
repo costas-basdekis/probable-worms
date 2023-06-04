@@ -11,7 +11,7 @@ class REvaluationChartTooltip extends Component<TooltipProps<number, number>> {
     if (!active) {
       return null;
     }
-    const [exactlyPayload, atLeastPayload] = payload!;
+    const [exactlyPayload, atLeastPayload, expectedValueOfAtLeastPayload] = payload!;
     return (
       <div className={"custom-tooltip recharts-default-tooltip"}>
         <p className={"recharts-tooltip-label"}>Result: {label}</p>
@@ -28,6 +28,11 @@ class REvaluationChartTooltip extends Component<TooltipProps<number, number>> {
             <span className={"recharts-tooltip-item-value"}>{atLeastPayload.value}</span>
             <span className={"recharts-tooltip-item-unit"}>%</span>
           </li>
+          <li className={"recharts-tooltip-item"} style={{color: expectedValueOfAtLeastPayload.color}}>
+            <span className={"recharts-tooltip-item-name"}>EV of At least {label}</span>
+            <span className={"recharts-tooltip-item-separator"}>: </span>
+            <span className={"recharts-tooltip-item-value"}>{expectedValueOfAtLeastPayload.value}</span>
+          </li>
         </ul>
       </div>
     );
@@ -40,6 +45,14 @@ interface REvaluationChartProps {
   totals: number[],
   exactRoundedPercentagesEntries: [number, number][],
   atLeastRoundedPercentagesEntries: [number, number][],
+  expectedValueOfAtLeastRoundedEntries: [number, number][],
+}
+
+interface ChardDataEntry {
+  total: number;
+  exactly: number;
+  atLeast: number;
+  expectedValueOfAtLeast: number;
 }
 
 export class REvaluationChart extends Component<REvaluationChartProps> {
@@ -56,16 +69,18 @@ export class REvaluationChart extends Component<REvaluationChartProps> {
     ({totals}: REvaluationChartProps) => totals,
     ({exactRoundedPercentagesEntries}: REvaluationChartProps) => exactRoundedPercentagesEntries,
     ({atLeastRoundedPercentagesEntries}: REvaluationChartProps) => atLeastRoundedPercentagesEntries,
-    (totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries): { total: number, exactly: number, atLeast: number }[] => {
+    ({expectedValueOfAtLeastRoundedEntries}: REvaluationChartProps) => expectedValueOfAtLeastRoundedEntries,
+    (totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries, expectedValueOfAtLeastRoundedEntries): ChardDataEntry[] => {
       return totals.map(total => ({
         total,
         exactly: exactRoundedPercentagesEntries[total][1],
         atLeast: atLeastRoundedPercentagesEntries[total][1],
+        expectedValueOfAtLeast: expectedValueOfAtLeastRoundedEntries[total][1],
       }));
     },
   );
 
-  get chartData(): { total: number, exactly: number, atLeast: number }[] {
+  get chartData(): ChardDataEntry[] {
     return this.chartDataSelector(this.props);
   }
 
@@ -73,9 +88,10 @@ export class REvaluationChart extends Component<REvaluationChartProps> {
     const {chartData} = this;
     const {evaluation} = this.props;
     return (
-      <LineChart className={"probabilities-chart"} width={600} height={300} data={chartData}>
+      <LineChart className={"probabilities-chart"} width={600} height={450} data={chartData}>
         <Line type={"monotone"} dataKey={"exactly"} stroke={"#8884d8"} isAnimationActive={false}/>
         <Line type={"monotone"} dataKey={"atLeast"} stroke={"#d88884"} isAnimationActive={false}/>
+        <Line type={"monotone"} dataKey={"expectedValueOfAtLeast"} stroke={"#88d884"} isAnimationActive={false}/>
         <CartesianGrid stroke={"#ccc"} strokeDasharray={"5 5"}/>
         <XAxis dataKey={"total"}/>
         <YAxis/>
@@ -86,7 +102,7 @@ export class REvaluationChart extends Component<REvaluationChartProps> {
     );
   }
 
-  legendLabels: { [key: string]: string } = {exactly: "Exactly", atLeast: "At least"};
+  legendLabels: { [key: string]: string } = {exactly: "Exactly", atLeast: "At least", expectedValueOfAtLeast: "EV of At Least"};
 
   formatLegend = (value: string, entry: {
     value: number;
