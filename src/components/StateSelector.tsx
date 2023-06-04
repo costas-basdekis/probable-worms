@@ -1,5 +1,5 @@
 import React, {ChangeEvent, Component} from "react";
-import {Grid, Header} from "semantic-ui-react";
+import {Button, Grid, Header} from "semantic-ui-react";
 import {DiceSelector} from "./DiceSelector";
 import _ from "underscore";
 import {RChest} from "./RChest";
@@ -60,16 +60,24 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
               </select>
             </label>
             <RChest chest={unrolledChest} remainingDice={unrolledDiceCount} size={size}/>
+            <br/>
+            <Button size={"small"} color={"red"} onClick={this.onUnrolledClear}>Clear</Button>
           </Grid.Column>
           <Grid.Column>
             <Header>Roll</Header>
             <br/>
             <DiceSelector excludedFaces={pickedDice.getFaces()} counts={rolledDice} count={unrolledDiceCount} size={size} onChange={this.onRolledDiceChange}/>
             <RChest chest={Chest.fromDiceRoll(rolledDice)} remainingDice={unrolledDiceCount - rolledDice.diceCount} size={size}/>
+            <br/>
+            <Button size={"small"} color={"red"} onClick={this.onRolledClear}>Clear</Button>
           </Grid.Column>
         </Grid.Row>
         <Grid.Row>
-          <RState size={size} state={state} />
+          <div>
+            <RState size={size} state={state} />
+            <br/>
+            <Button size={"small"} color={"red"} onClick={this.onClear}>Clear</Button>
+          </div>
         </Grid.Row>
       </Grid>
     );
@@ -104,7 +112,7 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
     }, this.triggerOnStateChange);
   };
 
-  triggerOnStateChange = () => {
+  triggerOnStateChange = (): boolean => {
     const {unrolledChest} = this;
     const {unrolledDiceCount, rolledDice} = this.state;
     const rolledDiceCount = rolledDice.diceCount;
@@ -118,7 +126,9 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
       }
       this.props.onStateChange?.(state);
       this.setState({state});
+      return true;
     }
+    return false;
   }
 
   updateState(state: State) {
@@ -130,4 +140,29 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
       state: state,
     });
   }
+
+  onUnrolledClear = () => {
+    this.setState({
+      pickedDice: new DiceRoll(),
+      unrolledDiceCount: this.state.diceCount,
+      state: new UnrolledState(Chest.initial(), this.state.diceCount),
+    }, () => {
+      if (!this.triggerOnStateChange()) {
+        this.props.onStateChange?.(this.state.state);
+      }
+    });
+  };
+
+  onRolledClear = () => {
+    this.setState({
+      rolledDice: new DiceRoll(),
+    }, this.triggerOnStateChange);
+  };
+
+  onClear = () => {
+    this.setState({
+      pickedDice: new DiceRoll(),
+      rolledDice: new DiceRoll(),
+    }, this.triggerOnStateChange);
+  };
 }
