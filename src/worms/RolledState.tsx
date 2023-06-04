@@ -3,6 +3,11 @@ import {RollResult} from "./RollResult";
 import {UnrolledState} from "./UnrolledState";
 import {IState} from "./IState";
 
+export interface SerialisedRolledState {
+  chestDice: RollResult[],
+  rolledDice: RollResult[],
+}
+
 type RolledStateType = "rolled";
 
 export class RolledState implements IState {
@@ -12,6 +17,10 @@ export class RolledState implements IState {
 
   static fromDice(chestDice: RollResult[], rolledDice: RollResult[]): RolledState {
     return new RolledState(UnrolledState.fromDice(chestDice, rolledDice.length), DiceRoll.fromDice(rolledDice));
+  }
+
+  static deserialise(serialised: SerialisedRolledState): RolledState {
+    return RolledState.fromDice(serialised.chestDice, serialised.rolledDice);
   }
 
   constructor(unrolledState: UnrolledState, diceRoll: DiceRoll) {
@@ -47,5 +56,12 @@ export class RolledState implements IState {
       return [this.unrolledState.finished()];
     }
     return nextUnrolledStates;
+  }
+
+  serialise(): SerialisedRolledState {
+    return {
+      chestDice: this.unrolledState.chest.dice,
+      rolledDice: this.rolledDice.dice,
+    };
   }
 }

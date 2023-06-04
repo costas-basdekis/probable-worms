@@ -1,9 +1,16 @@
 import * as worms from "./worms";
 
 export interface SetUnrolledStateSearchRequestMessage {
-  type: "set-unrolled-state",
+  type: "set-state",
   id: number,
+  stateType: "unrolled",
   state: worms.SerialisedUnrolledState,
+}
+export interface SetRolledStateSearchRequestMessage {
+  type: "set-state",
+  id: number,
+  stateType: "rolled",
+  state: worms.SerialisedRolledState,
 }
 export interface StepSearchRequestMessage {
   type: "step",
@@ -35,7 +42,8 @@ export interface ClearEvaluationCacheRequestMessage {
   id: number,
 }
 export type SearchRequestMessage = (
-  SetUnrolledStateSearchRequestMessage
+  | SetUnrolledStateSearchRequestMessage
+  | SetRolledStateSearchRequestMessage
   | StepSearchRequestMessage
   | StartSearchRequestMessage
   | StopSearchRequestMessage
@@ -60,7 +68,7 @@ export interface EvaluationCacheLinkResponseMessage {
   link: string,
 }
 export type SearchResponseMessage = (
-  ResultSearchResponseMessage
+  | ResultSearchResponseMessage
   | EvaluationCacheLinkResponseMessage
 );
 
@@ -128,11 +136,34 @@ export class RemoteSearch {
     this.worker.postMessage(message);
   }
 
+  setSearchState(instance: SearchInstance, state: worms.State) {
+    switch (state.type) {
+      case "unrolled":
+        this.setSearchUnrolledState(instance, state);
+        break;
+      case "rolled":
+        this.setSearchRolledState(instance, state);
+        break;
+      default:
+        throw new Error("Unknown state type");
+    }
+  }
+
   setSearchUnrolledState(instance: SearchInstance, unrolledState: worms.UnrolledState) {
     this.postMessage({
-      type: "set-unrolled-state",
+      type: "set-state",
       id: instance.id,
+      stateType: "unrolled",
       state: unrolledState.serialise(),
+    });
+  }
+
+  setSearchRolledState(instance: SearchInstance, rolledState: worms.RolledState) {
+    this.postMessage({
+      type: "set-state",
+      id: instance.id,
+      stateType: "rolled",
+      state: rolledState.serialise(),
     });
   }
 
@@ -203,8 +234,8 @@ export class SearchInstance {
     this.onResult = onResult;
   }
 
-  setSearchUnrolledState(state: worms.UnrolledState) {
-    this.remoteSearch.setSearchUnrolledState(this, state);
+  setSearchState(state: worms.State) {
+    this.remoteSearch.setSearchState(this, state);
   }
 
   stepSearch() {

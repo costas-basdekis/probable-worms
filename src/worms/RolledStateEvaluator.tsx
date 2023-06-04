@@ -3,6 +3,7 @@ import {RolledState} from "./RolledState";
 import {UnrolledState} from "./UnrolledState";
 import {UnrolledStateEvaluator} from "./UnrolledStateEvaluator";
 import {EvaluationCache} from "./EvaluationCache";
+import {IStateEvaluator} from "./IStateEvaluator";
 
 interface NextUnrolledState {
   unrolledState: UnrolledState;
@@ -15,8 +16,8 @@ interface SearchOptions {
   evaluationCache?: EvaluationCache,
 }
 
-export class RolledStateEvaluator {
-  rolledState: RolledState;
+export class RolledStateEvaluator implements IStateEvaluator<RolledState> {
+  state: RolledState;
   nextUnrolledStates: NextUnrolledState[];
   evaluation: Evaluation | null = null;
 
@@ -29,7 +30,7 @@ export class RolledStateEvaluator {
   }
 
   constructor(rolledState: RolledState, nextUnrolledStates: NextUnrolledState[]) {
-    this.rolledState = rolledState;
+    this.state = rolledState;
     this.nextUnrolledStates = nextUnrolledStates;
   }
 
@@ -37,7 +38,7 @@ export class RolledStateEvaluator {
     return this.evaluation !== null;
   }
 
-  processAll(): RolledStateEvaluator {
+  processAll(): this {
     while (this.processOne()) {
       //
     }
@@ -112,9 +113,9 @@ export class RolledStateEvaluator {
   getCacheKey(): string {
     return [
       "R",
-      `t${this.rolledState.unrolledState.chest.total}`,
-      `c${this.rolledState.unrolledState.chest.uniqueDice().join(",")}`,
-      `d${this.rolledState.diceRoll.key}`,
+      `t${this.state.unrolledState.chest.total}`,
+      `c${this.state.unrolledState.chest.uniqueDice().join(",")}`,
+      `d${this.state.diceRoll.key}`,
     ].join("").replaceAll(/[[\]]/g, "");
   }
 

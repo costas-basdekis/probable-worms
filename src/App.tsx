@@ -3,7 +3,7 @@ import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
 import {Button} from "semantic-ui-react";
-import {EvaluationControls, InitialStateModal, RChest, REvaluation} from "./components";
+import {EvaluationControls, InitialStateModal, REvaluation, RState} from "./components";
 
 const remoteSearch = RemoteSearch.default();
 
@@ -11,7 +11,7 @@ const remoteSearch = RemoteSearch.default();
 interface AppProps {
 }
 interface AppState {
-  initialUnrolledState: worms.UnrolledState,
+  state: worms.State,
   progress: number,
   evaluation: worms.Evaluation,
   searching: boolean,
@@ -21,7 +21,7 @@ interface AppState {
 
 export default class App extends Component<AppProps, AppState> {
   state = {
-    initialUnrolledState: worms.UnrolledState.initial(),
+    state: worms.UnrolledState.initial(),
     progress: 1,
     evaluation: worms.Evaluation.empty(),
     searching: false,
@@ -54,16 +54,16 @@ export default class App extends Component<AppProps, AppState> {
 
   render() {
     const {
-      initialUnrolledState, progress, evaluation, searching, searchFinished, cacheStats,
+      state, progress, evaluation, searching, searchFinished, cacheStats,
     } = this.state;
     return (
       <div className="App">
         <h2>Search</h2>
         <label>
           Initial state:
-          <RChest chest={initialUnrolledState.chest} remainingDice={initialUnrolledState.remainingDiceCount} size={"tiny"} />
+          <RState size={"tiny"} state={state} />
         </label>
-        <InitialStateModal size={"tiny"} trigger={<Button>Change</Button>} onChangeInitialState={this.onChangeInitialState} />
+        <InitialStateModal size={"tiny"} trigger={<Button>Change</Button>} onStateChange={this.onStateChange} />
         <EvaluationControls
           progress={progress}
           searching={searching}
@@ -79,14 +79,14 @@ export default class App extends Component<AppProps, AppState> {
     );
   }
 
-  onChangeInitialState = (initialUnrolledState: worms.UnrolledState) => {
-    this.setState({initialUnrolledState});
-    this.searchInstance.setSearchUnrolledState(initialUnrolledState);
+  onStateChange = (state: worms.State) => {
+    this.setState({state});
+    this.searchInstance.setSearchState(state);
   };
 
   onReset = () => {
-    const {initialUnrolledState} = this.state;
-    this.searchInstance.setSearchUnrolledState(initialUnrolledState);
+    const {state} = this.state;
+    this.searchInstance.setSearchState(state);
   };
 
   onSearchStep = () => {
@@ -103,7 +103,7 @@ export default class App extends Component<AppProps, AppState> {
 
   onSearchRestart = () => {
     this.setState({searching: false, searchFinished: false});
-    this.searchInstance.setSearchUnrolledState(this.state.initialUnrolledState);
+    this.searchInstance.setSearchState(this.state.state);
   };
 
   startSearch() {

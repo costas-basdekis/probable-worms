@@ -2,7 +2,7 @@ import {Evaluation} from "./Evaluation";
 import {RolledState} from "./RolledState";
 import {RolledStateEvaluator} from "./RolledStateEvaluator";
 import {UnrolledState} from "./UnrolledState";
-import {EvaluationCache} from "./EvaluationCache";
+import {IStateEvaluator, SearchOptions} from "./IStateEvaluator";
 
 interface NextRolledState {
   rolledState: RolledState;
@@ -11,13 +11,8 @@ interface NextRolledState {
   evaluation: Evaluation | null;
 }
 
-interface SearchOptions {
-  removeEvaluated?: boolean,
-  evaluationCache?: EvaluationCache,
-}
-
-export class UnrolledStateEvaluator {
-  unrolledState: UnrolledState;
+export class UnrolledStateEvaluator implements IStateEvaluator<UnrolledState> {
+  state: UnrolledState;
   nextRolledStates: NextRolledState[] | null;
   evaluation: Evaluation | null = null;
   isRoot: boolean;
@@ -40,7 +35,7 @@ export class UnrolledStateEvaluator {
   }
 
   constructor(unrolledState: UnrolledState, nextRolledStates: NextRolledState[] | null, isRoot: boolean) {
-    this.unrolledState = unrolledState;
+    this.state = unrolledState;
     this.nextRolledStates = nextRolledStates;
     this.isRoot = isRoot;
   }
@@ -49,7 +44,7 @@ export class UnrolledStateEvaluator {
     return this.evaluation !== null;
   }
 
-  processAll(): UnrolledStateEvaluator {
+  processAll(): this {
     while (this.processOne()) {
       //
     }
@@ -85,7 +80,7 @@ export class UnrolledStateEvaluator {
           return false;
         }
       }
-      this.nextRolledStates = this.unrolledState
+      this.nextRolledStates = this.state
         .getNextRolledStates()
         .map(nextRolledState => ({...nextRolledState, evaluator: null, evaluation: null}));
     }
@@ -152,9 +147,9 @@ export class UnrolledStateEvaluator {
   getCacheKey(): string {
     return [
       "S",
-      `t${this.unrolledState.chest.total}`,
-      `c${this.unrolledState.chest.uniqueDice().join(",")}`,
-      `r${this.unrolledState.remainingDiceCount}`,
+      `t${this.state.chest.total}`,
+      `c${this.state.chest.uniqueDice().join(",")}`,
+      `r${this.state.remainingDiceCount}`,
     ].join("").replaceAll(/[[\]]/g, "");
   }
 
@@ -188,7 +183,7 @@ export class UnrolledStateEvaluator {
       return Evaluation.empty();
     }
     if (!this.nextRolledStates.length) {
-      return Evaluation.fromTotal(this.unrolledState.total);
+      return Evaluation.fromTotal(this.state.total);
     }
     const nextRolledStatesWithEvaluation = this.nextRolledStates
       .filter(({evaluator, evaluation}) => evaluator || evaluation);
@@ -202,7 +197,7 @@ export class UnrolledStateEvaluator {
       }))
     );
     // Because we can choose to stop, the current total has 100% chance of happening, if it's our target
-    combined.exactResultOccurrences.set(this.unrolledState.total, 1);
+    combined.exactResultOccurrences.set(this.state.total, 1);
     return combined;
   }
 }
