@@ -90,6 +90,7 @@ export class REvaluation extends Component<REvaluationProps> {
         </Label>
         <REvaluationTable
           evaluation={evaluation}
+          diceCount={diceCount}
           maxTotal={maxTotal}
           totals={totals}
           exactRoundedPercentagesEntries={exactRoundedPercentagesEntries}

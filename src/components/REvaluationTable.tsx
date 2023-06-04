@@ -5,6 +5,7 @@ import classNames from "classnames";
 
 interface REvaluationTableProps {
   evaluation: worms.Evaluation,
+  diceCount: number,
   maxTotal: number,
   totals: number[],
   exactRoundedPercentagesEntries: [number, number][],
@@ -14,7 +15,8 @@ interface REvaluationTableProps {
 
 export class REvaluationTable extends Component<REvaluationTableProps> {
   render() {
-    const {totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries, expectedValueOfAtLeastRoundedEntries} = this.props;
+    const {diceCount, totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries, expectedValueOfAtLeastRoundedEntries} = this.props;
+    const maxValue = diceCount * 5
     return (
       <Table definition collapsing unstackable size={"small"}>
         <Table.Header>
@@ -41,7 +43,7 @@ export class REvaluationTable extends Component<REvaluationTableProps> {
           <Table.Row className={"table-row-expected-value-of-at-least"}>
             <Table.Cell>EV of At least</Table.Cell>
             {expectedValueOfAtLeastRoundedEntries.map(([total, expectedValue]) => (
-              <Table.Cell key={total} style={{"--percentage": `${expectedValue}%`}}>{expectedValue}</Table.Cell>
+              <Table.Cell key={total} style={{"--percentage": `${expectedValue / maxValue * 100}%`}}>{expectedValue}</Table.Cell>
             ))}
           </Table.Row>
         </Table.Body>
