@@ -190,3 +190,17 @@ tr.table-row-at-least td {
   --percentage: 40%;
   background: linear-gradient(to top, #d88884 var(--percentage), transparent var(--percentage)) no-repeat;
 }
+
+.die-dot {
+  font-size: 10px;
+}
+
+td, th {
+  &.worst-multi-value {
+    color: red;
+  }
+
+  &.best-multi-value {
+    color: green;
+  }
+}

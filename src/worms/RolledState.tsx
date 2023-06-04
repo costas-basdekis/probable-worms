@@ -49,11 +49,15 @@ export class RolledState implements IState {
   }
 
   getNextUnrolledStates(): UnrolledState[] {
+    return this.getNextUnrolledStatesAndPickedRolls().map(({state}) => state);
+  }
+
+  getNextUnrolledStatesAndPickedRolls(): {state: UnrolledState, pickedRoll: RollResult | null, pickedCount: number | null}[] {
     const nextUnrolledStates = Array.from(this.diceRoll.entries())
       .filter(([roll]) => this.unrolledState.canAdd(roll))
-      .map(([roll, diceCount]) => this.unrolledState.add(roll, diceCount));
+      .map(([roll, diceCount]) => ({state: this.unrolledState.add(roll, diceCount), pickedRoll: roll, pickedCount: diceCount}));
     if (!nextUnrolledStates.length) {
-      return [this.unrolledState.finished()];
+      return [{state: this.unrolledState.finished(), pickedRoll: null, pickedCount: null}];
     }
     return nextUnrolledStates;
   }

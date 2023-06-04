@@ -1,7 +1,7 @@
 import {SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
 import {EvaluationCacheCache} from "./EvaluationCacheCache";
-import {StateEvaluator} from "./worms";
+import {StateEvaluator, UnrolledStateEvaluator} from "./worms";
 
 interface InstanceInfo {
   id: number,
@@ -41,6 +41,18 @@ class SearchWorker {
       searching,
       searchFinished: progress === 1,
       evaluation: stateEvaluator.compilePartialEvaluation().serialise(),
+      dicePickEvaluations: stateEvaluator.state.type === "unrolled" ? null : (
+        stateEvaluator.state.getNextUnrolledStatesAndPickedRolls()
+        .filter(({pickedRoll}) => pickedRoll !== null)
+        .map(({state, pickedRoll, pickedCount}) => {
+          const cacheKey = UnrolledStateEvaluator.fromUnrolledStateLazy(state, true).getCacheKey();
+          return {
+            pickedRoll: pickedRoll!,
+            pickedCount: pickedCount!,
+            evaluation: (evaluationCache.has(cacheKey) ? evaluationCache.get(cacheKey)! : worms.Evaluation.empty()).serialise(),
+          };
+        })
+      ),
       cacheStats: evaluationCache.getStats(),
     });
   }

@@ -5,14 +5,6 @@ import {createSelector} from "reselect";
 import {CartesianGrid, Legend, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis} from "recharts";
 import {LegendType} from "recharts/types/util/types";
 
-interface REvaluationChartProps {
-  evaluation: worms.Evaluation,
-  maxTotal: number,
-  totals: number[],
-  exactRoundedPercentagesEntries: [number, number][],
-  atLeastRoundedPercentagesEntries: [number, number][],
-}
-
 class REvaluationChartTooltip extends Component<TooltipProps<number, number>> {
   render() {
     const {payload, label, active} = this.props;
@@ -40,6 +32,14 @@ class REvaluationChartTooltip extends Component<TooltipProps<number, number>> {
       </div>
     );
   }
+}
+
+interface REvaluationChartProps {
+  evaluation: worms.Evaluation,
+  maxTotal: number,
+  totals: number[],
+  exactRoundedPercentagesEntries: [number, number][],
+  atLeastRoundedPercentagesEntries: [number, number][],
 }
 
 export class REvaluationChart extends Component<REvaluationChartProps> {

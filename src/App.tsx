@@ -3,7 +3,7 @@ import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
 import {Button} from "semantic-ui-react";
-import {EvaluationControls, InitialStateModal, REvaluation, RState} from "./components";
+import {EvaluationControls, InitialStateModal, MultipleEvaluations, REvaluation, RState} from "./components";
 
 const remoteSearch = RemoteSearch.default();
 
@@ -16,21 +16,24 @@ interface AppState {
   evaluation: worms.Evaluation,
   searching: boolean,
   searchFinished: boolean,
+  dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation}[] | null,
   cacheStats: worms.EvaluationCacheStats,
 }
 
 export default class App extends Component<AppProps, AppState> {
-  state = {
+  state: AppState = {
     state: worms.UnrolledState.initial(),
     progress: 1,
     evaluation: worms.Evaluation.empty(),
     searching: false,
     searchFinished: true,
+    dicePickEvaluations: null,
     cacheStats: {hitCount: 0, missCount: 0, entryCount: 0},
   };
 
   onSearchResult = (
     searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
+    dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation}[] | null,
     cacheStats: worms.EvaluationCacheStats,
   ) => {
     this.setState({
@@ -38,6 +41,7 @@ export default class App extends Component<AppProps, AppState> {
       evaluation: evaluation.toFixed(),
       searchFinished,
       searching,
+      dicePickEvaluations,
       cacheStats,
     });
   };
@@ -54,7 +58,7 @@ export default class App extends Component<AppProps, AppState> {
 
   render() {
     const {
-      state, progress, evaluation, searching, searchFinished, cacheStats,
+      state, progress, evaluation, searching, searchFinished, dicePickEvaluations, cacheStats,
     } = this.state;
     return (
       <div className="App">
@@ -75,6 +79,9 @@ export default class App extends Component<AppProps, AppState> {
           searchInstance={this.searchInstance}
         />
         <REvaluation evaluation={evaluation} />
+        {dicePickEvaluations ? <>
+          <MultipleEvaluations evaluationsAndPickedRolls={dicePickEvaluations} />
+        </> : null}
       </div>
     );
   }
