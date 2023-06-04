@@ -58,7 +58,7 @@ export class DiceRoll {
 
   get dice(): RollResult[] {
     return Array.from(this.counts.entries()).map(([roll, count]) => _.range(count).map(() => roll)).flat().sort((lhs, rhs) => {
-      return ValueMap.get(lhs)! - ValueMap.get(rhs)!;
+      return rollResults.indexOf(lhs) - rollResults.indexOf(rhs)!;
     });
   }
 
