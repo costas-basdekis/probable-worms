@@ -2,14 +2,17 @@ import { Chest } from "./Chest";
 import { DiceRoll } from "./DiceRoll";
 import { RolledState } from "./RolledState";
 import { RollResult } from "./RollResult";
-import {State} from "./State";
+import {IState} from "./IState";
 
 export interface SerialisedUnrolledState {
   chestDice: RollResult[],
   remainingDiceCount: number,
 }
 
-export class UnrolledState implements State {
+type UnrolledStateType = "unrolled";
+
+export class UnrolledState implements IState {
+  type: UnrolledStateType = "unrolled";
   chest: Chest;
   remainingDiceCount: number;
 

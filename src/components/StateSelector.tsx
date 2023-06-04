@@ -3,13 +3,14 @@ import {Grid, Header} from "semantic-ui-react";
 import {DiceSelector} from "./DiceSelector";
 import _ from "underscore";
 import {RChest} from "./RChest";
-import {Chest, DiceRoll, RolledState, UnrolledState} from "../worms";
+import {Chest, DiceRoll, RolledState, State, UnrolledState} from "../worms";
 import {DieSize} from "./Die";
 import {createSelector} from "reselect";
+import {RState} from "./RState";
 
 interface StateSelectorProps {
-  initialState: UnrolledState | RolledState,
-  onStateChange?: (state: UnrolledState | RolledState) => void,
+  initialState: State,
+  onStateChange?: (state: State) => void,
   size?: DieSize,
 }
 
@@ -18,6 +19,7 @@ interface StateSelectorState {
   pickedDice: DiceRoll,
   unrolledDiceCount: number,
   rolledDice: DiceRoll,
+  state: State,
 }
 
 export class StateSelector extends Component<StateSelectorProps, StateSelectorState> {
@@ -26,6 +28,7 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
     pickedDice: this.props.initialState.pickedDice,
     unrolledDiceCount: this.props.initialState.totalDiceCount - this.props.initialState.pickedDice.diceCount,
     rolledDice: this.props.initialState.rolledDice ?? new DiceRoll(),
+    state: this.props.initialState,
   };
 
   unrolledChestSelector = createSelector(
@@ -42,7 +45,7 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
   render () {
     const {unrolledChest} = this;
     const {size = "tiny"} = this.props;
-    const {diceCount, pickedDice, unrolledDiceCount, rolledDice} = this.state;
+    const {diceCount, pickedDice, unrolledDiceCount, rolledDice, state} = this.state;
     return (
       <Grid columns={2} divided>
         <Grid.Row>
@@ -64,6 +67,9 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
             <DiceSelector excludedFaces={pickedDice.getFaces()} counts={rolledDice} count={unrolledDiceCount} size={size} onChange={this.onRolledDiceChange}/>
             <RChest chest={Chest.fromDiceRoll(rolledDice)} remainingDice={unrolledDiceCount - rolledDice.diceCount} size={size}/>
           </Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <RState size={size} state={state} />
         </Grid.Row>
       </Grid>
     );
@@ -104,13 +110,14 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
     const rolledDiceCount = rolledDice.diceCount;
     if (rolledDiceCount === unrolledDiceCount || rolledDiceCount === 0) {
       const unrolledState = new UnrolledState(unrolledChest, unrolledDiceCount);
-      let state: UnrolledState | RolledState;
+      let state: State;
       if (rolledDiceCount) {
         state = new RolledState(unrolledState, rolledDice);
       } else {
         state = unrolledState;
       }
       this.props.onStateChange?.(state);
+      this.setState({state});
     }
   }
 }

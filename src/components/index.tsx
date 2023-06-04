@@ -7,5 +7,6 @@ export * from "./RChest";
 export * from "./REvaluation";
 export * from "./REvaluationChart";
 export * from "./REvaluationTable";
+export * from "./RState";
 export * from "./SearchControls";
 export * from "./StateSelector";

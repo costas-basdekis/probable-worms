@@ -2,6 +2,7 @@ export * from "./Chest";
 export * from "./DiceRoll";
 export * from "./Evaluation";
 export * from "./EvaluationCache";
+export * from "./IState";
 export * from "./Results";
 export * from "./RollResult";
 export * from "./RolledState";

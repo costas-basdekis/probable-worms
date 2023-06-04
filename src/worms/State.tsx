@@ -1,9 +1,4 @@
-import {DiceRoll} from "./DiceRoll";
+import {UnrolledState} from "./UnrolledState";
+import {RolledState} from "./RolledState";
 
-export interface State {
-  pickedDice: DiceRoll;
-  rolledDice: DiceRoll | null;
-  total: number;
-  totalDiceCount: number;
-  selectedDiceCount: number;
-}
+export type State = UnrolledState | RolledState;

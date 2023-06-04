@@ -1,9 +1,12 @@
 import {DiceRoll} from "./DiceRoll";
 import {RollResult} from "./RollResult";
 import {UnrolledState} from "./UnrolledState";
-import {State} from "./State";
+import {IState} from "./IState";
 
-export class RolledState implements State {
+type RolledStateType = "rolled";
+
+export class RolledState implements IState {
+  type: RolledStateType = "rolled";
   unrolledState: UnrolledState;
   diceRoll: DiceRoll;
 
