@@ -7,8 +7,8 @@ export interface EvaluationCacheStats {
   entryCount: number,
 }
 
-export type SerialisedEvaluationCache = [string, SerialisedResults, SerialisedResults, number][];
-export type CompressedSerialisedEvaluationCache = [string, CompressedSerialisedResults, SerialisedResults, number][];
+export type SerialisedEvaluationCache = [string, SerialisedResults, SerialisedResults, SerialisedResults, number][];
+export type CompressedSerialisedEvaluationCache = [string, CompressedSerialisedResults, SerialisedResults, CompressedSerialisedResults, number][];
 
 export class EvaluationCache {
   cache: Map<string, Evaluation> = new Map();
@@ -17,10 +17,12 @@ export class EvaluationCache {
 
   static deserialise(serialised: SerialisedEvaluationCache): EvaluationCache {
     const cache = new EvaluationCache();
-    for (const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValue] of serialised) {
+    for (const row of serialised) {
+      const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValueOfAtLeastEntries, expectedValue] = (row.length === 5 ? row : [...row.slice(0, 3), [], row[3]]) as SerialisedEvaluationCache[0];
       cache.set(key, Evaluation.deserialise({
         minimumResultOccurrencesEntries,
         exactResultOccurrencesEntries,
+        expectedValueOfAtLeastEntries: expectedValueOfAtLeastEntries ?? [],
         expectedValue: expectedValue ?? 0,
       }));
     }
@@ -29,10 +31,12 @@ export class EvaluationCache {
 
   static deserialiseCompressed(serialised: CompressedSerialisedEvaluationCache): EvaluationCache {
     const cache = new EvaluationCache();
-    for (const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValue] of serialised) {
+    for (const row of serialised) {
+      const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValueOfAtLeastEntries, expectedValue] = (row.length === 5 ? row : [...row.slice(0, 3), [], row[3]]) as CompressedSerialisedEvaluationCache[0];
       cache.set(key, Evaluation.deserialiseCompressed({
         minimumResultOccurrencesEntries,
         exactResultOccurrencesEntries,
+        expectedValueOfAtLeastEntries: expectedValueOfAtLeastEntries ?? [],
         expectedValue: expectedValue ?? 0,
       }));
     }
@@ -76,6 +80,7 @@ export class EvaluationCache {
           key,
           serialisedEvaluation.minimumResultOccurrencesEntries,
           serialisedEvaluation.exactResultOccurrencesEntries,
+          serialisedEvaluation.expectedValueOfAtLeastEntries,
           serialisedEvaluation.expectedValue,
         ];
       });
@@ -89,6 +94,7 @@ export class EvaluationCache {
           key,
           serialisedEvaluation.minimumResultOccurrencesEntries,
           serialisedEvaluation.exactResultOccurrencesEntries,
+          serialisedEvaluation.expectedValueOfAtLeastEntries,
           serialisedEvaluation.expectedValue,
         ];
       });

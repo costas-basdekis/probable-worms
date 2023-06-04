@@ -5,18 +5,21 @@ import {CompressedSerialisedResults, Results, SerialisedResults} from "./Results
 export interface SerialisedEvaluation {
   minimumResultOccurrencesEntries: SerialisedResults,
   exactResultOccurrencesEntries: SerialisedResults,
+  expectedValueOfAtLeastEntries: SerialisedResults,
   expectedValue: number,
 }
 
 export interface CompressedSerialisedEvaluation {
   minimumResultOccurrencesEntries: CompressedSerialisedResults,
   exactResultOccurrencesEntries: SerialisedResults,
+  expectedValueOfAtLeastEntries: CompressedSerialisedResults,
   expectedValue: number,
 }
 
 export class Evaluation {
   minimumResultOccurrences: Results;
   exactResultOccurrences: Results;
+  expectedValueOfAtLeast: Results;
   expectedValue: number;
 
   static combineOptions(options: Evaluation[]): Evaluation {
@@ -28,6 +31,9 @@ export class Evaluation {
       }
       for (const [result, count] of evaluation.exactResultOccurrences.entries()) {
         combined.exactResultOccurrences.set(result, Math.max(combined.exactResultOccurrences.get(result) || 0, count));
+      }
+      for (const [result, expectedValue] of evaluation.expectedValueOfAtLeast.entries()) {
+        combined.expectedValueOfAtLeast.set(result, Math.max(combined.expectedValueOfAtLeast.get(result) || 0, expectedValue));
       }
       maxExpectedValue = Math.max(maxExpectedValue, evaluation.expectedValue);
     }
@@ -45,6 +51,9 @@ export class Evaluation {
       for (const [result, ratio] of evaluation.exactResultOccurrences.entries()) {
         combined.exactResultOccurrences.set(result, (combined.exactResultOccurrences.get(result) || 0) + ratio * evaluationRatio);
       }
+      for (const [result, expectedValue] of evaluation.expectedValueOfAtLeast.entries()) {
+        combined.expectedValueOfAtLeast.set(result, (combined.expectedValueOfAtLeast.get(result) || 0) + expectedValue * evaluationRatio);
+      }
       expectedValue += evaluation.expectedValue * evaluationRatio;
     }
     combined.expectedValue = expectedValue;
@@ -55,6 +64,7 @@ export class Evaluation {
     const evaluation = this.empty();
     for (const minTotal of _.range(1, total + 1)) {
       evaluation.minimumResultOccurrences.set(minTotal, 1);
+      evaluation.expectedValueOfAtLeast.set(minTotal, total);
     }
     evaluation.exactResultOccurrences.set(total, 1);
     evaluation.expectedValue = total;
@@ -62,13 +72,14 @@ export class Evaluation {
   }
 
   static empty(): Evaluation {
-    return new Evaluation(new Results(), new Results(), 0);
+    return new Evaluation(new Results(), new Results(), new Results(), 0);
   }
 
   static deserialise(serialised: SerialisedEvaluation): Evaluation {
     return new Evaluation(
       Results.deserialise(serialised.minimumResultOccurrencesEntries),
       Results.deserialise(serialised.exactResultOccurrencesEntries),
+      Results.deserialise(serialised.expectedValueOfAtLeastEntries ?? []),
       serialised.expectedValue ?? 0,
     );
   }
@@ -77,13 +88,15 @@ export class Evaluation {
     return new Evaluation(
       Results.deserialiseCompressed(serialised.minimumResultOccurrencesEntries),
       Results.deserialise(serialised.exactResultOccurrencesEntries),
+      Results.deserialiseCompressed(serialised.expectedValueOfAtLeastEntries ?? []),
       serialised.expectedValue ?? 0,
     );
   }
 
-  constructor(minimumResultOccurrences: Results, exactResultOccurrences: Results, expectedValue: number) {
+  constructor(minimumResultOccurrences: Results, exactResultOccurrences: Results, expectedValueOfAtLeast: Results, expectedValue: number) {
     this.minimumResultOccurrences = minimumResultOccurrences;
     this.exactResultOccurrences = exactResultOccurrences;
+    this.expectedValueOfAtLeast = expectedValueOfAtLeast;
     this.expectedValue = expectedValue;
   }
 
@@ -91,6 +104,7 @@ export class Evaluation {
     return new Evaluation(
       this.minimumResultOccurrences.toFixed(),
       this.exactResultOccurrences.toFixed(),
+      this.expectedValueOfAtLeast.toFixed(),
       parseFloat(this.expectedValue.toFixed(6)),
     );
   }
@@ -99,6 +113,7 @@ export class Evaluation {
     return {
       minimumResultOccurrencesEntries: this.minimumResultOccurrences.serialise(),
       exactResultOccurrencesEntries: this.exactResultOccurrences.serialise(),
+      expectedValueOfAtLeastEntries: this.expectedValueOfAtLeast.serialise(),
       expectedValue: this.expectedValue,
     };
   }
@@ -107,6 +122,7 @@ export class Evaluation {
     return {
       minimumResultOccurrencesEntries: this.minimumResultOccurrences.serialiseCompressed(),
       exactResultOccurrencesEntries: this.exactResultOccurrences.serialise(),
+      expectedValueOfAtLeastEntries: this.expectedValueOfAtLeast.serialiseCompressed(),
       expectedValue: this.expectedValue,
     };
   }

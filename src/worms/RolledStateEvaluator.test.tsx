@@ -21,22 +21,32 @@ describe("RolledStateEvaluator", () => {
   describe("processAll", () => {
     it("processes an empty state with 1 non-worm rolled die", () => {
       expect(RolledStateEvaluator.fromRolledState(RolledState.fromDice([], [1])).processAll().evaluation).toEqual(
-        new Evaluation(new Results(), new Results([[0, 1]]), 0)
+        new Evaluation(new Results(), new Results([[0, 1]]), new Results(), 0)
       );
     });
     it("processes an empty state with 1 worm rolled die", () => {
       expect(RolledStateEvaluator.fromRolledState(RolledState.fromDice([], [Worm])).processAll().evaluation).toEqual(
-        new Evaluation(new Results(_.range(1, 6).map(total => [total, 1])), new Results([[5, 1]]), 5)
+        new Evaluation(
+          new Results(_.range(1, 6).map(total => [total, 1])),
+          new Results([[5, 1]]),
+          new Results([[1, 5], [2, 5], [3, 5], [4, 5], [5, 5]]),
+          5,
+        )
       );
     });
     it("processes an empty state with 2 doubled non-worm rolled dice", () => {
       expect(RolledStateEvaluator.fromRolledState(RolledState.fromDice([], [1, 1])).processAll().evaluation).toEqual(
-        new Evaluation(new Results(), new Results([[0, 1]]), 0)
+        new Evaluation(new Results(), new Results([[0, 1]]), new Results(), 0)
       );
     });
     it("processes an empty state with 2 doubled worm rolled dice", () => {
       expect(RolledStateEvaluator.fromRolledState(RolledState.fromDice([], [Worm, Worm])).processAll().evaluation).toEqual(
-        new Evaluation(new Results(_.range(1, 11).map(total => [total, 1])), new Results([[10, 1]]), 10)
+        new Evaluation(
+          new Results(_.range(1, 11).map(total => [total, 1])),
+          new Results([[10, 1]]),
+          new Results([[1, 10], [2, 10], [3, 10], [4, 10], [5, 10], [6, 10], [7, 10], [8, 10], [9, 10], [10, 10]]),
+          10,
+        )
       );
     });
     it("processes an state with 1 picked worm and 2 rolled dice of worm and 1, and has a 100% minimum of 1-5", () => {
