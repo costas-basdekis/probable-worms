@@ -62,6 +62,13 @@ export class RolledState implements IState {
     return nextUnrolledStates;
   }
 
+  pick(pickedRoll: RollResult): UnrolledState {
+    if (!this.diceRoll.has(pickedRoll)) {
+      throw new Error("Face was not rolled");
+    }
+    return this.unrolledState.add(pickedRoll, this.diceRoll.get(pickedRoll));
+  }
+
   serialise(): SerialisedRolledState {
     return {
       chestDice: this.unrolledState.chest.dice,

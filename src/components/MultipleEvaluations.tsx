@@ -3,12 +3,14 @@ import {createSelector} from "reselect";
 import _ from "underscore";
 import {MultipleEvaluationsChart} from "./MultipleEvaluationsChart";
 import * as worms from "../worms";
-import {Checkbox, Segment, Table} from "semantic-ui-react";
+import {Button, Checkbox, Segment, Table} from "semantic-ui-react";
 import {RChest} from "./RChest";
 import {CheckboxProps} from "semantic-ui-react/dist/commonjs/modules/Checkbox/Checkbox";
 
 interface MultipleEvaluationsProps {
+  rolledState: worms.RolledState,
   evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number}[],
+  onSetUnrolledState?: (unrolledState: worms.UnrolledState) => void,
 }
 
 interface MultipleEvaluationsState{
@@ -110,6 +112,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
                 <Table.Cell><RChest chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[pickedRoll, pickedCount]]))} remainingDice={0} size={"tiny"} /></Table.Cell>
                 <Table.Cell>{evaluation.expectedValue.toFixed(1)}</Table.Cell>
                 <Table.Cell><Checkbox toggle checked={visibleRollPicks.includes(pickedRoll)} onChange={this.makeOnRollVisibleChange(pickedRoll)} /></Table.Cell>
+                <Table.Cell><Button onClick={this.makeOnContinueFromHere(pickedRoll)}>Continue from here</Button></Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>
@@ -137,6 +140,12 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
           return null;
         }
       });
+    };
+  }
+
+  makeOnContinueFromHere(pickedRoll: worms.RollResult): () => void {
+    return () => {
+      this.props.onSetUnrolledState?.(this.props.rolledState.pick(pickedRoll));
     };
   }
 }

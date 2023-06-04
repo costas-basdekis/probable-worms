@@ -120,4 +120,14 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
       this.setState({state});
     }
   }
+
+  updateState(state: State) {
+    this.setState({
+      diceCount: state.totalDiceCount,
+      pickedDice: state.pickedDice,
+      unrolledDiceCount: state.totalDiceCount - state.pickedDice.diceCount,
+      rolledDice: state.rolledDice ?? new DiceRoll(),
+      state: state,
+    });
+  }
 }

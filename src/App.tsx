@@ -1,4 +1,4 @@
-import React, {Component} from "react";
+import React, {Component, createRef, RefObject} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {RemoteSearch, SearchInstance} from "./RemoteSearch";
@@ -30,6 +30,8 @@ export default class App extends Component<AppProps, AppState> {
     dicePickEvaluations: null,
     cacheStats: {hitCount: 0, missCount: 0, entryCount: 0},
   };
+
+  initialStateModalRef: RefObject<InitialStateModal> = createRef();
 
   onSearchResult = (
     searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
@@ -67,7 +69,12 @@ export default class App extends Component<AppProps, AppState> {
           Initial state:
           <RState size={"tiny"} state={state} />
         </label>
-        <InitialStateModal size={"tiny"} trigger={<Button>Change</Button>} onStateChange={this.onStateChange} />
+        <InitialStateModal
+          ref={this.initialStateModalRef}
+          size={"tiny"}
+          trigger={<Button>Change</Button>}
+          onStateChange={this.onStateChange}
+        />
         <EvaluationControls
           progress={progress}
           searching={searching}
@@ -80,7 +87,11 @@ export default class App extends Component<AppProps, AppState> {
         />
         <REvaluation evaluation={evaluation} />
         {dicePickEvaluations ? <>
-          <MultipleEvaluations evaluationsAndPickedRolls={dicePickEvaluations} />
+          <MultipleEvaluations
+            rolledState={state as worms.RolledState}
+            evaluationsAndPickedRolls={dicePickEvaluations}
+            onSetUnrolledState={this.onStateChange}
+          />
         </> : null}
       </div>
     );
@@ -89,6 +100,7 @@ export default class App extends Component<AppProps, AppState> {
   onStateChange = (state: worms.State) => {
     this.setState({state});
     this.searchInstance.setSearchState(state);
+    this.initialStateModalRef.current?.updateState(state);
   };
 
   onReset = () => {

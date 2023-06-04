@@ -1,4 +1,4 @@
-import React, {Component, ReactNode} from "react";
+import React, {Component, createRef, ReactNode, RefObject} from "react";
 import * as worms from "../worms";
 import {Button, Modal} from "semantic-ui-react";
 import {DieSize} from "./Die";
@@ -16,6 +16,8 @@ interface InitialStateModalProps {
 }
 
 export class InitialStateModal extends Component<InitialStateModalProps, InitialStateModalState> {
+  stateSelectorRef: RefObject<StateSelector> = createRef();
+
   state = {
     open: false,
     state: worms.UnrolledState.initial(),
@@ -35,6 +37,7 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
         <Modal.Header>Change initial state</Modal.Header>
         <Modal.Content>
           <StateSelector
+            ref={this.stateSelectorRef}
             initialState={state}
             onStateChange={this.onStateChange}
             size={size}
@@ -73,4 +76,9 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
   onStateChange = (state: worms.State) => {
     this.setState({state});
   };
+
+  updateState(state: worms.State) {
+    this.setState({state});
+    this.stateSelectorRef.current?.updateState(state);
+  }
 }
