@@ -18,11 +18,11 @@ export class RState extends Component<RSTateProps> {
         );
       }
       case "rolled": {
-        return <>
+        return <div className={"state"}>
           <RChest size={size} chest={state.unrolledState.chest} remainingDice={0} />
           +
           <RChest size={size} chest={Chest.fromDiceRoll(state.diceRoll)} remainingDice={0} />
-        </>;
+        </div>;
         }
       default:
         throw new Error("Unknown state type");

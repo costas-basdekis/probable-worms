@@ -67,6 +67,7 @@ export default class App extends Component<AppProps, AppState> {
         <h2>Search</h2>
         <label>
           Initial state:
+          <br/>
           <RState size={"tiny"} state={state} />
         </label>
         <InitialStateModal
