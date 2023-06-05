@@ -2,7 +2,7 @@ import React, {Component, createRef, RefObject} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {CacheFetchingStatus, RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {Button} from "semantic-ui-react";
+import {Button, Card, Container, Header, Image} from "semantic-ui-react";
 import {EvaluationControls, InitialStateModal, MultipleEvaluations, REvaluation, RState} from "./components";
 
 const remoteSearch = RemoteSearch.default();
@@ -95,37 +95,56 @@ export default class App extends Component<AppProps, AppState> {
     const cacheStatusMessage = cacheStatusMessages[cacheStatusMessages.length - 1]?.message ?? null;
     return (
       <div className="App">
-        <h2>Search</h2>
-        <label>
-          Initial state:
-          <br/>
-          <RState size={"tiny"} state={state} />
-        </label>
-        <InitialStateModal
-          ref={this.initialStateModalRef}
-          size={"tiny"}
-          trigger={<Button>Change</Button>}
-          onStateChange={this.onStateChange}
-        />
-        <EvaluationControls
-          progress={progress}
-          searching={searching}
-          searchFinished={searchFinished}
-          onSearchStep={this.onSearchStep}
-          onSearchToggle={this.onSearchToggle}
-          onSearchRestart={this.onSearchRestart}
-          cacheStatusMessage={cacheStatusMessage}
-          cacheStats={cacheStats}
-          searchInstance={this.searchInstance}
-        />
-        <REvaluation evaluation={evaluation} diceCount={state.totalDiceCount} />
-        {dicePickEvaluations ? <>
-          <MultipleEvaluations
-            rolledState={state as worms.RolledState}
-            evaluationsAndPickedRolls={dicePickEvaluations}
-            onSetUnrolledState={this.onStateChange}
-          />
-        </> : null}
+        <Header as={"h1"} textAlign={"center"}>
+          <Image src={`${process.env.PUBLIC_URL}/worm512.png`} />
+          Probable worms
+          <Image src={`${process.env.PUBLIC_URL}/worm512.png`} />
+        </Header>
+        <Container textAlign={"center"}>
+          <Card centered>
+            <Card.Content>
+              <Card.Header>
+                Initial State
+              </Card.Header>
+              <Card.Description>
+                <RState size={"tiny"} state={state} center />
+              </Card.Description>
+            </Card.Content>
+            <Card.Content extra>
+              <Button.Group>
+                <InitialStateModal
+                  ref={this.initialStateModalRef}
+                  size={"tiny"}
+                  trigger={<Button>Change</Button>}
+                  onStateChange={this.onStateChange}
+                />
+              </Button.Group>
+            </Card.Content>
+            <Card.Content extra>
+              <EvaluationControls
+                progress={progress}
+                searching={searching}
+                searchFinished={searchFinished}
+                onSearchStep={this.onSearchStep}
+                onSearchToggle={this.onSearchToggle}
+                onSearchRestart={this.onSearchRestart}
+                cacheStatusMessage={cacheStatusMessage}
+                cacheStats={cacheStats}
+                searchInstance={this.searchInstance}
+              />
+            </Card.Content>
+          </Card>
+          <Container textAlign={"center"}>
+            <REvaluation evaluation={evaluation} diceCount={state.totalDiceCount} />
+            {dicePickEvaluations ? <>
+              <MultipleEvaluations
+                rolledState={state as worms.RolledState}
+                evaluationsAndPickedRolls={dicePickEvaluations}
+                onSetUnrolledState={this.onStateChange}
+              />
+            </> : null}
+          </Container>
+        </Container>
       </div>
     );
   }

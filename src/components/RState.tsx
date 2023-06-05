@@ -6,15 +6,16 @@ import {DieSize} from "./Die";
 interface RSTateProps {
   state: State,
   size?: DieSize,
+  center?: boolean,
 }
 
 export class RState extends Component<RSTateProps> {
   render() {
-    const {state, size} = this.props;
+    const {state, size, center = false} = this.props;
     switch (state.type) {
       case "unrolled": {
         return (
-          <RChest size={size} chest={state.chest} remainingDice={state.totalDiceCount - state.selectedDiceCount}/>
+          <RChest size={size} chest={state.chest} remainingDice={state.totalDiceCount - state.selectedDiceCount} center={center} />
         );
       }
       case "rolled": {

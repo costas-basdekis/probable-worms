@@ -3,7 +3,7 @@ import {createSelector} from "reselect";
 import _ from "underscore";
 import {ChartLineName, MultipleEvaluationsChart} from "./MultipleEvaluationsChart";
 import * as worms from "../worms";
-import {Button, Checkbox, Segment, Table} from "semantic-ui-react";
+import {Button, Checkbox, Container, Segment, Table} from "semantic-ui-react";
 import {RChest} from "./RChest";
 import {CheckboxProps} from "semantic-ui-react/dist/commonjs/modules/Checkbox/Checkbox";
 
@@ -115,8 +115,8 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
     const {visibleRollPicks, visibleChartLines} = this.state;
     const {rolledState, evaluationsAndPickedRolls} = this.props;
     return <>
-      <Segment>
-        <Table definition collapsing unstackable size={"small"}>
+      <Container textAlign={"center"}>
+        <Table definition collapsing unstackable size={"small"} className={"centered-table"}>
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell />
@@ -138,7 +138,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
             ))}
           </Table.Body>
         </Table>
-        <Table collapsing unstackable size={"small"}>
+        <Table collapsing unstackable size={"small"} className={"centered-table"}>
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell>Show Exactly lines</Table.HeaderCell>
@@ -154,7 +154,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
             </Table.Row>
           </Table.Body>
         </Table>
-      </Segment>
+      </Container>
       <MultipleEvaluationsChart
         evaluationsByPickedRoll={evaluationsByPickedRoll}
         diceCount={rolledState.totalDiceCount}

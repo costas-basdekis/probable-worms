@@ -6,6 +6,10 @@
 .dice {
   display: flex;
   flex-direction: row;
+
+  &.center {
+    justify-content: center;
+  }
 }
 
 .dice-column {
@@ -138,6 +142,7 @@
 
 .probabilities-chart {
   margin: 5px 20px 5px 0;
+  display: inline-block;
 
   .recharts-default-tooltip {
     margin: 0;
@@ -212,4 +217,9 @@ td, th {
 
 .state {
   display: inline-block;
+}
+
+.centered-table {
+  margin-left: auto!important;
+  margin-right: auto!important;
 }
