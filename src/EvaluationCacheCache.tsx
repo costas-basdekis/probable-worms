@@ -1,4 +1,5 @@
 import * as worms from "./worms";
+import {OnCacheFetchingProgress} from "./RemoteSearch";
 
 export class EvaluationCacheCache {
   evaluationCacheUrlMap: Map<number, string> = new Map([
@@ -10,6 +11,11 @@ export class EvaluationCacheCache {
   hasFetchedEvaluationCacheMap: Map<number, boolean> = new Map();
   // Reusable evaluation caches
   evaluationCacheMap: Map<number, worms.EvaluationCache> = new Map();
+  onCacheFetchingProgress: OnCacheFetchingProgress | null;
+
+  constructor(onCacheFetchingProgress: OnCacheFetchingProgress | undefined | null = null) {
+    this.onCacheFetchingProgress = onCacheFetchingProgress ?? null;
+  }
 
   async get(diceCount: number): Promise<worms.EvaluationCache> {
     if (this.shouldFetchEvaluationCache(diceCount)) {
@@ -54,14 +60,17 @@ export class EvaluationCacheCache {
       return null;
     }
     const response = await fetch(`${process.env.PUBLIC_URL}/${evaluationCacheUrl}`);
+    this.onCacheFetchingProgress?.(diceCount, "fetching");
     let evaluationCache;
     try {
       evaluationCache = worms.EvaluationCache.deserialiseCompressed(JSON.parse(await response.text()));
     } catch (e) {
+      this.onCacheFetchingProgress?.(diceCount, "failure");
       console.error("File was not a valid cache file");
       return null;
     }
     this.hasFetchedEvaluationCacheMap.set(diceCount, true);
+    this.onCacheFetchingProgress?.(diceCount, "success");
     return evaluationCache;
   }
 

@@ -16,6 +16,7 @@ interface EvaluationControlsProps {
   onSearchStep: () => void,
   onSearchToggle: () => void,
   onSearchRestart: () => void,
+  cacheStatusMessage: string | null,
   cacheStats: worms.EvaluationCacheStats,
   searchInstance: SearchInstance,
 }
@@ -34,6 +35,7 @@ export class EvaluationControls extends Component<EvaluationControlsProps, Evalu
       onSearchStep,
       onSearchToggle,
       onSearchRestart,
+      cacheStatusMessage,
       cacheStats,
       searchInstance
     } = this.props;
@@ -42,7 +44,7 @@ export class EvaluationControls extends Component<EvaluationControlsProps, Evalu
         <Accordion.Title index={0} active={showEvaluation} onClick={this.toggleShowEvaluation}>
           <Icon name='dropdown'/>
           <Label color={progress === 1 ? "olive" : searching ? "yellow" : "orange"}>
-            {progress === 1 ? "Evaluation complete" : searching ? "Evaluating..." : "Evaluation paused"}
+            {progress === 1 ? "Evaluation complete" : searching ? "Evaluating..." : (cacheStatusMessage ?? "Evaluation paused")}
           </Label>
         </Accordion.Title>
         <Accordion.Content active={showEvaluation}>

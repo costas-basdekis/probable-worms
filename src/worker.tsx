@@ -1,4 +1,4 @@
-import {SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
+import {CacheFetchingStatus, SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
 import {EvaluationCacheCache} from "./EvaluationCacheCache";
 import {StateEvaluator, UnrolledStateEvaluator} from "./worms";
@@ -13,7 +13,19 @@ interface InstanceInfo {
 class SearchWorker {
   instancesById: Map<number, InstanceInfo> = new Map();
   worker: Worker;
-  evaluationCacheCache: EvaluationCacheCache = new EvaluationCacheCache();
+  onCacheFetchingProgress = (diceCount: number, status: CacheFetchingStatus) => {
+    const matchingInstances = Array.from(this.instancesById.values())
+      .filter(instance => instance.stateEvaluator.state.totalDiceCount === diceCount);
+    for (const instance of matchingInstances) {
+      this.postMessage({
+        type: "cache-fetching-progress",
+        id: instance.id,
+        diceCount,
+        status,
+      });
+    }
+  };
+  evaluationCacheCache: EvaluationCacheCache = new EvaluationCacheCache(this.onCacheFetchingProgress);
 
   static default(): SearchWorker {
     return new SearchWorker(self as unknown as Worker);

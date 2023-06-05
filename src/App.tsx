@@ -1,7 +1,7 @@
 import React, {Component, createRef, RefObject} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
-import {RemoteSearch, SearchInstance} from "./RemoteSearch";
+import {CacheFetchingStatus, RemoteSearch, SearchInstance} from "./RemoteSearch";
 import {Button} from "semantic-ui-react";
 import {EvaluationControls, InitialStateModal, MultipleEvaluations, REvaluation, RState} from "./components";
 
@@ -17,6 +17,7 @@ interface AppState {
   searching: boolean,
   searchFinished: boolean,
   dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation}[] | null,
+  cacheStatusMessages: {message: string, id: number}[],
   cacheStats: worms.EvaluationCacheStats,
 }
 
@@ -28,6 +29,7 @@ export default class App extends Component<AppProps, AppState> {
     searching: false,
     searchFinished: true,
     dicePickEvaluations: null,
+    cacheStatusMessages: [],
     cacheStats: {hitCount: 0, missCount: 0, entryCount: 0},
   };
 
@@ -48,7 +50,35 @@ export default class App extends Component<AppProps, AppState> {
     });
   };
 
-  searchInstance: SearchInstance = remoteSearch.newInstance(this.onSearchResult);
+  onCacheFetchingProgress = (diceCount: number, status: CacheFetchingStatus) => {
+    let message: string;
+    switch (status) {
+      case "fetching":
+        message = "Fetching cache...";
+        break;
+      case "success":
+        message = "Cache is ready!";
+        break;
+      case "failure":
+        message = "Cache failed to load";
+        break;
+      default:
+        return;
+    }
+    this.setState(({cacheStatusMessages}) => {
+      const id = (cacheStatusMessages[cacheStatusMessages.length - 1]?.id ?? 0) + 1;
+      window.setTimeout(() => {
+        this.setState(({cacheStatusMessages}) => ({
+          cacheStatusMessages: cacheStatusMessages.filter(message => message.id !== id),
+        }));
+      }, 10000);
+      return {
+        cacheStatusMessages: [...cacheStatusMessages, {message, id}],
+      };
+    });
+  };
+
+  searchInstance: SearchInstance = remoteSearch.newInstance(this.onSearchResult, this.onCacheFetchingProgress);
 
   componentDidMount() {
     this.onReset();
@@ -60,8 +90,9 @@ export default class App extends Component<AppProps, AppState> {
 
   render() {
     const {
-      state, progress, evaluation, searching, searchFinished, dicePickEvaluations, cacheStats,
+      state, progress, evaluation, searching, searchFinished, dicePickEvaluations, cacheStatusMessages, cacheStats,
     } = this.state;
+    const cacheStatusMessage = cacheStatusMessages[cacheStatusMessages.length - 1]?.message ?? null;
     return (
       <div className="App">
         <h2>Search</h2>
@@ -83,6 +114,7 @@ export default class App extends Component<AppProps, AppState> {
           onSearchStep={this.onSearchStep}
           onSearchToggle={this.onSearchToggle}
           onSearchRestart={this.onSearchRestart}
+          cacheStatusMessage={cacheStatusMessage}
           cacheStats={cacheStats}
           searchInstance={this.searchInstance}
         />

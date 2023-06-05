@@ -68,9 +68,17 @@ export interface EvaluationCacheLinkResponseMessage {
   id: number,
   link: string,
 }
+export type CacheFetchingStatus = "fetching" | "success" | "failure";
+export interface CacheFetchingProgressResponseMessage {
+  type: "cache-fetching-progress",
+  id: number,
+  diceCount: number,
+  status: CacheFetchingStatus,
+}
 export type SearchResponseMessage = (
   | ResultSearchResponseMessage
   | EvaluationCacheLinkResponseMessage
+  | CacheFetchingProgressResponseMessage
 );
 
 export class RemoteSearch {
@@ -99,6 +107,9 @@ export class RemoteSearch {
       case "evaluation-cache-link":
         this.onEvaluationCacheLink(data);
         break;
+      case "cache-fetching-progress":
+        this.onCacheFetchingProgress(data);
+        break;
     }
   };
 
@@ -124,6 +135,14 @@ export class RemoteSearch {
     this.downloadUrl(resultResponse.link, "evaluation-cache.json");
   }
 
+  onCacheFetchingProgress(resultResponse: CacheFetchingProgressResponseMessage) {
+    const searchInstance = this.instancesById.get(resultResponse.id)!;
+    searchInstance.onCacheFetchingProgress(
+      resultResponse.diceCount,
+      resultResponse.status,
+    );
+  }
+
   downloadUrl(url: string, filename: string) {
     const link = document.createElement("a");
     link.href = url;
@@ -131,9 +150,9 @@ export class RemoteSearch {
     link.click();
   }
 
-  newInstance(onResult: OnSearchResult): SearchInstance {
+  newInstance(onResult: OnSearchResult, onCacheFetchingProgress: OnCacheFetchingProgress): SearchInstance {
     const instanceId = this.nextInstanceId;
-    const instance = new SearchInstance(this, instanceId, onResult);
+    const instance = new SearchInstance(this, instanceId, onResult, onCacheFetchingProgress);
     this.instanceIds.set(instance, instanceId);
     this.instancesById.set(instanceId, instance);
     this.nextInstanceId++;
@@ -232,15 +251,19 @@ export type OnSearchResult = (
   cacheStats: worms.EvaluationCacheStats,
 ) => void;
 
+export type OnCacheFetchingProgress = (diceCount: number, status: CacheFetchingStatus) => void;
+
 export class SearchInstance {
   id: number;
   remoteSearch: RemoteSearch;
   onResult: OnSearchResult;
+  onCacheFetchingProgress: OnCacheFetchingProgress;
 
-  constructor(remoteSearch: RemoteSearch, id: number, onResult: OnSearchResult) {
+  constructor(remoteSearch: RemoteSearch, id: number, onResult: OnSearchResult, onCacheFetchingProgress: OnCacheFetchingProgress) {
     this.remoteSearch = remoteSearch;
     this.id = id;
     this.onResult = onResult;
+    this.onCacheFetchingProgress = onCacheFetchingProgress;
   }
 
   setSearchState(state: worms.State) {
