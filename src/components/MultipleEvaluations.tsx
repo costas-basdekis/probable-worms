@@ -3,7 +3,7 @@ import {createSelector} from "reselect";
 import _ from "underscore";
 import {ChartLineName, MultipleEvaluationsChart} from "./MultipleEvaluationsChart";
 import * as worms from "../worms";
-import {Button, Checkbox, Container, Segment, Table} from "semantic-ui-react";
+import {Button, Checkbox, Container, Table} from "semantic-ui-react";
 import {RChest} from "./RChest";
 import {CheckboxProps} from "semantic-ui-react/dist/commonjs/modules/Checkbox/Checkbox";
 
