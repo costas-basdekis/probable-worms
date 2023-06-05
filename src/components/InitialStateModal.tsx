@@ -32,7 +32,7 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
         onOpen={this.onOpen}
         open={open}
         trigger={trigger}
-        size={"tiny"}
+        size={"mini"}
       >
         <Modal.Header>Change initial state</Modal.Header>
         <Modal.Content>
