@@ -19,13 +19,12 @@ export class EvaluationCache {
 
   static deserialise(serialised: SerialisedEvaluationCache | CompressedSerialisedEvaluationCache, options: SerialisationOptions): EvaluationCache {
     const cache = new EvaluationCache();
-    for (const row of serialised) {
-      const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValueOfAtLeastEntries, expectedValue] = (row.length === 5 ? row : [...row.slice(0, 3), [], row[3]]) as SerialisedEvaluationCache[0];
+    for (const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValueOfAtLeastEntries, expectedValue] of serialised) {
       cache.set(key, Evaluation.deserialise({
         minimumResultOccurrencesEntries,
         exactResultOccurrencesEntries,
-        expectedValueOfAtLeastEntries: expectedValueOfAtLeastEntries ?? [],
-        expectedValue: expectedValue ?? 0,
+        expectedValueOfAtLeastEntries: expectedValueOfAtLeastEntries,
+        expectedValue: expectedValue,
       } as SerialisedEvaluation | CompressedSerialisedEvaluation, options));
     }
     return cache;

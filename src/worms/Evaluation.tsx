@@ -79,8 +79,8 @@ export class Evaluation {
     return new Evaluation(
       Results.deserialise(serialised.minimumResultOccurrencesEntries, options),
       Results.deserialise(serialised.exactResultOccurrencesEntries, _.omit(options, "compressed")),
-      Results.deserialise(serialised.expectedValueOfAtLeastEntries ?? [], options),
-      serialised.expectedValue ?? 0,
+      Results.deserialise(serialised.expectedValueOfAtLeastEntries, options),
+      serialised.expectedValue,
     );
   }
 
