@@ -28,6 +28,14 @@ export class RolledStateEvaluator implements IStateEvaluator<RolledState> {
       nextUnrolledStates.map(unrolledState => ({unrolledState, evaluator: null, evaluation: null})),
     );
   }
+  static getRemainingDiceCountFromCacheKey(cacheKey: string): number | null {
+    if (cacheKey[0] !== "R") {
+      return null;
+    }
+    const [, diceStr] = cacheKey.split("d");
+    const dice = diceStr.split(",").map(itemStr => parseInt(itemStr, 10));
+    return dice.reduce((total, current, index) => (index % 2 === 0) ? total : (total + current), 0);
+  }
 
   constructor(rolledState: RolledState, nextUnrolledStates: NextUnrolledState[]) {
     this.state = rolledState;

@@ -159,7 +159,7 @@ class SearchWorker {
       return;
     }
     const {evaluationCache} = this.instancesById.get(instanceId)!;
-    const bytes = new TextEncoder().encode(JSON.stringify(evaluationCache.serialiseCompressed()));
+    const bytes = new TextEncoder().encode(JSON.stringify(evaluationCache.serialiseCompressedRoundedSparse()));
     const blob = new Blob([bytes], {
       type: "application/json;charset=utf-8",
     });
@@ -178,7 +178,7 @@ class SearchWorker {
     const instance = this.instancesById.get(instanceId)!;
     let evaluationCache;
     try {
-      evaluationCache = worms.EvaluationCache.deserialiseCompressed(JSON.parse(jsonSerialised));
+      evaluationCache = worms.EvaluationCache.deserialiseCompressedRoundedSparse(JSON.parse(jsonSerialised));
     } catch (e) {
       console.error("File was not a valid cache file");
       return;

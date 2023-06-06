@@ -34,6 +34,18 @@ export class UnrolledStateEvaluator implements IStateEvaluator<UnrolledState> {
     );
   }
 
+  static getRemainingDiceCountFromCacheKey(cacheKey: string): number | null {
+    if (cacheKey[0] !== "S") {
+      return null;
+    }
+    const [, remainingDiceCountStr] = cacheKey.split("r");
+    const remainingDiceCount = parseInt(remainingDiceCountStr, 10);
+    if (isNaN(remainingDiceCount)) {
+      return null;
+    }
+    return remainingDiceCount;
+  }
+
   constructor(unrolledState: UnrolledState, nextRolledStates: NextRolledState[] | null, isRoot: boolean) {
     this.state = unrolledState;
     this.nextRolledStates = nextRolledStates;

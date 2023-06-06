@@ -10,11 +10,22 @@ export class Results {
     return new Results(serialised);
   }
 
+  static deserialiseRounded(serialised: SerialisedResults): Results {
+    return new Results(serialised.map(([key, value]) => [key, (value === -1 ? 1000 : value) / 1000]));
+  }
+
   static deserialiseCompressed(serialisedCompressed: CompressedSerialisedResults): Results {
     const expandedTriples: [number, number][][] = serialisedCompressed.map(
       ([min, max, ratio]) => _.range(min, max + 1).map(
         (total) => [total, ratio]));
     return new Results(expandedTriples.flat());
+  }
+
+  static deserialiseCompressedRounded(serialisedCompressed: CompressedSerialisedResults): Results {
+    const expandedTriples: [number, number][][] = serialisedCompressed.map(
+      ([min, max, ratio]) => _.range(min, max + 1).map(
+        (total) => [total, ratio]));
+    return this.deserialiseRounded(expandedTriples.flat());
   }
 
   constructor(items?: Iterable<readonly [number, number]>) {
@@ -75,8 +86,29 @@ export class Results {
     return Array.from(this.entries())
   }
 
+  serialiseRounded(): SerialisedResults {
+    return this.serialise().map(([total, ratio]) => {
+      const value = Math.round(ratio * 1000);
+      return [total, value === 1000 ? -1 : value];
+    });
+  }
+
   serialiseCompressed(): CompressedSerialisedResults {
     return this.serialise().sort(([lTotal], [rTotal]) => lTotal - rTotal).reduce((total, [rollTotal, ratio]): [number, number, number][] => {
+      const min = rollTotal, max = rollTotal;
+      if (!total.length) {
+        return [[min, max, ratio]];
+      }
+      const [lastMin, lastMax, lastRatio] = total[total.length - 1];
+      if (lastMax !== (max - 1) || lastRatio !== ratio) {
+        return [...total, [min, max, ratio]];
+      }
+      return [...total.slice(0, total.length - 1), [lastMin, max, lastRatio]];
+    }, [] as [number, number, number][]);
+  }
+
+  serialiseCompressedRounded(): CompressedSerialisedResults {
+    return this.serialiseRounded().sort(([lTotal], [rTotal]) => lTotal - rTotal).reduce((total, [rollTotal, ratio]): [number, number, number][] => {
       const min = rollTotal, max = rollTotal;
       if (!total.length) {
         return [[min, max, ratio]];

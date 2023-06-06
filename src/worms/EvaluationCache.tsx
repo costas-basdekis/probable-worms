@@ -1,5 +1,7 @@
 import {Evaluation} from "./Evaluation";
 import {CompressedSerialisedResults, SerialisedResults} from "./Results";
+import {UnrolledStateEvaluator} from "./UnrolledStateEvaluator";
+import {RolledStateEvaluator} from "./RolledStateEvaluator";
 
 export interface EvaluationCacheStats {
   hitCount: number,
@@ -29,11 +31,39 @@ export class EvaluationCache {
     return cache;
   }
 
+  static deserialiseRounded(serialised: SerialisedEvaluationCache): EvaluationCache {
+    const cache = new EvaluationCache();
+    for (const row of serialised) {
+      const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValueOfAtLeastEntries, expectedValue] = (row.length === 5 ? row : [...row.slice(0, 3), [], row[3]]) as SerialisedEvaluationCache[0];
+      cache.set(key, Evaluation.deserialiseRounded({
+        minimumResultOccurrencesEntries,
+        exactResultOccurrencesEntries,
+        expectedValueOfAtLeastEntries: expectedValueOfAtLeastEntries ?? [],
+        expectedValue: expectedValue ?? 0,
+      }));
+    }
+    return cache;
+  }
+
   static deserialiseCompressed(serialised: CompressedSerialisedEvaluationCache): EvaluationCache {
     const cache = new EvaluationCache();
     for (const row of serialised) {
       const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValueOfAtLeastEntries, expectedValue] = (row.length === 5 ? row : [...row.slice(0, 3), [], row[3]]) as CompressedSerialisedEvaluationCache[0];
       cache.set(key, Evaluation.deserialiseCompressed({
+        minimumResultOccurrencesEntries,
+        exactResultOccurrencesEntries,
+        expectedValueOfAtLeastEntries: expectedValueOfAtLeastEntries ?? [],
+        expectedValue: expectedValue ?? 0,
+      }));
+    }
+    return cache;
+  }
+
+  static deserialiseCompressedRoundedSparse(serialised: CompressedSerialisedEvaluationCache): EvaluationCache {
+    const cache = new EvaluationCache();
+    for (const row of serialised) {
+      const [key, minimumResultOccurrencesEntries, exactResultOccurrencesEntries, expectedValueOfAtLeastEntries, expectedValue] = (row.length === 5 ? row : [...row.slice(0, 3), [], row[3]]) as CompressedSerialisedEvaluationCache[0];
+      cache.set(key, Evaluation.deserialiseCompressedRoundedSparse({
         minimumResultOccurrencesEntries,
         exactResultOccurrencesEntries,
         expectedValueOfAtLeastEntries: expectedValueOfAtLeastEntries ?? [],
@@ -86,10 +116,47 @@ export class EvaluationCache {
       });
   }
 
+  serialiseRounded(): SerialisedEvaluationCache {
+    return Array.from(this.cache.entries()).map(
+      ([key, evaluation]) => {
+        const serialisedEvaluation = evaluation.serialiseRounded();
+        return [
+          key,
+          serialisedEvaluation.minimumResultOccurrencesEntries,
+          serialisedEvaluation.exactResultOccurrencesEntries,
+          serialisedEvaluation.expectedValueOfAtLeastEntries,
+          serialisedEvaluation.expectedValue,
+        ];
+      });
+  }
+
   serialiseCompressed(): CompressedSerialisedEvaluationCache {
     return Array.from(this.cache.entries()).map(
       ([key, evaluation]) => {
         const serialisedEvaluation = evaluation.serialiseCompressed();
+        return [
+          key,
+          serialisedEvaluation.minimumResultOccurrencesEntries,
+          serialisedEvaluation.exactResultOccurrencesEntries,
+          serialisedEvaluation.expectedValueOfAtLeastEntries,
+          serialisedEvaluation.expectedValue,
+        ];
+      });
+  }
+
+  serialiseCompressedRoundedSparse(): CompressedSerialisedEvaluationCache {
+    return Array.from(this.cache.entries()).filter(([key]) => {
+      const remainingDiceCount: number | null = (
+        UnrolledStateEvaluator.getRemainingDiceCountFromCacheKey(key)
+        ?? RolledStateEvaluator.getRemainingDiceCountFromCacheKey(key)
+      );
+      if (remainingDiceCount === null) {
+        return false;
+      }
+      return remainingDiceCount > 4;
+    }).map(
+      ([key, evaluation]) => {
+        const serialisedEvaluation = evaluation.serialiseCompressedRoundedSparse();
         return [
           key,
           serialisedEvaluation.minimumResultOccurrencesEntries,

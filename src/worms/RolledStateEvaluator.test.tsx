@@ -56,4 +56,21 @@ describe("RolledStateEvaluator", () => {
       );
     });
   });
+  describe("getRemainingDiceCountFromCacheKey", () => {
+    it("gets remaining dice count from initial rolled state with 1 distinct die", () => {
+      expect(RolledStateEvaluator.getRemainingDiceCountFromCacheKey("Rt0cd5,5")).toBe(5);
+    });
+    it("gets remaining dice count from initial rolled state with many distinct die", () => {
+      expect(RolledStateEvaluator.getRemainingDiceCountFromCacheKey("Rt0cd3,2,4,1,5,2")).toBe(5);
+    });
+    it("gets remaining dice count from initial rolled state with many distinct die with Worm", () => {
+      expect(RolledStateEvaluator.getRemainingDiceCountFromCacheKey("Rt0cd4,2,5,1,\"W\",2")).toBe(5);
+    });
+    it("gets remaining dice count from terminal rolled state", () => {
+      expect(RolledStateEvaluator.getRemainingDiceCountFromCacheKey("Rt4c1d1,1")).toBe(1);
+    });
+    it("doesn't get remaining dice count from non-rolled state cache key", () => {
+      expect(RolledStateEvaluator.getRemainingDiceCountFromCacheKey("St12c1,2,3,5r0")).toBe(null);
+    });
+  });
 });
