@@ -131,7 +131,7 @@ class SearchWorker {
     };
     this.instancesById.set(instanceId, instance);
     this.setEvaluationCache(instance, instance.evaluationCache);
-    if (!instance.stateEvaluator.finished && !instance.searching && instance.stateEvaluator.state.totalDiceCount <= 4) {
+    if (!instance.stateEvaluator.finished && !instance.searching && instance.stateEvaluator.state.remainingDiceCount <= 4) {
       this.onStart(instance.id);
     }
   }

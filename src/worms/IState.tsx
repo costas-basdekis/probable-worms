@@ -6,4 +6,5 @@ export interface IState {
   total: number;
   totalDiceCount: number;
   selectedDiceCount: number;
+  remainingDiceCount: number;
 }

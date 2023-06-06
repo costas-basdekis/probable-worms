@@ -44,6 +44,10 @@ export class RolledState implements IState {
     return this.unrolledState.selectedDiceCount + this.diceRoll.diceCount;
   }
 
+  get remainingDiceCount(): number {
+    return this.totalDiceCount - this.selectedDiceCount;
+  }
+
   get total(): number {
     return this.unrolledState.total;
   }
