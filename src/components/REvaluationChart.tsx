@@ -8,7 +8,7 @@ import {LegendType} from "recharts/types/util/types";
 class REvaluationChartTooltip extends Component<TooltipProps<number, number>> {
   render() {
     const {payload, label, active} = this.props;
-    if (!active) {
+    if (!active || !payload) {
       return null;
     }
     const [exactlyPayload, atLeastPayload, expectedValueOfAtLeastPayload] = payload!;
