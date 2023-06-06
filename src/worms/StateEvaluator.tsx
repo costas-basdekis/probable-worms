@@ -25,4 +25,11 @@ export class StateEvaluatorHelper {
     const evaluator = this.evaluatorFromStateLazy(state, true);
     return evaluator.processAll(options).evaluation!;
   }
+
+  static getRemainingDiceCountFromCacheKey(cacheKey: string): number | null {
+    return (
+      UnrolledStateEvaluator.getRemainingDiceCountFromCacheKey(cacheKey)
+      ?? RolledStateEvaluator.getRemainingDiceCountFromCacheKey(cacheKey)
+    );
+  }
 }

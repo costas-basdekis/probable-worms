@@ -1,7 +1,6 @@
 import {CompressedSerialisedEvaluation, Evaluation, SerialisedEvaluation} from "./Evaluation";
 import {CompressedSerialisedResults, SerialisationOptions, SerialisedResults} from "./Results";
-import {UnrolledStateEvaluator} from "./UnrolledStateEvaluator";
-import {RolledStateEvaluator} from "./RolledStateEvaluator";
+import {StateEvaluatorHelper} from "./StateEvaluator";
 
 export interface EvaluationCacheStats {
   hitCount: number,
@@ -63,10 +62,7 @@ export class EvaluationCache {
     let entries = Array.from(this.cache.entries());
     if (options.sparse) {
       entries = entries.filter(([key]) => {
-        const remainingDiceCount: number | null = (
-          UnrolledStateEvaluator.getRemainingDiceCountFromCacheKey(key)
-          ?? RolledStateEvaluator.getRemainingDiceCountFromCacheKey(key)
-        );
+        const remainingDiceCount: number | null = StateEvaluatorHelper.getRemainingDiceCountFromCacheKey(key);
         if (remainingDiceCount === null) {
           return false;
         }

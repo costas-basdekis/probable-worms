@@ -1,7 +1,7 @@
 import {CacheFetchingStatus, SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
 import {EvaluationCacheCache} from "./EvaluationCacheCache";
-import {Evaluation, SerialisedEvaluation, StateEvaluator, StateEvaluatorHelper, UnrolledStateEvaluator} from "./worms";
+import {Evaluation, SerialisedEvaluation, StateEvaluator, StateEvaluatorHelper} from "./worms";
 
 interface InstanceInfo {
   id: number,
