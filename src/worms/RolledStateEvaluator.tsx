@@ -46,8 +46,8 @@ export class RolledStateEvaluator implements IStateEvaluator<RolledState> {
     return this.evaluation !== null;
   }
 
-  processAll(): this {
-    while (this.processOne()) {
+  processAll(options?: SearchOptions): this {
+    while (this.processOne(options)) {
       //
     }
     return this;

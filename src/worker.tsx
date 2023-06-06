@@ -1,7 +1,7 @@
 import {CacheFetchingStatus, SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
 import {EvaluationCacheCache} from "./EvaluationCacheCache";
-import {SerialisedEvaluation, StateEvaluator, UnrolledStateEvaluator} from "./worms";
+import {Evaluation, SerialisedEvaluation, StateEvaluator, StateEvaluatorHelper, UnrolledStateEvaluator} from "./worms";
 
 interface InstanceInfo {
   id: number,
@@ -44,7 +44,8 @@ class SearchWorker {
     if (!this.instancesById.has(instanceId)) {
       return;
     }
-    const {stateEvaluator, searching, evaluationCache} = this.instancesById.get(instanceId)!;
+    const instance = this.instancesById.get(instanceId)!;
+    const {stateEvaluator, searching, evaluationCache} = instance;
     const progress = stateEvaluator.getCompletionProgress();
     this.postMessage({
       type: "result",
@@ -57,11 +58,10 @@ class SearchWorker {
         stateEvaluator.state.getNextUnrolledStatesAndPickedRolls()
         .filter(({pickedRoll}) => pickedRoll !== null)
         .map(({state, pickedRoll, pickedCount}) => {
-          const cacheKey = UnrolledStateEvaluator.fromUnrolledStateLazy(state, true).getCacheKey();
           return {
             pickedRoll: pickedRoll!,
             pickedCount: pickedCount!,
-            evaluation: (evaluationCache.has(cacheKey) ? evaluationCache.get(cacheKey)! : worms.Evaluation.empty()).serialise({}) as SerialisedEvaluation,
+            evaluation: this.getEvaluation(instance, state).serialise({}) as SerialisedEvaluation,
           };
         })
       ),
@@ -134,6 +134,15 @@ class SearchWorker {
     if (!instance.stateEvaluator.finished && !instance.searching && instance.stateEvaluator.state.remainingDiceCount <= 4) {
       this.onStart(instance.id);
     }
+  }
+
+  getEvaluation(instance: InstanceInfo, state: worms.State): Evaluation {
+    const cacheKey = StateEvaluatorHelper.getStateCacheKey(state);
+    if (!instance.evaluationCache.has(cacheKey) && state.remainingDiceCount <= 4) {
+      StateEvaluatorHelper.processAllFromState(state, {evaluationCache: instance.evaluationCache});
+    }
+
+    return instance.evaluationCache.get(cacheKey) ?? Evaluation.empty();
   }
 
   onStep(instanceId: number) {

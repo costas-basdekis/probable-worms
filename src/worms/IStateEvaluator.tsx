@@ -11,7 +11,7 @@ export interface IStateEvaluator<S extends IState> {
   state: S;
   evaluation: Evaluation | null;
   finished: boolean;
-  processAll(): this;
+  processAll(options?: SearchOptions): this;
   processOne(options?: SearchOptions): boolean;
   getCacheKey(): string;
   compileEvaluation(): Evaluation;

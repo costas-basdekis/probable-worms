@@ -56,8 +56,8 @@ export class UnrolledStateEvaluator implements IStateEvaluator<UnrolledState> {
     return this.evaluation !== null;
   }
 
-  processAll(): this {
-    while (this.processOne()) {
+  processAll(options?: SearchOptions): this {
+    while (this.processOne(options)) {
       //
     }
     return this;
