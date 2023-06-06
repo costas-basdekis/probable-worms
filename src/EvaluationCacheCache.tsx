@@ -63,7 +63,7 @@ export class EvaluationCacheCache {
     this.onCacheFetchingProgress?.(diceCount, "fetching");
     let evaluationCache;
     try {
-      evaluationCache = worms.EvaluationCache.deserialiseCompressedRoundedSparse(JSON.parse(await response.text()));
+      evaluationCache = worms.EvaluationCache.deserialise(JSON.parse(await response.text()), {rounded: true, compressed: true, sparse: true});
     } catch (e) {
       this.onCacheFetchingProgress?.(diceCount, "failure");
       console.error("File was not a valid cache file");

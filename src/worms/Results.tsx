@@ -2,30 +2,26 @@ import _ from "underscore";
 
 export type SerialisedResults = [number, number][];
 export type CompressedSerialisedResults = [number, number, number][];
+export interface SerialisationOptions {
+  compressed?: boolean,
+  rounded?: boolean,
+  sparse?: boolean,
+}
 
 export class Results {
   counts: Map<number, number>;
 
-  static deserialise(serialised: SerialisedResults): Results {
-    return new Results(serialised);
-  }
-
-  static deserialiseRounded(serialised: SerialisedResults): Results {
-    return new Results(serialised.map(([key, value]) => [key, (value === -1 ? 1000 : value) / 1000]));
-  }
-
-  static deserialiseCompressed(serialisedCompressed: CompressedSerialisedResults): Results {
-    const expandedTriples: [number, number][][] = serialisedCompressed.map(
-      ([min, max, ratio]) => _.range(min, max + 1).map(
-        (total) => [total, ratio]));
-    return new Results(expandedTriples.flat());
-  }
-
-  static deserialiseCompressedRounded(serialisedCompressed: CompressedSerialisedResults): Results {
-    const expandedTriples: [number, number][][] = serialisedCompressed.map(
-      ([min, max, ratio]) => _.range(min, max + 1).map(
-        (total) => [total, ratio]));
-    return this.deserialiseRounded(expandedTriples.flat());
+  static deserialise(serialised: SerialisedResults | CompressedSerialisedResults, options: SerialisationOptions): Results {
+    if (options.compressed) {
+      const expandedTriples: [number, number][][] = (serialised as CompressedSerialisedResults).map(
+        ([min, max, ratio]) => _.range(min, max + 1).map(
+          (total) => [total, ratio]));
+      serialised = expandedTriples.flat();
+    }
+    if (options.rounded) {
+      serialised = serialised.map(([key, value]) => [key, (value === -1 ? 1000 : value) / 1000])
+    }
+    return new Results(serialised as SerialisedResults);
   }
 
   constructor(items?: Iterable<readonly [number, number]>) {
@@ -82,42 +78,27 @@ export class Results {
     );
   }
 
-  serialise(): SerialisedResults {
-    return Array.from(this.entries())
-  }
-
-  serialiseRounded(): SerialisedResults {
-    return this.serialise().map(([total, ratio]) => {
-      const value = Math.round(ratio * 1000);
-      return [total, value === 1000 ? -1 : value];
-    });
-  }
-
-  serialiseCompressed(): CompressedSerialisedResults {
-    return this.serialise().sort(([lTotal], [rTotal]) => lTotal - rTotal).reduce((total, [rollTotal, ratio]): [number, number, number][] => {
-      const min = rollTotal, max = rollTotal;
-      if (!total.length) {
-        return [[min, max, ratio]];
-      }
-      const [lastMin, lastMax, lastRatio] = total[total.length - 1];
-      if (lastMax !== (max - 1) || lastRatio !== ratio) {
-        return [...total, [min, max, ratio]];
-      }
-      return [...total.slice(0, total.length - 1), [lastMin, max, lastRatio]];
-    }, [] as [number, number, number][]);
-  }
-
-  serialiseCompressedRounded(): CompressedSerialisedResults {
-    return this.serialiseRounded().sort(([lTotal], [rTotal]) => lTotal - rTotal).reduce((total, [rollTotal, ratio]): [number, number, number][] => {
-      const min = rollTotal, max = rollTotal;
-      if (!total.length) {
-        return [[min, max, ratio]];
-      }
-      const [lastMin, lastMax, lastRatio] = total[total.length - 1];
-      if (lastMax !== (max - 1) || lastRatio !== ratio) {
-        return [...total, [min, max, ratio]];
-      }
-      return [...total.slice(0, total.length - 1), [lastMin, max, lastRatio]];
-    }, [] as [number, number, number][]);
+  serialise(options: SerialisationOptions): SerialisedResults | CompressedSerialisedResults {
+    let serialised: SerialisedResults | CompressedSerialisedResults = Array.from(this.entries());
+    if (options.rounded) {
+      serialised = serialised.map(([total, ratio]) => {
+        const value = Math.round(ratio * 1000);
+        return [total, value === 1000 ? -1 : value];
+      });
+    }
+    if (options.compressed) {
+      serialised = serialised.sort(([lTotal], [rTotal]) => lTotal - rTotal).reduce((total, [rollTotal, ratio]): [number, number, number][] => {
+        const min = rollTotal, max = rollTotal;
+        if (!total.length) {
+          return [[min, max, ratio]];
+        }
+        const [lastMin, lastMax, lastRatio] = total[total.length - 1];
+        if (lastMax !== (max - 1) || lastRatio !== ratio) {
+          return [...total, [min, max, ratio]];
+        }
+        return [...total.slice(0, total.length - 1), [lastMin, max, lastRatio]];
+      }, [] as [number, number, number][]);
+    }
+    return serialised;
   }
 }

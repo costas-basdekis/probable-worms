@@ -1,7 +1,7 @@
 import {CacheFetchingStatus, SearchRequestMessage, SearchResponseMessage} from "./RemoteSearch";
 import * as worms from "./worms";
 import {EvaluationCacheCache} from "./EvaluationCacheCache";
-import {StateEvaluator, UnrolledStateEvaluator} from "./worms";
+import {SerialisedEvaluation, StateEvaluator, UnrolledStateEvaluator} from "./worms";
 
 interface InstanceInfo {
   id: number,
@@ -52,7 +52,7 @@ class SearchWorker {
       progress,
       searching,
       searchFinished: progress === 1,
-      evaluation: stateEvaluator.compilePartialEvaluation().serialise(),
+      evaluation: stateEvaluator.compilePartialEvaluation().serialise({}) as SerialisedEvaluation,
       dicePickEvaluations: stateEvaluator.state.type === "unrolled" ? null : (
         stateEvaluator.state.getNextUnrolledStatesAndPickedRolls()
         .filter(({pickedRoll}) => pickedRoll !== null)
@@ -61,7 +61,7 @@ class SearchWorker {
           return {
             pickedRoll: pickedRoll!,
             pickedCount: pickedCount!,
-            evaluation: (evaluationCache.has(cacheKey) ? evaluationCache.get(cacheKey)! : worms.Evaluation.empty()).serialise(),
+            evaluation: (evaluationCache.has(cacheKey) ? evaluationCache.get(cacheKey)! : worms.Evaluation.empty()).serialise({}) as SerialisedEvaluation,
           };
         })
       ),
@@ -159,7 +159,7 @@ class SearchWorker {
       return;
     }
     const {evaluationCache} = this.instancesById.get(instanceId)!;
-    const bytes = new TextEncoder().encode(JSON.stringify(evaluationCache.serialiseCompressedRoundedSparse()));
+    const bytes = new TextEncoder().encode(JSON.stringify(evaluationCache.serialise({rounded: true, compressed: true, sparse: true})));
     const blob = new Blob([bytes], {
       type: "application/json;charset=utf-8",
     });
@@ -178,7 +178,7 @@ class SearchWorker {
     const instance = this.instancesById.get(instanceId)!;
     let evaluationCache;
     try {
-      evaluationCache = worms.EvaluationCache.deserialiseCompressedRoundedSparse(JSON.parse(jsonSerialised));
+      evaluationCache = worms.EvaluationCache.deserialise(JSON.parse(jsonSerialised), {rounded: true, compressed: true, sparse: true});
     } catch (e) {
       console.error("File was not a valid cache file");
       return;

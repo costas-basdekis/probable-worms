@@ -1,6 +1,6 @@
 import _ from "underscore";
 
-import {CompressedSerialisedResults, Results, SerialisedResults} from "./Results";
+import {CompressedSerialisedResults, Results, SerialisationOptions, SerialisedResults} from "./Results";
 
 export interface SerialisedEvaluation {
   minimumResultOccurrencesEntries: SerialisedResults,
@@ -75,38 +75,11 @@ export class Evaluation {
     return new Evaluation(new Results(), new Results(), new Results(), 0);
   }
 
-  static deserialise(serialised: SerialisedEvaluation): Evaluation {
+  static deserialise(serialised: SerialisedEvaluation | CompressedSerialisedEvaluation, options: SerialisationOptions): Evaluation {
     return new Evaluation(
-      Results.deserialise(serialised.minimumResultOccurrencesEntries),
-      Results.deserialise(serialised.exactResultOccurrencesEntries),
-      Results.deserialise(serialised.expectedValueOfAtLeastEntries ?? []),
-      serialised.expectedValue ?? 0,
-    );
-  }
-
-  static deserialiseRounded(serialised: SerialisedEvaluation): Evaluation {
-    return new Evaluation(
-      Results.deserialiseRounded(serialised.minimumResultOccurrencesEntries),
-      Results.deserialiseRounded(serialised.exactResultOccurrencesEntries),
-      Results.deserialiseRounded(serialised.expectedValueOfAtLeastEntries ?? []),
-      serialised.expectedValue ?? 0,
-    );
-  }
-
-  static deserialiseCompressed(serialised: CompressedSerialisedEvaluation): Evaluation {
-    return new Evaluation(
-      Results.deserialiseCompressed(serialised.minimumResultOccurrencesEntries),
-      Results.deserialise(serialised.exactResultOccurrencesEntries),
-      Results.deserialiseCompressed(serialised.expectedValueOfAtLeastEntries ?? []),
-      serialised.expectedValue ?? 0,
-    );
-  }
-
-  static deserialiseCompressedRoundedSparse(serialised: CompressedSerialisedEvaluation): Evaluation {
-    return new Evaluation(
-      Results.deserialiseCompressedRounded(serialised.minimumResultOccurrencesEntries),
-      Results.deserialiseRounded(serialised.exactResultOccurrencesEntries),
-      Results.deserialiseCompressedRounded(serialised.expectedValueOfAtLeastEntries ?? []),
+      Results.deserialise(serialised.minimumResultOccurrencesEntries, options),
+      Results.deserialise(serialised.exactResultOccurrencesEntries, _.omit(options, "compressed")),
+      Results.deserialise(serialised.expectedValueOfAtLeastEntries ?? [], options),
       serialised.expectedValue ?? 0,
     );
   }
@@ -127,39 +100,16 @@ export class Evaluation {
     );
   }
 
-  serialise(): SerialisedEvaluation {
+  serialise(options: SerialisationOptions): SerialisedEvaluation | CompressedSerialisedEvaluation {
+    let expectedValue = this.expectedValue;
+    if (options.rounded) {
+      expectedValue = parseInt(expectedValue.toFixed(1), 10);
+    }
     return {
-      minimumResultOccurrencesEntries: this.minimumResultOccurrences.serialise(),
-      exactResultOccurrencesEntries: this.exactResultOccurrences.serialise(),
-      expectedValueOfAtLeastEntries: this.expectedValueOfAtLeast.serialise(),
-      expectedValue: this.expectedValue,
-    };
-  }
-
-  serialiseRounded(): SerialisedEvaluation {
-    return {
-      minimumResultOccurrencesEntries: this.minimumResultOccurrences.serialiseRounded(),
-      exactResultOccurrencesEntries: this.exactResultOccurrences.serialiseRounded(),
-      expectedValueOfAtLeastEntries: this.expectedValueOfAtLeast.serialiseRounded(),
-      expectedValue: parseInt(this.expectedValue.toFixed(1), 10),
-    };
-  }
-
-  serialiseCompressed(): CompressedSerialisedEvaluation {
-    return {
-      minimumResultOccurrencesEntries: this.minimumResultOccurrences.serialiseCompressed(),
-      exactResultOccurrencesEntries: this.exactResultOccurrences.serialise(),
-      expectedValueOfAtLeastEntries: this.expectedValueOfAtLeast.serialiseCompressed(),
-      expectedValue: this.expectedValue,
-    };
-  }
-
-  serialiseCompressedRoundedSparse(): CompressedSerialisedEvaluation {
-    return {
-      minimumResultOccurrencesEntries: this.minimumResultOccurrences.serialiseCompressedRounded(),
-      exactResultOccurrencesEntries: this.exactResultOccurrences.serialiseRounded(),
-      expectedValueOfAtLeastEntries: this.expectedValueOfAtLeast.serialiseCompressedRounded(),
-      expectedValue: parseInt(this.expectedValue.toFixed(1), 10),
+      minimumResultOccurrencesEntries: this.minimumResultOccurrences.serialise(options) as SerialisedResults,
+      exactResultOccurrencesEntries: this.exactResultOccurrences.serialise(_.omit(options, "compressed")) as SerialisedResults,
+      expectedValueOfAtLeastEntries: this.expectedValueOfAtLeast.serialise(options) as SerialisedResults,
+      expectedValue,
     };
   }
 }

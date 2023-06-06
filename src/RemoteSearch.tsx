@@ -119,12 +119,12 @@ export class RemoteSearch {
       resultResponse.searching,
       resultResponse.searchFinished,
       resultResponse.progress,
-      worms.Evaluation.deserialise(resultResponse.evaluation),
+      worms.Evaluation.deserialise(resultResponse.evaluation, {}),
       resultResponse.dicePickEvaluations ? (
         resultResponse.dicePickEvaluations?.map(({pickedRoll, pickedCount, evaluation}) => ({
           pickedRoll,
           pickedCount,
-          evaluation: worms.Evaluation.deserialise(evaluation),
+          evaluation: worms.Evaluation.deserialise(evaluation, {}),
         }))
       ) : null,
       resultResponse.cacheStats,
