@@ -160,9 +160,10 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
   };
 
   onClear = () => {
-    this.setState({
+    this.setState(({diceCount}) => ({
       pickedDice: new DiceRoll(),
+      unrolledDiceCount: diceCount,
       rolledDice: new DiceRoll(),
-    }, this.triggerOnStateChange);
+    }), this.triggerOnStateChange);
   };
 }
