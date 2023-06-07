@@ -22,7 +22,10 @@ interface MultipleEvaluationsState{
 export class MultipleEvaluations extends Component<MultipleEvaluationsProps, MultipleEvaluationsState> {
   state: MultipleEvaluationsState = {
     visibleRollPicks: worms.rollResults,
-    visibleChartLines: ["exactly", "at-least", "expected-value-of-at-least"],
+    visibleChartLines: {
+      exactly: ["exactly"] as ChartLineName[],
+      atLeast: ["at-least", "expected-value-of-at-least"] as ChartLineName[],
+    }[this.props.targetType] ?? ["exactly", "at-least", "expected-value-of-at-least"],
     showOnlyMaxValues: true,
   };
 
@@ -106,6 +109,19 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
 
   get expectedValueOfAtLeastRoundedEntriesByPickedRolls(): Map<worms.RollResult, [number, number][]> {
     return this.expectedValueOfAtLeastRoundedEntriesByPickedRollsSelector(this.props);
+  }
+
+  componentDidUpdate(prevProps: Readonly<MultipleEvaluationsProps>) {
+    if (prevProps.targetType !== this.props.targetType) {
+      switch (this.props.targetType) {
+        case "exactly":
+          this.setState({visibleChartLines: ["exactly"]});
+          break;
+        case "atLeast":
+          this.setState({visibleChartLines: ["at-least", "expected-value-of-at-least"]});
+          break;
+      }
+    }
   }
 
   render() {
