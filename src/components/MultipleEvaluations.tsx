@@ -1,69 +1,9 @@
-import React, {Component, FormEvent, ReactNode} from "react";
+import React, {Component} from "react";
 import {createSelector} from "reselect";
 import _ from "underscore";
 import {ChartLineName, MultipleEvaluationsChart} from "./MultipleEvaluationsChart";
 import * as worms from "../worms";
-import {Button, Checkbox, Container, Label, Table} from "semantic-ui-react";
-import {RChest} from "./RChest";
-import {CheckboxProps} from "semantic-ui-react/dist/commonjs/modules/Checkbox/Checkbox";
-
-class WrapColorLabel extends Component<{children: ReactNode, good: boolean, bad: boolean}> {
-  render() {
-    const {children, good, bad} = this.props;
-    if (good) {
-      return <Label color={"green"}>{children}</Label>;
-    } else if (bad) {
-      return <Label color={"red"}>{children}</Label>;
-    } else {
-      return children;
-    }
-  }
-}
-
-interface MultipleEvaluationsTableTargetProps {
-  targetType: TargetType,
-  pickValue: {exactly: number | null, atLeast: number | null, evOfAtLeast: number | null, exactlyStr: string, atLeastStr: string, evOfAtLeastStr: string},
-  minMaxPickValues: {min: {exactly: number, atLeast: number, evOfAtLeast: number}, max: {exactly: number, atLeast: number, evOfAtLeast: number}},
-}
-
-class MultipleEvaluationsTableTarget extends Component<MultipleEvaluationsTableTargetProps> {
-  render() {
-    const {targetType, pickValue, minMaxPickValues} = this.props;
-    switch (targetType) {
-      case "exactly": {
-        return (
-          <WrapColorLabel
-            good={pickValue.exactly === minMaxPickValues.max.exactly}
-            bad={pickValue.exactly === minMaxPickValues.min.exactly}
-          >
-            {pickValue.exactlyStr}
-          </WrapColorLabel>
-        );
-      }
-      case "atLeast": {
-        return <>
-          <WrapColorLabel
-            good={pickValue.atLeast === minMaxPickValues.max.atLeast}
-            bad={pickValue.atLeast === minMaxPickValues.min.atLeast}
-          >
-            {pickValue.atLeastStr}
-          </WrapColorLabel>
-          {" / EV: "}
-          <WrapColorLabel
-            good={pickValue.evOfAtLeast === minMaxPickValues.max.evOfAtLeast}
-            bad={pickValue.evOfAtLeast === minMaxPickValues.min.evOfAtLeast}
-          >
-            {pickValue.evOfAtLeastStr}
-          </WrapColorLabel>
-        </>;
-      }
-      default:
-        throw new Error("Unknown target type");
-    }
-  }
-}
-
-export type TargetType = "exactly" | "atLeast";
+import {MultipleEvaluationsTable, TargetType} from "./MultipleEvaluationsTable";
 
 interface MultipleEvaluationsProps {
   rolledState: worms.RolledState,
@@ -92,7 +32,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
   );
 
   get evaluationsByPickedRoll(): Map<worms.RollResult, worms.Evaluation> {
-  return this.evaluationsByPickedRollSelector(this.props);
+    return this.evaluationsByPickedRollSelector(this.props);
   }
 
   maxTotalSelector = createSelector(
@@ -166,133 +106,29 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
     return this.expectedValueOfAtLeastRoundedEntriesByPickedRollsSelector(this.props);
   }
 
-  pickValuesSelector = createSelector(
-    ({evaluationsAndPickedRolls}: MultipleEvaluationsProps) => evaluationsAndPickedRolls,
-    this.exactRoundedPercentagesEntriesByPickedRollsSelector,
-    this.atLeastRoundedPercentagesEntriesByPickedRollsSelector,
-    this.expectedValueOfAtLeastRoundedEntriesByPickedRollsSelector,
-    ({targetValue}: MultipleEvaluationsProps) => targetValue,
-    (
-      evaluationsAndPickedRolls,
-      exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
-      expectedValueOfAtLeastRoundedEntriesByPickedRolls, targetValue,
-    ): Map<worms.RollResult, {exactly: number | null, atLeast: number | null, evOfAtLeast: number | null, exactlyStr: string, atLeastStr: string, evOfAtLeastStr: string}> => {
-      const entries: [worms.RollResult, {exactly: number | null, atLeast: number | null, evOfAtLeast: number | null, exactlyStr: string, atLeastStr: string, evOfAtLeastStr: string}][] =
-        evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => {
-          const {exactly, atLeast, evOfAtLeast} = {
-            exactly: (
-              evaluation.exactResultOccurrences.has(targetValue)
-                ? evaluation.exactResultOccurrences.get(targetValue)!
-                : null
-            ),
-            atLeast: (
-              evaluation.minimumResultOccurrences.has(targetValue)
-                ? evaluation.minimumResultOccurrences.get(targetValue)!
-                : null
-            ),
-            evOfAtLeast: (
-              evaluation.expectedValueOfAtLeast.has(targetValue)
-                ? evaluation.expectedValueOfAtLeast.get(targetValue)!
-                : null
-            ),
-          };
-          return [pickedRoll, {
-            exactly, atLeast, evOfAtLeast,
-            exactlyStr: exactly !== null ? `${Math.round(exactly * 100)}%` : "N/A",
-            atLeastStr: atLeast !== null ? `${Math.round(atLeast * 100)}%` : "N/A",
-            evOfAtLeastStr: evOfAtLeast !== null ? `${Math.round(evOfAtLeast * 10) / 10}` : "N/A",
-          }];
-        });
-      return new Map(entries);
-    },
-  );
-
-  get pickValues() {
-    return this.pickValuesSelector(this.props);
-  }
-
-  minMaxPickValuesSelector = createSelector(
-    this.pickValuesSelector,
-    (pickValues): {min: {exactly: number, atLeast: number, evOfAtLeast: number}, max: {exactly: number, atLeast: number, evOfAtLeast: number}} => {
-      const exactlyValues = Array.from(pickValues.values()).filter(({exactly}) => exactly !== null).map(({exactly}) => exactly!);
-      const atLeastValues = Array.from(pickValues.values()).filter(({atLeast}) => atLeast !== null).map(({atLeast}) => atLeast!);
-      const evOfAtLeastValues = Array.from(pickValues.values()).filter(({evOfAtLeast}) => evOfAtLeast !== null).map(({evOfAtLeast}) => evOfAtLeast!);
-      return {
-        min: {
-          exactly: Math.min(...exactlyValues),
-          atLeast: Math.min(...atLeastValues),
-          evOfAtLeast: Math.min(...evOfAtLeastValues),
-        },
-        max: {
-          exactly: Math.max(...exactlyValues),
-          atLeast: Math.max(...atLeastValues),
-          evOfAtLeast: Math.max(...evOfAtLeastValues),
-        },
-      };
-    },
-  );
-
-  get minMaxPickValues() {
-    return this.minMaxPickValuesSelector(this.props);
-  }
-
   render() {
     const {
       evaluationsByPickedRoll, maxTotal, totals,
       exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
-      expectedValueOfAtLeastRoundedEntriesByPickedRolls, pickValues, minMaxPickValues,
+      expectedValueOfAtLeastRoundedEntriesByPickedRolls,
     } = this;
     const {visibleRollPicks, visibleChartLines} = this.state;
     const {rolledState, evaluationsAndPickedRolls, targetType, targetValue} = this.props;
     return <>
-      <Container textAlign={"center"}>
-        <Table definition collapsing unstackable size={"small"} className={"centered-table"}>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell />
-              <Table.HeaderCell>Pick</Table.HeaderCell>
-              <Table.HeaderCell>{{exactly: "Exactly", atLeast: "At least"}[targetType]} {targetValue}</Table.HeaderCell>
-              <Table.HeaderCell>Expected Value</Table.HeaderCell>
-              <Table.HeaderCell>Visible</Table.HeaderCell>
-              <Table.HeaderCell />
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {evaluationsAndPickedRolls.map(({evaluation, pickedRoll, pickedCount}) => (
-              <Table.Row key={pickedRoll}>
-                <Table.Cell>Pick {pickedRoll}</Table.Cell>
-                <Table.Cell><RChest chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[pickedRoll, pickedCount]]))} remainingDice={0} size={"tiny"} /></Table.Cell>
-                <Table.Cell>
-                  <MultipleEvaluationsTableTarget
-                    targetType={targetType}
-                    pickValue={pickValues.get(pickedRoll)!}
-                    minMaxPickValues={minMaxPickValues}
-                  />
-                </Table.Cell>
-                <Table.Cell>{evaluation.expectedValue.toFixed(1)}</Table.Cell>
-                <Table.Cell><Checkbox toggle checked={visibleRollPicks.includes(pickedRoll)} onChange={this.makeOnRollVisibleChange(pickedRoll)} /></Table.Cell>
-                <Table.Cell><Button onClick={this.makeOnContinueFromHere(pickedRoll)}>Continue from here</Button></Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-        <Table collapsing unstackable size={"small"} className={"centered-table"}>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>Show Exactly lines</Table.HeaderCell>
-              <Table.HeaderCell>Show At Least lines</Table.HeaderCell>
-              <Table.HeaderCell>Show EV of At Least Lines</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            <Table.Row>
-              <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("exactly")} onChange={this.makeOnChartLineVisibleChange("exactly")}/></Table.Cell>
-              <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("at-least")} onChange={this.makeOnChartLineVisibleChange("at-least")}/></Table.Cell>
-              <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("expected-value-of-at-least")} onChange={this.makeOnChartLineVisibleChange("expected-value-of-at-least")}/></Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
-      </Container>
+      <MultipleEvaluationsTable
+        evaluationsAndPickedRolls={evaluationsAndPickedRolls}
+        exactRoundedPercentagesEntriesByPickedRolls={expectedValueOfAtLeastRoundedEntriesByPickedRolls}
+        atLeastRoundedPercentagesEntriesByPickedRolls={atLeastRoundedPercentagesEntriesByPickedRolls}
+        expectedValueOfAtLeastRoundedEntriesByPickedRolls={expectedValueOfAtLeastRoundedEntriesByPickedRolls}
+        targetType={targetType}
+        targetValue={targetValue}
+        rolledState={rolledState}
+        onSetUnrolledState={this.props.onSetUnrolledState}
+        visibleRollPicks={visibleRollPicks}
+        visibleChartLines={visibleChartLines}
+        onVisibleRollPicksChange={this.onVisibleRollPicksChange}
+        onVisibleChartLinesChange={this.onVisibleChartLinesChange}
+      />
       <MultipleEvaluationsChart
         evaluationsByPickedRoll={evaluationsByPickedRoll}
         diceCount={rolledState.totalDiceCount}
@@ -307,37 +143,11 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
     </>;
   }
 
-  makeOnRollVisibleChange(pickedRoll: worms.RollResult): (ev: FormEvent<HTMLInputElement>, data: CheckboxProps) => void {
-    return (_ev: FormEvent<HTMLInputElement>, {checked}) => {
-      this.setState(({visibleRollPicks}) => {
-        if (checked && !visibleRollPicks.includes(pickedRoll)) {
-          return {visibleRollPicks: [...visibleRollPicks, pickedRoll]};
-        } else if (!checked && visibleRollPicks.includes) {
-          return {visibleRollPicks: visibleRollPicks.filter(otherRoll => otherRoll !== pickedRoll)};
-        } else {
-          return null;
-        }
-      });
-    };
+  onVisibleRollPicksChange = (visibleRollPicks: worms.RollResult[]) => {
+    this.setState({visibleRollPicks});
   }
 
-  makeOnContinueFromHere(pickedRoll: worms.RollResult): () => void {
-    return () => {
-      this.props.onSetUnrolledState?.(this.props.rolledState.pick(pickedRoll));
-    };
-  }
-
-  makeOnChartLineVisibleChange(chartLine: ChartLineName): (ev: FormEvent<HTMLInputElement>, data: CheckboxProps) => void {
-    return (_ev: FormEvent<HTMLInputElement>, {checked}) => {
-      this.setState(({visibleChartLines}) => {
-        if (checked && !visibleChartLines.includes(chartLine)) {
-          return {visibleChartLines: [...visibleChartLines, chartLine]};
-        } else if (!checked && visibleChartLines.includes(chartLine)) {
-          return {visibleChartLines: visibleChartLines.filter(otherChartLine => otherChartLine !== chartLine)};
-        } else {
-          return null;
-        }
-      });
-    };
+  onVisibleChartLinesChange = (visibleChartLines: ChartLineName[]) => {
+   this.setState({visibleChartLines});
   }
 }

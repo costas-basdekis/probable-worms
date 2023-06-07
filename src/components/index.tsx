@@ -6,6 +6,7 @@ export * from "./Help";
 export * from "./InitialStateModal";
 export * from "./MultipleEvaluations";
 export * from "./MultipleEvaluationsChart";
+export * from "./MultipleEvaluationsTable";
 export * from "./RChest";
 export * from "./REvaluation";
 export * from "./REvaluationChart";

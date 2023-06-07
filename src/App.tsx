@@ -1,4 +1,4 @@
-import React, {ChangeEvent, Component, createRef, RefObject, SyntheticEvent} from "react";
+import React, {Component, createRef, RefObject, SyntheticEvent} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {CacheFetchingStatus, RemoteSearch, SearchInstance} from "./RemoteSearch";
