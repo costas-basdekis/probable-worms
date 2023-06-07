@@ -47,13 +47,19 @@ class SearchWorker {
     const instance = this.instancesById.get(instanceId)!;
     const {stateEvaluator, searching, evaluationCache} = instance;
     const progress = stateEvaluator.getCompletionProgress();
+    const serialisedEvaluation = stateEvaluator.compilePartialEvaluation().serialise({}) as SerialisedEvaluation;
     this.postMessage({
       type: "result",
       id: instanceId,
       progress,
       searching,
       searchFinished: progress === 1,
-      evaluation: stateEvaluator.compilePartialEvaluation().serialise({}) as SerialisedEvaluation,
+      evaluation: serialisedEvaluation,
+      preRollEvaluation: (
+        instance.stateEvaluator.state.type === "unrolled"
+          ? serialisedEvaluation
+          : this.getEvaluation(instance, instance.stateEvaluator.state.unrolledState).serialise({}) as SerialisedEvaluation
+      ),
       dicePickEvaluations: stateEvaluator.state.type === "unrolled" ? null : (
         stateEvaluator.state.getNextUnrolledStatesAndPickedRolls()
         .filter(({pickedRoll}) => pickedRoll !== null)

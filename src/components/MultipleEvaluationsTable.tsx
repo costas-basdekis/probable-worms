@@ -82,6 +82,7 @@ export interface MinMaxPickValues {
 }
 
 interface MultipleEvaluationsTableProps {
+  preRollEvaluation: worms.Evaluation,
   evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number}[],
   exactRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   atLeastRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
@@ -171,7 +172,10 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
 
   render() {
     const {pickValues, minMaxPickValues} = this;
-    const {evaluationsAndPickedRolls, targetType, targetValue, visibleRollPicks, visibleChartLines, showOnlyMaxValues} = this.props;
+    const {
+      preRollEvaluation, evaluationsAndPickedRolls, targetType, targetValue,
+      visibleRollPicks, visibleChartLines, showOnlyMaxValues,
+    } = this.props;
     return (
       <Container textAlign={"center"}>
         <Table definition collapsing unstackable size={"small"} className={"centered-table"}>
@@ -186,6 +190,32 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
             </Table.Row>
           </Table.Header>
           <Table.Body>
+            <Table.Row>
+              <Table.Cell>Pre-roll</Table.Cell>
+              <Table.Cell />
+              <Table.Cell>
+                {targetType === "exactly" ? (
+                  preRollEvaluation.exactResultOccurrences.has(targetValue)
+                    ? `${Math.round(preRollEvaluation.exactResultOccurrences.get(targetValue)! * 100)}%`
+                    : "N/A"
+                ) : <>
+                  {(
+                    preRollEvaluation.minimumResultOccurrences.has(targetValue)
+                      ? `${Math.round(preRollEvaluation.minimumResultOccurrences.get(targetValue)! * 100)}%`
+                      : "N/A"
+                  )}
+                  {" / EV: "}
+                  {(
+                    preRollEvaluation.expectedValueOfAtLeast.has(targetValue)
+                      ? `${Math.round(preRollEvaluation.expectedValueOfAtLeast.get(targetValue)! * 10) / 10}`
+                      : "N/A"
+                  )}
+                </>}
+              </Table.Cell>
+              <Table.Cell>{preRollEvaluation.expectedValue.toFixed(1)}</Table.Cell>
+              <Table.Cell></Table.Cell>
+              <Table.Cell></Table.Cell>
+            </Table.Row>
             {evaluationsAndPickedRolls.map(({evaluation, pickedRoll, pickedCount}) => (
               <Table.Row key={pickedRoll}>
                 <Table.Cell>Pick {pickedRoll}</Table.Cell>

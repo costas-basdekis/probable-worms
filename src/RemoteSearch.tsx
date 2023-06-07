@@ -60,6 +60,7 @@ export interface ResultSearchResponseMessage {
   searchFinished: boolean,
   progress: number,
   evaluation: worms.SerialisedEvaluation,
+  preRollEvaluation: worms.SerialisedEvaluation,
   dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.SerialisedEvaluation}[] | null,
   cacheStats: worms.EvaluationCacheStats,
 }
@@ -120,6 +121,7 @@ export class RemoteSearch {
       resultResponse.searchFinished,
       resultResponse.progress,
       worms.Evaluation.deserialise(resultResponse.evaluation, {}),
+      worms.Evaluation.deserialise(resultResponse.preRollEvaluation, {}),
       resultResponse.dicePickEvaluations ? (
         resultResponse.dicePickEvaluations?.map(({pickedRoll, pickedCount, evaluation}) => ({
           pickedRoll,
@@ -247,6 +249,7 @@ export class RemoteSearch {
 
 export type OnSearchResult = (
   searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
+  preRollEvaluation: worms.Evaluation,
   dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation}[] | null,
   cacheStats: worms.EvaluationCacheStats,
 ) => void;

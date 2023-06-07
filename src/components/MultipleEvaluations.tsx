@@ -6,6 +6,7 @@ import * as worms from "../worms";
 import {MultipleEvaluationsTable, TargetType} from "./MultipleEvaluationsTable";
 
 interface MultipleEvaluationsProps {
+  preRollEvaluation: worms.Evaluation,
   rolledState: worms.RolledState,
   evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number}[],
   onSetUnrolledState?: (unrolledState: worms.UnrolledState) => void,
@@ -131,9 +132,10 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       expectedValueOfAtLeastRoundedEntriesByPickedRolls,
     } = this;
     const {visibleRollPicks, visibleChartLines, showOnlyMaxValues} = this.state;
-    const {rolledState, evaluationsAndPickedRolls, targetType, targetValue} = this.props;
+    const {preRollEvaluation, rolledState, evaluationsAndPickedRolls, targetType, targetValue} = this.props;
     return <>
       <MultipleEvaluationsTable
+        preRollEvaluation={preRollEvaluation}
         evaluationsAndPickedRolls={evaluationsAndPickedRolls}
         exactRoundedPercentagesEntriesByPickedRolls={expectedValueOfAtLeastRoundedEntriesByPickedRolls}
         atLeastRoundedPercentagesEntriesByPickedRolls={atLeastRoundedPercentagesEntriesByPickedRolls}

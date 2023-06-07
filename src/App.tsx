@@ -23,6 +23,7 @@ interface AppState {
   state: worms.State,
   progress: number,
   evaluation: worms.Evaluation,
+  preRollEvaluation: worms.Evaluation,
   searching: boolean,
   searchFinished: boolean,
   dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation}[] | null,
@@ -37,6 +38,7 @@ export default class App extends Component<AppProps, AppState> {
     state: worms.UnrolledState.initial(),
     progress: 1,
     evaluation: worms.Evaluation.empty(),
+    preRollEvaluation: worms.Evaluation.empty(),
     searching: false,
     searchFinished: true,
     dicePickEvaluations: null,
@@ -50,12 +52,14 @@ export default class App extends Component<AppProps, AppState> {
 
   onSearchResult = (
     searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
+    preRollEvaluation: worms.Evaluation,
     dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation}[] | null,
     cacheStats: worms.EvaluationCacheStats,
   ) => {
     this.setState({
       progress,
       evaluation: evaluation.toFixed(),
+      preRollEvaluation: preRollEvaluation.toFixed(),
       searchFinished,
       searching,
       dicePickEvaluations,
@@ -103,8 +107,8 @@ export default class App extends Component<AppProps, AppState> {
 
   render() {
     const {
-      state, progress, evaluation, searching, searchFinished, dicePickEvaluations, cacheStatusMessages, cacheStats,
-      targetType, targetValue,
+      state, progress, evaluation, preRollEvaluation, searching, searchFinished, dicePickEvaluations,
+      cacheStatusMessages, cacheStats, targetType, targetValue,
     } = this.state;
     const cacheStatusMessage = cacheStatusMessages[cacheStatusMessages.length - 1]?.message ?? null;
     return (
@@ -172,6 +176,7 @@ export default class App extends Component<AppProps, AppState> {
                 </Card>
               </Container>
               <MultipleEvaluations
+                preRollEvaluation={preRollEvaluation}
                 rolledState={state as worms.RolledState}
                 evaluationsAndPickedRolls={dicePickEvaluations}
                 onSetUnrolledState={this.onStateChange}
