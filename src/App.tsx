@@ -157,7 +157,6 @@ export default class App extends Component<AppProps, AppState> {
           <br/>
           <br/>
           <Container textAlign={"center"}>
-            <REvaluation evaluation={evaluation} diceCount={state.totalDiceCount} />
             {dicePickEvaluations ? <>
               <Container>
                 <Card centered>
@@ -185,6 +184,7 @@ export default class App extends Component<AppProps, AppState> {
                 targetValue={targetValue}
               />
             </> : null}
+            <REvaluation evaluation={evaluation} diceCount={state.totalDiceCount} />
           </Container>
         </Container>
       </div>
