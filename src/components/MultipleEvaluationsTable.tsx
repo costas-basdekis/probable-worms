@@ -83,7 +83,8 @@ export interface MinMaxPickValues {
 
 interface MultipleEvaluationsTableProps {
   preRollEvaluation: worms.Evaluation,
-  evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number}[],
+  preRollTotal: number,
+  evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number, total: number}[],
   exactRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   atLeastRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   expectedValueOfAtLeastRoundedEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
@@ -173,7 +174,7 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
   render() {
     const {pickValues, minMaxPickValues} = this;
     const {
-      preRollEvaluation, evaluationsAndPickedRolls, targetType, targetValue,
+      preRollEvaluation, preRollTotal, evaluationsAndPickedRolls, targetType, targetValue,
       visibleRollPicks, visibleChartLines, showOnlyMaxValues,
     } = this.props;
     return (
@@ -183,6 +184,7 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
             <Table.Row>
               <Table.HeaderCell />
               <Table.HeaderCell>Pick</Table.HeaderCell>
+              <Table.HeaderCell>Total</Table.HeaderCell>
               <Table.HeaderCell>{{exactly: "Exactly", atLeast: "At least"}[targetType]} {targetValue}</Table.HeaderCell>
               <Table.HeaderCell>Expected Value</Table.HeaderCell>
               <Table.HeaderCell>Visible</Table.HeaderCell>
@@ -193,6 +195,7 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
             <Table.Row>
               <Table.Cell>Pre-roll</Table.Cell>
               <Table.Cell />
+              <Table.Cell>{preRollTotal}</Table.Cell>
               <Table.Cell>
                 {targetType === "exactly" ? (
                   preRollEvaluation.exactResultOccurrences.has(targetValue)
@@ -216,10 +219,11 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
               <Table.Cell></Table.Cell>
               <Table.Cell></Table.Cell>
             </Table.Row>
-            {evaluationsAndPickedRolls.map(({evaluation, pickedRoll, pickedCount}) => (
+            {evaluationsAndPickedRolls.map(({evaluation, pickedRoll, pickedCount, total}) => (
               <Table.Row key={pickedRoll}>
                 <Table.Cell>Pick {pickedRoll}</Table.Cell>
                 <Table.Cell><RChest chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[pickedRoll, pickedCount]]))} remainingDice={0} size={"tiny"} /></Table.Cell>
+                <Table.Cell>{total}</Table.Cell>
                 <Table.Cell>
                   <MultipleEvaluationsTableTarget
                     targetType={targetType}

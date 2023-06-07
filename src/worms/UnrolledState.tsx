@@ -53,6 +53,10 @@ export class UnrolledState implements IState {
     return this.chest.diceCount;
   }
 
+  get runningTotal(): number {
+    return this.chest.total;
+  }
+
   get total(): number {
     if (this.chest.hasWorms) {
       return this.chest.total;

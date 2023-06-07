@@ -26,7 +26,7 @@ interface AppState {
   preRollEvaluation: worms.Evaluation,
   searching: boolean,
   searchFinished: boolean,
-  dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation}[] | null,
+  dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation, total: number}[] | null,
   cacheStatusMessages: {message: string, id: number}[],
   cacheStats: worms.EvaluationCacheStats,
   targetType: TargetType,
@@ -53,7 +53,7 @@ export default class App extends Component<AppProps, AppState> {
   onSearchResult = (
     searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
     preRollEvaluation: worms.Evaluation,
-    dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation}[] | null,
+    dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation, total: number}[] | null,
     cacheStats: worms.EvaluationCacheStats,
   ) => {
     this.setState({
@@ -177,6 +177,7 @@ export default class App extends Component<AppProps, AppState> {
               </Container>
               <MultipleEvaluations
                 preRollEvaluation={preRollEvaluation}
+                preRollTotal={state.runningTotal}
                 rolledState={state as worms.RolledState}
                 evaluationsAndPickedRolls={dicePickEvaluations}
                 onSetUnrolledState={this.onStateChange}
@@ -184,7 +185,7 @@ export default class App extends Component<AppProps, AppState> {
                 targetValue={targetValue}
               />
             </> : null}
-            <REvaluation evaluation={evaluation} diceCount={state.totalDiceCount} />
+            <REvaluation evaluation={evaluation} total={state.runningTotal} diceCount={state.totalDiceCount} />
           </Container>
         </Container>
       </div>

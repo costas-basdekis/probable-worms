@@ -68,6 +68,7 @@ class SearchWorker {
             pickedRoll: pickedRoll!,
             pickedCount: pickedCount!,
             evaluation: this.getEvaluation(instance, state).serialise({}) as SerialisedEvaluation,
+            total: state.runningTotal,
           };
         })
       ),
