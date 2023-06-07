@@ -28,6 +28,10 @@ export class Results {
     this.counts = new Map(items as Iterable<readonly [number, number]>);
   }
 
+  has(key: number): boolean {
+    return this.counts.has(key);
+  }
+
   get(key: number): number | undefined {
     return this.counts.get(key);
   }

@@ -1,9 +1,18 @@
-import React, {Component, createRef, RefObject} from "react";
+import React, {ChangeEvent, Component, createRef, RefObject, SyntheticEvent} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {CacheFetchingStatus, RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {Button, Card, Container, Header, Image} from "semantic-ui-react";
-import {EvaluationControls, Help, InitialStateModal, MultipleEvaluations, REvaluation, RState} from "./components";
+import {Button, Card, Container, DropdownProps, Header, Image, Select} from "semantic-ui-react";
+import {
+  EvaluationControls,
+  Help,
+  InitialStateModal,
+  MultipleEvaluations,
+  REvaluation,
+  RState,
+  TargetType
+} from "./components";
+import _ from "underscore";
 
 const remoteSearch = RemoteSearch.default();
 
@@ -19,6 +28,8 @@ interface AppState {
   dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation}[] | null,
   cacheStatusMessages: {message: string, id: number}[],
   cacheStats: worms.EvaluationCacheStats,
+  targetType: TargetType,
+  targetValue: number,
 }
 
 export default class App extends Component<AppProps, AppState> {
@@ -31,6 +42,8 @@ export default class App extends Component<AppProps, AppState> {
     dicePickEvaluations: null,
     cacheStatusMessages: [],
     cacheStats: {hitCount: 0, missCount: 0, entryCount: 0},
+    targetType: "atLeast",
+    targetValue: 21,
   };
 
   initialStateModalRef: RefObject<InitialStateModal> = createRef();
@@ -91,6 +104,7 @@ export default class App extends Component<AppProps, AppState> {
   render() {
     const {
       state, progress, evaluation, searching, searchFinished, dicePickEvaluations, cacheStatusMessages, cacheStats,
+      targetType, targetValue,
     } = this.state;
     const cacheStatusMessage = cacheStatusMessages[cacheStatusMessages.length - 1]?.message ?? null;
     return (
@@ -140,10 +154,29 @@ export default class App extends Component<AppProps, AppState> {
           <Container textAlign={"center"}>
             <REvaluation evaluation={evaluation} diceCount={state.totalDiceCount} />
             {dicePickEvaluations ? <>
+              <Container>
+                <Card centered>
+                  <Card.Content>
+                    <Card.Header>Target</Card.Header>
+                    <Button.Group>
+                      <Button positive={targetType === "exactly"} onClick={this.onExactlyClick}>Exactly</Button>
+                      <Button.Or />
+                      <Button positive={targetType === "atLeast"} onClick={this.onAtLeastClick}>At Least</Button>
+                    </Button.Group>
+                    <Select
+                      options={_.range(1, state.totalDiceCount * 5).map(total => ({text: `${total}`, value: total}))}
+                      value={targetValue}
+                      onChange={this.onTargetValueChange}
+                    />
+                  </Card.Content>
+                </Card>
+              </Container>
               <MultipleEvaluations
                 rolledState={state as worms.RolledState}
                 evaluationsAndPickedRolls={dicePickEvaluations}
                 onSetUnrolledState={this.onStateChange}
+                targetType={targetType}
+                targetValue={targetValue}
               />
             </> : null}
           </Container>
@@ -187,4 +220,16 @@ export default class App extends Component<AppProps, AppState> {
   stopSearch() {
     this.searchInstance.stopSearch();
   }
+
+  onExactlyClick = () => {
+    this.setState({targetType: "exactly"});
+  };
+
+  onAtLeastClick = () => {
+    this.setState({targetType: "atLeast"});
+  };
+
+  onTargetValueChange = (ev: SyntheticEvent<HTMLElement, Event>, {value}: DropdownProps) => {
+    this.setState({targetValue: parseInt(value as string, 10)});
+  };
 }
