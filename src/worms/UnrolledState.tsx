@@ -72,6 +72,13 @@ export class UnrolledState implements IState {
     return new RolledState(this, diceRoll);
   }
 
+  withRandomRoll(): RolledState {
+    if (!this.remainingDiceCount) {
+      throw new Error("There are no remaining dice to roll");
+    }
+    return this.withRoll(DiceRoll.random(this.remainingDiceCount));
+  }
+
   canAdd(roll: RollResult): boolean {
     return this.chest.canAdd(roll);
   }

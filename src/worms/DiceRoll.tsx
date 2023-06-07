@@ -12,6 +12,10 @@ export class DiceRoll {
     );
   }
 
+  static random(remainingDiceCount: number): DiceRoll {
+    return this.fromDice(_.range(remainingDiceCount).map(() => rollResults[_.random(0, rollResults.length - 1)]));
+  }
+
   constructor(items?: Iterable<readonly [RollResult, number]>) {
     this.counts = new Map(items as Iterable<readonly [RollResult, number]>);
     this.key = JSON.stringify(Array.from(this.counts.entries()).sort());

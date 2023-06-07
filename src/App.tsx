@@ -129,14 +129,15 @@ export default class App extends Component<AppProps, AppState> {
               </Card.Description>
             </Card.Content>
             <Card.Content extra>
-              <Button.Group>
+              <div>
                 <InitialStateModal
                   ref={this.initialStateModalRef}
                   size={"tiny"}
                   trigger={<Button>Change</Button>}
                   onStateChange={this.onStateChange}
                 />
-              </Button.Group>
+                <Button onClick={this.onRandomRollClick} disabled={state.type !== "unrolled"}>Random Roll</Button>
+              </div>
             </Card.Content>
             <Card.Content extra>
               <EvaluationControls
@@ -194,6 +195,22 @@ export default class App extends Component<AppProps, AppState> {
     this.setState({state});
     this.searchInstance.setSearchState(state);
     this.initialStateModalRef.current?.updateState(state);
+  };
+
+  onRandomRollClick = () => {
+    this.setState(({state}) => {
+      if (state.type !== "unrolled") {
+        return null;
+      }
+      if (!state.remainingDiceCount) {
+        return null;
+      }
+      return {state: state.withRandomRoll()};
+    }, () => {
+      const {state} = this.state;
+      this.searchInstance.setSearchState(state);
+      this.initialStateModalRef.current?.updateState(state);
+    });
   };
 
   onReset = () => {
