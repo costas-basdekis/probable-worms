@@ -16,12 +16,14 @@ interface MultipleEvaluationsProps {
 interface MultipleEvaluationsState{
   visibleRollPicks: worms.RollResult[],
   visibleChartLines: ChartLineName[],
+  showOnlyMaxValues: boolean,
 }
 
 export class MultipleEvaluations extends Component<MultipleEvaluationsProps, MultipleEvaluationsState> {
   state: MultipleEvaluationsState = {
     visibleRollPicks: worms.rollResults,
     visibleChartLines: ["exactly", "at-least", "expected-value-of-at-least"],
+    showOnlyMaxValues: true,
   };
 
   evaluationsByPickedRollSelector = createSelector(
@@ -112,7 +114,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
       expectedValueOfAtLeastRoundedEntriesByPickedRolls,
     } = this;
-    const {visibleRollPicks, visibleChartLines} = this.state;
+    const {visibleRollPicks, visibleChartLines, showOnlyMaxValues} = this.state;
     const {rolledState, evaluationsAndPickedRolls, targetType, targetValue} = this.props;
     return <>
       <MultipleEvaluationsTable
@@ -126,8 +128,10 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
         onSetUnrolledState={this.props.onSetUnrolledState}
         visibleRollPicks={visibleRollPicks}
         visibleChartLines={visibleChartLines}
+        showOnlyMaxValues={showOnlyMaxValues}
         onVisibleRollPicksChange={this.onVisibleRollPicksChange}
         onVisibleChartLinesChange={this.onVisibleChartLinesChange}
+        onShowOnlyMaxValuesChange={this.onShowOnlyMaxValuesChange}
       />
       <MultipleEvaluationsChart
         evaluationsByPickedRoll={evaluationsByPickedRoll}
@@ -139,6 +143,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
         expectedValueOfAtLeastRoundedEntriesByPickedRolls={expectedValueOfAtLeastRoundedEntriesByPickedRolls}
         visibleRollPicks={visibleRollPicks}
         visibleChartLines={visibleChartLines}
+        showOnlyMaxValues={showOnlyMaxValues}
       />
     </>;
   }
@@ -150,4 +155,8 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
   onVisibleChartLinesChange = (visibleChartLines: ChartLineName[]) => {
    this.setState({visibleChartLines});
   }
+
+  onShowOnlyMaxValuesChange = (showOnlyMaxValues: boolean) => {
+    this.setState({showOnlyMaxValues});
+  };
 }

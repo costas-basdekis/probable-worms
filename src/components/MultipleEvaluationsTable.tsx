@@ -92,8 +92,10 @@ interface MultipleEvaluationsTableProps {
   onSetUnrolledState?: (unrolledState: worms.UnrolledState) => void,
   visibleRollPicks: worms.RollResult[],
   visibleChartLines: ChartLineName[],
+  showOnlyMaxValues: boolean,
   onVisibleRollPicksChange?: (visibleRollPicks: worms.RollResult[]) => void,
   onVisibleChartLinesChange?: (visibleChartLines: ChartLineName[]) => void,
+  onShowOnlyMaxValuesChange?: (showOnlyMaxValues: boolean) => void,
 }
 
 export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTableProps> {
@@ -169,7 +171,7 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
 
   render() {
     const {pickValues, minMaxPickValues} = this;
-    const {evaluationsAndPickedRolls, targetType, targetValue, visibleRollPicks, visibleChartLines} = this.props;
+    const {evaluationsAndPickedRolls, targetType, targetValue, visibleRollPicks, visibleChartLines, showOnlyMaxValues} = this.props;
     return (
       <Container textAlign={"center"}>
         <Table definition collapsing unstackable size={"small"} className={"centered-table"}>
@@ -208,6 +210,7 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
               <Table.HeaderCell>Show Exactly lines</Table.HeaderCell>
               <Table.HeaderCell>Show At Least lines</Table.HeaderCell>
               <Table.HeaderCell>Show EV of At Least Lines</Table.HeaderCell>
+              <Table.HeaderCell>Show only max values</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -215,6 +218,7 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
               <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("exactly")} onChange={this.makeOnChartLineVisibleChange("exactly")}/></Table.Cell>
               <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("at-least")} onChange={this.makeOnChartLineVisibleChange("at-least")}/></Table.Cell>
               <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("expected-value-of-at-least")} onChange={this.makeOnChartLineVisibleChange("expected-value-of-at-least")}/></Table.Cell>
+              <Table.Cell><Checkbox toggle checked={showOnlyMaxValues} onChange={this.onShowOnlyMaxValuesChange}/></Table.Cell>
             </Table.Row>
           </Table.Body>
         </Table>
@@ -249,4 +253,8 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
       }
     };
   }
+
+  onShowOnlyMaxValuesChange = (_ev: FormEvent<HTMLInputElement>, {checked}: CheckboxProps) => {
+    this.props.onShowOnlyMaxValuesChange?.(checked!);
+  };
 }
