@@ -27,5 +27,6 @@ module.exports = {
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-inferrable-types": "off",
     "@typescript-eslint/no-empty-function": "warn",
+    "react/no-unescaped-entities": "off",
   },
 };

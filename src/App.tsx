@@ -3,7 +3,7 @@ import "./styles.scss";
 import * as worms from "./worms";
 import {CacheFetchingStatus, RemoteSearch, SearchInstance} from "./RemoteSearch";
 import {Button, Card, Container, Header, Image} from "semantic-ui-react";
-import {EvaluationControls, InitialStateModal, MultipleEvaluations, REvaluation, RState} from "./components";
+import {EvaluationControls, Help, InitialStateModal, MultipleEvaluations, REvaluation, RState} from "./components";
 
 const remoteSearch = RemoteSearch.default();
 
@@ -134,6 +134,9 @@ export default class App extends Component<AppProps, AppState> {
               />
             </Card.Content>
           </Card>
+          <Help />
+          <br/>
+          <br/>
           <Container textAlign={"center"}>
             <REvaluation evaluation={evaluation} diceCount={state.totalDiceCount} />
             {dicePickEvaluations ? <>

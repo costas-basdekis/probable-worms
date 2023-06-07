@@ -2,6 +2,7 @@ export * from "./Die";
 export * from "./DiceSelector";
 export * from "./CacheControls";
 export * from "./EvaluationControls";
+export * from "./Help";
 export * from "./InitialStateModal";
 export * from "./MultipleEvaluations";
 export * from "./MultipleEvaluationsChart";
