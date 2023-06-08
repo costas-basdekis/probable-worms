@@ -18,10 +18,8 @@ export class REvaluation extends Component<REvaluationProps> {
     (evaluation): number => {
       return Math.max(
         0,
-        Math.max(
-          ...evaluation.exactResultOccurrences.keys(),
-          ...evaluation.minimumResultOccurrences.keys(),
-        ),
+        ...evaluation.exactResultOccurrences.keys(),
+        ...evaluation.minimumResultOccurrences.keys(),
       );
     },
   );
@@ -33,7 +31,10 @@ export class REvaluation extends Component<REvaluationProps> {
   totalsSelector = createSelector(
     this.maxTotalSelector,
     maxTotal => {
-      return _.range(maxTotal + 1);
+      if (isNaN(maxTotal)) {
+        return [];
+      }
+      return _.range(1, maxTotal + 1);
     },
   );
 

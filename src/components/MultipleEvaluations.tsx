@@ -49,7 +49,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
     ({evaluationsAndPickedRolls}: MultipleEvaluationsProps) => evaluationsAndPickedRolls,
     (evaluationsAndPickedRolls): number => {
       if (!evaluationsAndPickedRolls) {
-        return NaN;
+        return 0;
       }
       return Math.max(
         0,
@@ -66,7 +66,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
   totalsSelector = createSelector(
     this.maxTotalSelector,
     maxTotal => {
-      return _.range(maxTotal + 1);
+      return _.range(1, maxTotal + 1);
     },
   );
 
@@ -83,7 +83,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       }
       return new Map(evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => [
         pickedRoll,
-        totals.map(total => [total, Math.floor((evaluation.exactResultOccurrences.get(total) || 0) * 100)]),
+        ([0, ...totals]).map(total => [total, Math.floor((evaluation.exactResultOccurrences.get(total) || 0) * 100)]),
       ]));
     },
   );
@@ -101,7 +101,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       }
       return new Map(evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => [
         pickedRoll,
-        totals.map(total => [total, Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100)]),
+        ([0, ...totals]).map(total => [total, Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100)]),
       ]));
     },
   );
@@ -119,7 +119,7 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       }
       return new Map(evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => [
         pickedRoll,
-        totals.map(total => [total, Math.floor(evaluation.expectedValueOfAtLeast.get(total) || 0)]),
+        ([0, ...totals]).map(total => [total, Math.floor(evaluation.expectedValueOfAtLeast.get(total) || 0)]),
       ]));
     },
   );

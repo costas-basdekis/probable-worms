@@ -12,6 +12,9 @@ class REvaluationChartTooltip extends Component<TooltipProps<number, number>> {
       return null;
     }
     const [exactlyPayload, atLeastPayload, expectedValueOfAtLeastPayload] = payload!;
+    if (!exactlyPayload || !atLeastPayload || !exactlyPayload) {
+      return null;
+    }
     return (
       <div className={"custom-tooltip recharts-default-tooltip"}>
         <p className={"recharts-tooltip-label"}>Result: {label}</p>
@@ -74,9 +77,9 @@ export class REvaluationChart extends Component<REvaluationChartProps> {
     (totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries, expectedValueOfAtLeastRoundedEntries): ChardDataEntry[] => {
       return totals.map(total => ({
         total,
-        exactly: exactRoundedPercentagesEntries[total][1],
-        atLeast: atLeastRoundedPercentagesEntries[total][1],
-        expectedValueOfAtLeast: expectedValueOfAtLeastRoundedEntries[total][1],
+        exactly: exactRoundedPercentagesEntries[total]?.[1],
+        atLeast: atLeastRoundedPercentagesEntries[total]?.[1],
+        expectedValueOfAtLeast: expectedValueOfAtLeastRoundedEntries[total]?.[1],
       }));
     },
   );
