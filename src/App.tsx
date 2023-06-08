@@ -136,7 +136,7 @@ export default class App extends Component<AppProps, AppState> {
                   trigger={<Button>Change</Button>}
                   onStateChange={this.onStateChange}
                 />
-                <Button onClick={this.onRandomRollClick} disabled={state.type !== "unrolled"}>Random Roll</Button>
+                <Button onClick={this.onRandomRollClick} disabled={state.type !== "unrolled" || !state.remainingDiceCount}>Random Roll</Button>
               </div>
             </Card.Content>
             <Card.Content extra>
