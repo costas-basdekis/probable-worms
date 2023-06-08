@@ -7,6 +7,125 @@ import {RChest} from "./RChest";
 import {EvaluationAndPickedRoll} from "../App";
 import {ChartLineName} from "./MultipleEvaluationsChart";
 
+interface MultipleEvaluationsMultiTableRowChestCellProps {
+  roll: worms.RollResult,
+  pickedCountByRoll: Map<worms.RollResult, number>,
+}
+
+class MultipleEvaluationsMultiTableRowChestCell extends Component<MultipleEvaluationsMultiTableRowChestCellProps> {
+  render() {
+    const {roll, pickedCountByRoll} = this.props;
+    return (
+      <Table.Cell className={"ignored"}>
+        <RChest
+          chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[roll, pickedCountByRoll.get(roll) ?? 1]]))}
+          remainingDice={0}
+          size={"tiny"}
+        />
+      </Table.Cell>
+    );
+  }
+}
+
+interface MultipleEvaluationsMultiTableRowValueCellProps {
+  chartLine: ChartLineName,
+  total: number,
+  percentage: number,
+  roll: worms.RollResult,
+  chartDataByTotal: Map<number, ChartDataEntry>,
+  maxValue: number | null,
+}
+
+class MultipleEvaluationsMultiTableRowValueCell extends Component<MultipleEvaluationsMultiTableRowValueCellProps> {
+  dataKeyMap: {[key in ChartLineName]: "exactly" | "atLeast" | "expectedValueOfAtLeast"} = {
+    "exactly": "exactly",
+    "at-least": "atLeast",
+    "expected-value-of-at-least": "expectedValueOfAtLeast",
+  };
+
+  render() {
+    const {chartLine, total, percentage, roll, chartDataByTotal, maxValue} = this.props;
+    const chartDataEntry = chartDataByTotal.get(total);
+    const isBest = (
+      chartDataEntry?.[`${this.dataKeyMap[chartLine]}With${roll}`]
+      === chartDataEntry?.[`${this.dataKeyMap[chartLine]}MaxValue`]
+    );
+    return (
+      <Table.Cell
+        style={{"--percentage": `${maxValue === null ? percentage : percentage / maxValue * 100}%`}}
+        className={classNames({grey: !isBest})}
+      >
+        {percentage}{maxValue === null ? "%" : ""}
+      </Table.Cell>
+    );
+  }
+}
+
+interface MultipleEvaluationsMultiTableRowProps {
+  chartLine: ChartLineName,
+  evaluationsAndPickedRolls: EvaluationAndPickedRoll[] | null,
+  entriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
+  chartData: ChartDataEntry[],
+  visibleRolls: worms.RollResult[],
+  visibleChartLines: ChartLineName[],
+  maxValue: number | null,
+}
+
+class MultipleEvaluationsMultiTableRow extends Component<MultipleEvaluationsMultiTableRowProps> {
+  labelMap: {[key in ChartLineName]: string} = {
+    "exactly": "Exactly",
+    "at-least": "At Least",
+    "expected-value-of-at-least": "EV of At Least",
+  };
+
+  render() {
+    const {chartLine, evaluationsAndPickedRolls, entriesByPickedRolls, visibleRolls, visibleChartLines, chartData, maxValue} = this.props;
+    if (!visibleChartLines.includes(chartLine)) {
+      return null
+    }
+
+    const pickedCountByRoll = new Map(evaluationsAndPickedRolls?.map(({pickedRoll, pickedCount}) => [pickedRoll, pickedCount]));
+    const chartDataByTotal = new Map(chartData.map(chartDataItem => [chartDataItem.total, chartDataItem]));
+
+    const rowClassName = `table-row-${chartLine}`;
+    return <>
+      <Table.Row className={rowClassName}>
+        <Table.Cell rowSpan={visibleRolls.length}>{this.labelMap[chartLine]}</Table.Cell>
+        {visibleRolls.slice(0, 1).map(roll => (
+          <MultipleEvaluationsMultiTableRowChestCell key={roll} roll={roll} pickedCountByRoll={pickedCountByRoll} />
+        ))}
+        {visibleRolls.slice(0, 1).map(roll => entriesByPickedRolls.get(roll)!.filter(([total]) => total > 0).map(([total, percentage]) => (
+          <MultipleEvaluationsMultiTableRowValueCell
+            key={total}
+            chartLine={chartLine}
+            total={total}
+            percentage={percentage}
+            roll={roll}
+            chartDataByTotal={chartDataByTotal}
+            maxValue={maxValue}
+          />
+        )))}
+      </Table.Row>
+      {visibleRolls.slice(1).map(roll => (
+        <Table.Row className={rowClassName} key={roll}>
+          <MultipleEvaluationsMultiTableRowChestCell key={roll} roll={roll} pickedCountByRoll={pickedCountByRoll} />
+          {entriesByPickedRolls.get(roll)!.filter(([total]) => total > 0).map(([total, percentage]) => (
+            <MultipleEvaluationsMultiTableRowValueCell
+              key={total}
+              chartLine={chartLine}
+              total={total}
+              percentage={percentage}
+              roll={roll}
+              chartDataByTotal={chartDataByTotal}
+              maxValue={maxValue}
+            />
+          ))}
+        </Table.Row>
+      ))}
+    </>;
+  }
+}
+
 interface MultipleEvaluationsMultiTableProps {
   diceCount: number,
   totals: number[],
@@ -27,8 +146,6 @@ export class MultipleEvaluationsMultiTable extends Component<MultipleEvaluations
       visibleRolls, visibleChartLines, chartData,
     } = this.props;
     const maxValue = diceCount * 5;
-    const pickedCountByRoll = new Map(evaluationsAndPickedRolls?.map(({pickedRoll, pickedCount}) => [pickedRoll, pickedCount]));
-    const chartDataByTotal = new Map(chartData.map(chartDataItem => [chartDataItem.total, chartDataItem]));
     return (
       <Table definition collapsing unstackable size={"small"}>
         <Table.Header>
@@ -40,99 +157,33 @@ export class MultipleEvaluationsMultiTable extends Component<MultipleEvaluations
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {visibleChartLines.includes("exactly") ? <>
-            <Table.Row className={"table-row-exactly"}>
-              <Table.Cell rowSpan={visibleRolls.length}>Exactly</Table.Cell>
-              {visibleRolls.slice(0, 1).map(roll => (
-                <Table.Cell key={roll} style={{"--percentage": "0%"}}>
-                  <RChest
-                    chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[roll, pickedCountByRoll.get(roll) ?? 1]]))}
-                    remainingDice={0}
-                    size={"tiny"}
-                  />
-                </Table.Cell>
-              ))}
-              {visibleRolls.slice(0, 1).map(roll => exactRoundedPercentagesEntriesByPickedRolls.get(roll)!.filter(([total]) => total > 0).map(([total, percentage]) => (
-                <Table.Cell key={total} style={{"--percentage": `${percentage}%`}} data-value={`${total}:${percentage}:${chartDataByTotal.get(total)?.[`exactlyWith${roll}`]}`} className={classNames({grey: chartDataByTotal.get(total)?.[`exactlyWith${roll}`] !== chartDataByTotal.get(total)?.exactlyMaxValue})}>{percentage}%</Table.Cell>
-              )))}
-            </Table.Row>
-            {visibleRolls.slice(1).map(roll => (
-              <Table.Row className={"table-row-exactly"} key={roll}>
-                <Table.Cell key={roll} className={"ignored"} style={{"--percentage": "0%"}}>
-                  <RChest
-                    chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[roll, pickedCountByRoll.get(roll) ?? 1]]))}
-                    remainingDice={0}
-                    size={"tiny"}
-                  />
-                </Table.Cell>
-                {exactRoundedPercentagesEntriesByPickedRolls.get(roll)!.filter(([total]) => total > 0).map(([total, percentage]) => (
-                  <Table.Cell key={total} style={{"--percentage": `${percentage}%`}} data-value={`${total}:${percentage}:${chartDataByTotal.get(total)?.[`exactlyWith${roll}`]}`} className={classNames({grey: chartDataByTotal.get(total)?.[`exactlyWith${roll}`] !== chartDataByTotal.get(total)?.exactlyMaxValue})}>{percentage}%</Table.Cell>
-                ))}
-              </Table.Row>
-            ))}
-          </> : null}
-          {visibleChartLines.includes("at-least") ? <>
-            <Table.Row className={"table-row-at-least"}>
-              <Table.Cell rowSpan={visibleRolls.length}>At Least</Table.Cell>
-              {visibleRolls.slice(0, 1).map(roll => (
-                <Table.Cell key={roll} style={{"--percentage": "0%"}}>
-                  <RChest
-                    chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[roll, pickedCountByRoll.get(roll) ?? 1]]))}
-                    remainingDice={0}
-                    size={"tiny"}
-                  />
-                </Table.Cell>
-              ))}
-              {visibleRolls.slice(0, 1).map(roll => atLeastRoundedPercentagesEntriesByPickedRolls.get(roll)!.filter(([total]) => total > 0).map(([total, percentage]) => (
-                <Table.Cell key={total} style={{"--percentage": `${percentage}%`}} className={classNames({grey: chartDataByTotal.get(total)?.[`atLeastWith${roll}`] !== chartDataByTotal.get(total)?.atLeastMaxValue})}>{percentage}%</Table.Cell>
-              )))}
-            </Table.Row>
-            {visibleRolls.slice(1).map(roll => (
-              <Table.Row className={"table-row-at-least"} key={roll}>
-                <Table.Cell key={roll} className={"ignored"} style={{"--percentage": "0%"}}>
-                  <RChest
-                    chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[roll, pickedCountByRoll.get(roll) ?? 1]]))}
-                    remainingDice={0}
-                    size={"tiny"}
-                  />
-                </Table.Cell>
-                {atLeastRoundedPercentagesEntriesByPickedRolls.get(roll)!.filter(([total]) => total > 0).map(([total, percentage]) => (
-                  <Table.Cell key={total} style={{"--percentage": `${percentage}%`}} className={classNames({grey: chartDataByTotal.get(total)?.[`atLeastWith${roll}`] !== chartDataByTotal.get(total)?.atLeastMaxValue})}>{percentage}%</Table.Cell>
-                ))}
-              </Table.Row>
-            ))}
-          </> : null}
-          {visibleChartLines.includes("expected-value-of-at-least") ? <>
-            <Table.Row className={"table-row-expected-value-of-at-least"}>
-              <Table.Cell rowSpan={visibleRolls.length}>At Least</Table.Cell>
-              {visibleRolls.slice(0, 1).map(roll => (
-                <Table.Cell key={roll} style={{"--percentage": "0%"}}>
-                  <RChest
-                    chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[roll, pickedCountByRoll.get(roll) ?? 1]]))}
-                    remainingDice={0}
-                    size={"tiny"}
-                  />
-                </Table.Cell>
-              ))}
-              {visibleRolls.slice(0, 1).map(roll => expectedValueOfAtLeastRoundedEntriesByPickedRolls.get(roll)!.filter(([total]) => total > 0).map(([total, percentage]) => (
-                <Table.Cell key={total} style={{"--percentage": `${percentage}%`}} className={classNames({grey: chartDataByTotal.get(total)?.[`expectedValueOfAtLeastWith${roll}`] !== chartDataByTotal.get(total)?.expectedValueOfAtLeastMaxValue})}>{percentage}%</Table.Cell>
-              )))}
-            </Table.Row>
-            {visibleRolls.slice(1).map(roll => (
-              <Table.Row className={"table-row-expected-value-of-at-least"} key={roll}>
-                <Table.Cell key={roll} className={"ignored"} style={{"--percentage": "0%"}}>
-                  <RChest
-                    chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[roll, pickedCountByRoll.get(roll) ?? 1]]))}
-                    remainingDice={0}
-                    size={"tiny"}
-                  />
-                </Table.Cell>
-                {expectedValueOfAtLeastRoundedEntriesByPickedRolls.get(roll)!.filter(([total]) => total > 0).map(([total, expectedValue]) => (
-                  <Table.Cell key={total} style={{"--percentage": `${expectedValue / maxValue * 100}%`}} className={classNames({grey: chartDataByTotal.get(total)?.[`expectedValueOfAtLeastWith${roll}`] !== chartDataByTotal.get(total)?.expectedValueOfAtLeastMaxValue})}>{expectedValue}%</Table.Cell>
-                ))}
-              </Table.Row>
-            ))}
-          </> : null}
+          <MultipleEvaluationsMultiTableRow
+            chartLine={"exactly"}
+            evaluationsAndPickedRolls={evaluationsAndPickedRolls}
+            entriesByPickedRolls={exactRoundedPercentagesEntriesByPickedRolls}
+            chartData={chartData}
+            visibleRolls={visibleRolls}
+            visibleChartLines={visibleChartLines}
+            maxValue={null}
+          />
+          <MultipleEvaluationsMultiTableRow
+            chartLine={"at-least"}
+            evaluationsAndPickedRolls={evaluationsAndPickedRolls}
+            entriesByPickedRolls={atLeastRoundedPercentagesEntriesByPickedRolls}
+            chartData={chartData}
+            visibleRolls={visibleRolls}
+            visibleChartLines={visibleChartLines}
+            maxValue={null}
+          />
+          <MultipleEvaluationsMultiTableRow
+            chartLine={"expected-value-of-at-least"}
+            evaluationsAndPickedRolls={evaluationsAndPickedRolls}
+            entriesByPickedRolls={expectedValueOfAtLeastRoundedEntriesByPickedRolls}
+            chartData={chartData}
+            visibleRolls={visibleRolls}
+            visibleChartLines={visibleChartLines}
+            maxValue={maxValue}
+          />
         </Table.Body>
       </Table>
     );
