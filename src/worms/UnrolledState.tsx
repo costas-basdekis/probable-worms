@@ -37,6 +37,10 @@ export class UnrolledState implements IState {
     this.remainingDiceCount = remainingDiceCount;
   }
 
+  get unrolledState(): this {
+    return this;
+  }
+
   get pickedDice(): DiceRoll {
     return this.chest.diceCounts.copy();
   }

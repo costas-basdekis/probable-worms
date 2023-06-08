@@ -136,7 +136,12 @@ export default class App extends Component<AppProps, AppState> {
                   trigger={<Button>Change</Button>}
                   onStateChange={this.onStateChange}
                 />
-                <Button onClick={this.onRandomRollClick} disabled={state.type !== "unrolled" || !state.remainingDiceCount}>Random Roll</Button>
+                <Button
+                  onClick={this.onRandomRollClick}
+                  disabled={!state.unrolledState.remainingDiceCount}
+                >
+                  {state.type === "unrolled" ? "Random Roll" : "Reroll"}
+                </Button>
               </div>
             </Card.Content>
             <Card.Content extra>
@@ -198,13 +203,11 @@ export default class App extends Component<AppProps, AppState> {
 
   onRandomRollClick = () => {
     this.setState(({state}) => {
-      if (state.type !== "unrolled") {
+      const unrolledState = state.unrolledState;
+      if (!unrolledState.remainingDiceCount) {
         return null;
       }
-      if (!state.remainingDiceCount) {
-        return null;
-      }
-      return {state: state.withRandomRoll()};
+      return {state: unrolledState.withRandomRoll()};
     }, () => {
       const {state} = this.state;
       this.searchInstance.setSearchState(state);
