@@ -5,6 +5,87 @@ import {createSelector} from "reselect";
 import {CartesianGrid, DotProps, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis} from "recharts";
 import classNames from "classnames";
 
+class MultipleEvaluationsChartTooltipTableRow extends Component<{chartLineData: ChartLineData}> {
+  colorMap = {
+    "exactly": "#8884d8",
+    "at-least": "#d88884",
+    "expected-value-of-at-least": "#88d884",
+  };
+  labelMap = {
+    "exactly": "Exactly",
+    "at-least": "At least",
+    "expected-value-of-at-least": "EV of at least",
+  };
+
+  render() {
+    const {chartLineData} = this.props;
+    if (!chartLineData.values.length) {
+      return null
+    }
+    return (
+      <tr>
+        <th style={{color: this.colorMap[chartLineData.chartLine]}}>{this.labelMap[chartLineData.chartLine]}</th>
+        {chartLineData.rollsIncluded.map(roll => {
+          const value = chartLineData.valuesByRoll.get(roll);
+          return (
+            <td key={roll} className={classNames({
+              "best-multi-value": value === chartLineData.maxValue,
+              "worst-multi-value": value === chartLineData.minValue,
+            })}>{value ?? ""}</td>
+          );
+        })}
+      </tr>
+    );
+  }
+}
+
+class ChartLineData {
+  chartLine: ChartLineName;
+  rollsIncluded: worms.RollResult[];
+  valuesByRoll: Map<worms.RollResult, number | null>;
+  values: number[];
+  minValue: number;
+  maxValue: number;
+
+  static fromData(chartEntry: ChartDataEntry | undefined, rollsIncluded: worms.RollResult[], chartLine: ChartLineName, payload: TooltipProps<number, string>["payload"], visibleChartLines: ChartLineName[] | undefined): ChartLineData {
+    const dataKeyMap: {[key in ChartLineName]: "exactly" | "atLeast" | "expectedValueOfAtLeast"} = {
+      "exactly": "exactly",
+      "at-least": "atLeast",
+      "expected-value-of-at-least": "expectedValueOfAtLeast",
+    };
+    if (!payload) {
+      return new ChartLineData(chartLine, rollsIncluded, new Map());
+    }
+    const includesChartLine = visibleChartLines?.includes(chartLine) ?? true;
+    if (!includesChartLine) {
+      return new ChartLineData(chartLine, rollsIncluded, new Map());
+    }
+    const dataKey = dataKeyMap[chartLine];
+    if (chartEntry) {
+      return new ChartLineData(chartLine, rollsIncluded, new Map(rollsIncluded.map(roll => [roll, chartEntry[`${dataKey}With${roll}`]])));
+    } else {
+      return new ChartLineData(chartLine, rollsIncluded, new Map(rollsIncluded.map(roll => [roll, payload.find(({dataKey}) => dataKey === `${dataKey}With${roll}`)?.value ?? null])));
+    }
+  }
+
+  constructor(chartLine: ChartLineName, rollsIncluded: worms.RollResult[], valuesByRoll: Map<worms.RollResult, number | null>, values?: number[], minValue?: number, maxValue?: number) {
+    this.chartLine = chartLine;
+    this.rollsIncluded = rollsIncluded;
+    this.valuesByRoll = valuesByRoll;
+    this.values = values ?? Array.from(this.valuesByRoll.values()).filter(value => value !== null) as number[];
+    this.minValue = minValue ?? Math.min(...this.values);
+    this.maxValue = maxValue ?? Math.max(...this.values);
+  }
+
+  isRollBest(roll: worms.RollResult): boolean {
+    return !this.values.length || this.valuesByRoll.get(roll) === this.maxValue;
+  }
+
+  isRollWorst(roll: worms.RollResult): boolean {
+    return !this.values.length || this.valuesByRoll.get(roll) === this.minValue;
+  }
+}
+
 type MultipleEvaluationsChartTooltipProps = TooltipProps<number, string> & {
   forceRolls?: worms.RollResult[],
   visibleChartLines?: ChartLineName[],
@@ -13,24 +94,15 @@ type MultipleEvaluationsChartTooltipProps = TooltipProps<number, string> & {
 
 class MultipleEvaluationsChartTooltip extends Component<MultipleEvaluationsChartTooltipProps> {
   render() {
-    const {payload, label, active, forceRolls, visibleChartLines, chartData} = this.props;
+    const {payload, label, active, forceRolls, chartData, visibleChartLines} = this.props;
     if (!active || !payload) {
       return null;
     }
     const chartEntry = chartData?.find(({total}) => total === label);
     const rollsIncluded = forceRolls ?? worms.rollResults.filter(roll => payload.some(({dataKey}) => [`exactlyWith${roll}`, `atLeastWith${roll}`, `expectedValueOfAtLeastWith${roll}`].includes(dataKey as string)));
-    const exactlyValuesByRoll: Map<worms.RollResult, number | null> = (visibleChartLines?.includes("exactly") ?? true) ? new Map(chartEntry ? rollsIncluded.map(roll => [roll, chartEntry[`exactlyWith${roll}`]]) : rollsIncluded.map(roll => [roll, payload.find(({dataKey}) => dataKey === `exactlyWith${roll}`)?.value ?? null])) : new Map();
-    const exactlyValues = Array.from(exactlyValuesByRoll.values()).filter(value => value !== null) as number[];
-    const atLeastValuesByRoll: Map<worms.RollResult, number | null> = (visibleChartLines?.includes("at-least") ?? true) ? new Map(chartEntry ? rollsIncluded.map(roll => [roll, chartEntry[`atLeastWith${roll}`]]) : rollsIncluded.map(roll => [roll, payload.find(({dataKey}) => dataKey === `atLeastWith${roll}`)?.value ?? null])) : new Map();
-    const atLeastValues = Array.from(atLeastValuesByRoll.values()).filter(value => value !== null) as number[];
-    const expectedValueOfAtLeastValuesByRoll: Map<worms.RollResult, number | null> = (visibleChartLines?.includes("expected-value-of-at-least") ?? true) ? new Map(chartEntry ? rollsIncluded.map(roll => [roll, chartEntry[`expectedValueOfAtLeastWith${roll}`]]) : rollsIncluded.map(roll => [roll, payload.find(({dataKey}) => dataKey === `expectedValueOfAtLeastWith${roll}`)?.value ?? null])) : new Map();
-    const expectedValueOfAtLeastValues = Array.from(expectedValueOfAtLeastValuesByRoll.values()).filter(value => value !== null) as number[];
-    const minExactlyValue = Math.min(...exactlyValues);
-    const maxExactlyValue = Math.max(...exactlyValues);
-    const minAtLeastValue = Math.min(...atLeastValues);
-    const maxAtLeastValue = Math.max(...atLeastValues);
-    const minExpectedValueOfAtLeastValue = Math.min(...expectedValueOfAtLeastValues);
-    const maxExpectedValueOfAtLeastValue = Math.max(...expectedValueOfAtLeastValues);
+    const exactlyChartLineData = ChartLineData.fromData(chartEntry, rollsIncluded, "exactly", payload, visibleChartLines);
+    const atLeastChartLineData = ChartLineData.fromData(chartEntry, rollsIncluded, "at-least", payload, visibleChartLines);
+    const expectedValueOfAtLeastChartLineData = ChartLineData.fromData(chartEntry, rollsIncluded, "expected-value-of-at-least", payload, visibleChartLines);
     return (
       <div className={"custom-tooltip recharts-default-tooltip"}>
         <p className={"recharts-tooltip-label"}>Result: {label}</p>
@@ -40,14 +112,14 @@ class MultipleEvaluationsChartTooltip extends Component<MultipleEvaluationsChart
               <th></th>
               {rollsIncluded.map(roll => {
                 const isBest = (
-                  (!exactlyValues.length || exactlyValuesByRoll.get(roll) === maxExactlyValue)
-                  && (!atLeastValues.length || atLeastValuesByRoll.get(roll) === maxAtLeastValue)
-                  && (!expectedValueOfAtLeastValues.length || expectedValueOfAtLeastValuesByRoll.get(roll) === maxExpectedValueOfAtLeastValue)
+                  exactlyChartLineData.isRollBest(roll)
+                  && atLeastChartLineData.isRollBest(roll)
+                  && expectedValueOfAtLeastChartLineData.isRollBest(roll)
                 );
                 const isWorst = (
-                  (!exactlyValues.length || exactlyValuesByRoll.get(roll) === minExactlyValue)
-                  && (!atLeastValues.length || atLeastValuesByRoll.get(roll) === minAtLeastValue)
-                  && (!expectedValueOfAtLeastValues.length || expectedValueOfAtLeastValuesByRoll.get(roll) === minExpectedValueOfAtLeastValue)
+                  exactlyChartLineData.isRollWorst(roll)
+                  && atLeastChartLineData.isRollWorst(roll)
+                  && expectedValueOfAtLeastChartLineData.isRollWorst(roll)
                 );
                 return (
                   <th key={roll} className={classNames({"best-multi-value": isBest, "worst-multi-value": isWorst})}>{roll}</th>
@@ -56,33 +128,9 @@ class MultipleEvaluationsChartTooltip extends Component<MultipleEvaluationsChart
             </tr>
           </thead>
           <tbody>
-            {exactlyValues.length ? <tr>
-              <th style={{color: "#8884d8"}}>Exactly</th>
-              {rollsIncluded.map(roll => {
-                const value = exactlyValuesByRoll.get(roll);
-                return (
-                  <td key={roll} className={classNames({"best-multi-value": value === maxExactlyValue, "worst-multi-value": value === minExactlyValue})}>{value ?? ""}</td>
-                );
-              })}
-            </tr> : null}
-            {atLeastValues.length ? <tr>
-              <th style={{color: "#d88884"}}>At least</th>
-              {rollsIncluded.map(roll => {
-                const value = atLeastValuesByRoll.get(roll);
-                return (
-                  <td key={roll} className={classNames({"best-multi-value": value === maxAtLeastValue, "worst-multi-value": value === minAtLeastValue})}>{value ?? ""}</td>
-                );
-              })}
-            </tr> : null}
-            {expectedValueOfAtLeastValues.length ? <tr>
-              <th style={{color: "#88d884"}}>EV of At least</th>
-              {rollsIncluded.map(roll => {
-                const value = expectedValueOfAtLeastValuesByRoll.get(roll);
-                return (
-                  <td key={roll} className={classNames({"best-multi-value": value === maxExpectedValueOfAtLeastValue, "worst-multi-value": value === minExpectedValueOfAtLeastValue})}>{value ?? ""}</td>
-                );
-              })}
-            </tr> : null}
+            <MultipleEvaluationsChartTooltipTableRow chartLineData={exactlyChartLineData} />
+            <MultipleEvaluationsChartTooltipTableRow chartLineData={atLeastChartLineData} />
+            <MultipleEvaluationsChartTooltipTableRow chartLineData={expectedValueOfAtLeastChartLineData} />
           </tbody>
         </table>
       </div>
