@@ -27,14 +27,46 @@ interface MultipleEvaluationsTableTargetProps {
 }
 
 class MultipleEvaluationsTableTarget extends Component<MultipleEvaluationsTableTargetProps> {
+  static getIsBestAndWorst(targetType: TargetType, pickValue: PickValue, minMaxPickValues: MinMaxPickValues): {
+    isBest: {exactly: boolean, atLeast: boolean, evOfAtLeast: boolean, overall: boolean},
+    isWorst: {exactly: boolean, atLeast: boolean, evOfAtLeast: boolean, overall: boolean},
+  } {
+    const isBest = {
+      exactly: pickValue.exactly === minMaxPickValues.max.exactly,
+      atLeast: pickValue.atLeast === minMaxPickValues.max.atLeast,
+      evOfAtLeast: pickValue.evOfAtLeast === minMaxPickValues.max.evOfAtLeast,
+    };
+    const isWorst = {
+      exactly: pickValue.exactly === minMaxPickValues.min.exactly,
+      atLeast: pickValue.atLeast === minMaxPickValues.min.atLeast,
+      evOfAtLeast: pickValue.evOfAtLeast === minMaxPickValues.min.evOfAtLeast,
+    };
+    switch (targetType) {
+      case "exactly": {
+        return {
+          isBest: {...isBest, overall: isBest.exactly},
+          isWorst: {...isWorst, overall: isWorst.exactly},
+        };
+      }
+      case "atLeast": {
+        return {
+          isBest: {...isBest, overall: isBest.atLeast && isBest.evOfAtLeast},
+          isWorst: {...isWorst, overall: isWorst.atLeast && isWorst.evOfAtLeast},
+        };
+      }
+      default:
+        throw new Error("Unknown target type");
+    }
+  }
   render() {
     const {targetType, pickValue, minMaxPickValues} = this.props;
+    const {isBest, isWorst} = MultipleEvaluationsTableTarget.getIsBestAndWorst(targetType, pickValue, minMaxPickValues);
     switch (targetType) {
       case "exactly": {
         return (
           <WrapColorLabel
-            good={pickValue.exactly === minMaxPickValues.max.exactly}
-            bad={pickValue.exactly === minMaxPickValues.min.exactly}
+            good={isBest.exactly}
+            bad={isWorst.exactly}
           >
             {pickValue.exactlyStr}
           </WrapColorLabel>
@@ -43,15 +75,15 @@ class MultipleEvaluationsTableTarget extends Component<MultipleEvaluationsTableT
       case "atLeast": {
         return <>
           <WrapColorLabel
-            good={pickValue.atLeast === minMaxPickValues.max.atLeast}
-            bad={pickValue.atLeast === minMaxPickValues.min.atLeast}
+            good={isBest.atLeast}
+            bad={isWorst.atLeast}
           >
             {pickValue.atLeastStr}
           </WrapColorLabel>
           {" / EV: "}
           <WrapColorLabel
-            good={pickValue.evOfAtLeast === minMaxPickValues.max.evOfAtLeast}
-            bad={pickValue.evOfAtLeast === minMaxPickValues.min.evOfAtLeast}
+            good={isBest.evOfAtLeast}
+            bad={isWorst.evOfAtLeast}
           >
             {pickValue.evOfAtLeastStr}
           </WrapColorLabel>
@@ -222,23 +254,39 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
               <Table.Cell></Table.Cell>
               <Table.Cell></Table.Cell>
             </Table.Row>
-            {evaluationsAndPickedRolls?.map(({evaluation, pickedRoll, pickedCount, total}) => (
-              <Table.Row key={pickedRoll}>
-                <Table.Cell>Pick {pickedRoll}</Table.Cell>
-                <Table.Cell><RChest chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[pickedRoll, pickedCount]]))} remainingDice={0} size={"tiny"} /></Table.Cell>
-                <Table.Cell>{total}</Table.Cell>
-                <Table.Cell>
-                  <MultipleEvaluationsTableTarget
-                    targetType={targetType}
-                    pickValue={pickValues.get(pickedRoll)!}
-                    minMaxPickValues={minMaxPickValues}
-                  />
-                </Table.Cell>
-                <Table.Cell>{evaluation.expectedValue.toFixed(1)}</Table.Cell>
-                <Table.Cell><Checkbox toggle checked={visibleRollPicks.includes(pickedRoll)} onChange={this.makeOnRollVisibleChange(pickedRoll)} /></Table.Cell>
-                <Table.Cell><Button onClick={this.makeOnContinueFromHere(pickedRoll)}>Continue from here</Button></Table.Cell>
-              </Table.Row>
-            ))}
+            {evaluationsAndPickedRolls?.map(({evaluation, pickedRoll, pickedCount, total}) => {
+              const pickValue = pickValues.get(pickedRoll)!;
+              const {isBest, isWorst} = MultipleEvaluationsTableTarget.getIsBestAndWorst(targetType, pickValue, minMaxPickValues);
+              return (
+                <Table.Row key={pickedRoll}>
+                  <Table.Cell>Pick {pickedRoll}</Table.Cell>
+                  <Table.Cell>
+                    <WrapColorLabel good={isBest.overall} bad={isWorst.overall}>
+                      <RChest
+                        chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[pickedRoll, pickedCount]]))}
+                        remainingDice={0}
+                        size={"tiny"}
+                      />
+                    </WrapColorLabel>
+                  </Table.Cell>
+                  <Table.Cell>{total}</Table.Cell>
+                  <Table.Cell>
+                    <MultipleEvaluationsTableTarget
+                      targetType={targetType}
+                      pickValue={pickValue}
+                      minMaxPickValues={minMaxPickValues}
+                    />
+                  </Table.Cell>
+                  <Table.Cell>{evaluation.expectedValue.toFixed(1)}</Table.Cell>
+                  <Table.Cell><Checkbox toggle checked={visibleRollPicks.includes(pickedRoll)} onChange={this.makeOnRollVisibleChange(pickedRoll)} /></Table.Cell>
+                  <Table.Cell>
+                    <Button onClick={this.makeOnContinueFromHere(pickedRoll)} color={isBest.overall ? "green" : isWorst.overall ? "red" : undefined}>
+                      Continue from here
+                    </Button>
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })}
           </Table.Body>
         </Table>
         {evaluationsAndPickedRolls ? (
