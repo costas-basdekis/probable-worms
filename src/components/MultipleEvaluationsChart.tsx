@@ -5,7 +5,7 @@ import {createSelector} from "reselect";
 import {CartesianGrid, DotProps, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis} from "recharts";
 import classNames from "classnames";
 
-class MultipleEvaluationsChartTooltipTableRow extends Component<{chartLineData: ChartLineData}> {
+class MultipleEvaluationsChartTooltipTableRow extends Component<{chartLineData: ChartLineData, rollsIncluded: worms.RollResult[]}> {
   colorMap = {
     "exactly": "#8884d8",
     "at-least": "#d88884",
@@ -18,14 +18,14 @@ class MultipleEvaluationsChartTooltipTableRow extends Component<{chartLineData: 
   };
 
   render() {
-    const {chartLineData} = this.props;
+    const {chartLineData, rollsIncluded} = this.props;
     if (!chartLineData.values.length) {
       return null
     }
     return (
       <tr>
         <th style={{color: this.colorMap[chartLineData.chartLine]}}>{this.labelMap[chartLineData.chartLine]}</th>
-        {chartLineData.rollsIncluded.map(roll => {
+        {rollsIncluded.map(roll => {
           const value = chartLineData.valuesByRoll.get(roll);
           return (
             <td key={roll} className={classNames({
@@ -41,36 +41,26 @@ class MultipleEvaluationsChartTooltipTableRow extends Component<{chartLineData: 
 
 class ChartLineData {
   chartLine: ChartLineName;
-  rollsIncluded: worms.RollResult[];
   valuesByRoll: Map<worms.RollResult, number | null>;
   values: number[];
   minValue: number;
   maxValue: number;
 
-  static fromData(chartEntry: ChartDataEntry | undefined, rollsIncluded: worms.RollResult[], chartLine: ChartLineName, payload: TooltipProps<number, string>["payload"], visibleChartLines: ChartLineName[] | undefined): ChartLineData {
+  static fromData(chartEntry: ChartDataEntry | undefined, chartLine: ChartLineName): ChartLineData {
     const dataKeyMap: {[key in ChartLineName]: "exactly" | "atLeast" | "expectedValueOfAtLeast"} = {
       "exactly": "exactly",
       "at-least": "atLeast",
       "expected-value-of-at-least": "expectedValueOfAtLeast",
     };
-    if (!payload) {
-      return new ChartLineData(chartLine, rollsIncluded, new Map());
-    }
-    const includesChartLine = visibleChartLines?.includes(chartLine) ?? true;
-    if (!includesChartLine) {
-      return new ChartLineData(chartLine, rollsIncluded, new Map());
+    if (!chartEntry) {
+      return new ChartLineData(chartLine, new Map());
     }
     const dataKey = dataKeyMap[chartLine];
-    if (chartEntry) {
-      return new ChartLineData(chartLine, rollsIncluded, new Map(rollsIncluded.map(roll => [roll, chartEntry[`${dataKey}With${roll}`]])));
-    } else {
-      return new ChartLineData(chartLine, rollsIncluded, new Map(rollsIncluded.map(roll => [roll, payload.find(({dataKey}) => dataKey === `${dataKey}With${roll}`)?.value ?? null])));
-    }
+    return new ChartLineData(chartLine, new Map(worms.rollResults.map(roll => [roll, chartEntry[`${dataKey}With${roll}`]])));
   }
 
-  constructor(chartLine: ChartLineName, rollsIncluded: worms.RollResult[], valuesByRoll: Map<worms.RollResult, number | null>, values?: number[], minValue?: number, maxValue?: number) {
+  constructor(chartLine: ChartLineName, valuesByRoll: Map<worms.RollResult, number | null>, values?: number[], minValue?: number, maxValue?: number) {
     this.chartLine = chartLine;
-    this.rollsIncluded = rollsIncluded;
     this.valuesByRoll = valuesByRoll;
     this.values = values ?? Array.from(this.valuesByRoll.values()).filter(value => value !== null) as number[];
     this.minValue = minValue ?? Math.min(...this.values);
@@ -87,22 +77,42 @@ class ChartLineData {
 }
 
 type MultipleEvaluationsChartTooltipProps = TooltipProps<number, string> & {
-  forceRolls?: worms.RollResult[],
+  visibleRolls: worms.RollResult[],
   visibleChartLines?: ChartLineName[],
-  chartData?: ChartDataEntry[],
+  chartData: ChartDataEntry[],
 };
 
 class MultipleEvaluationsChartTooltip extends Component<MultipleEvaluationsChartTooltipProps> {
+  chartLineDataMapSelector = createSelector(
+    ({chartData}: MultipleEvaluationsChartTooltipProps) => chartData,
+    (chartData): Map<number, {exactlyChartLineData: ChartLineData, atLeastChartLineData: ChartLineData, expectedValueOfAtLeastChartLineData: ChartLineData}> => {
+      return new Map(chartData.map(chartEntry => [
+        chartEntry.total,
+        {
+          exactlyChartLineData: ChartLineData.fromData(chartEntry, "exactly"),
+          atLeastChartLineData: ChartLineData.fromData(chartEntry, "at-least"),
+          expectedValueOfAtLeastChartLineData: ChartLineData.fromData(chartEntry, "expected-value-of-at-least"),
+        },
+      ]));
+    }
+  );
+
+  get chartLineDataMap() {
+    return this.chartLineDataMapSelector(this.props);
+  }
+
   render() {
-    const {payload, label, active, forceRolls, chartData, visibleChartLines} = this.props;
-    if (!active || !payload) {
+    const {label, active, visibleRolls} = this.props;
+    if (!active) {
       return null;
     }
-    const chartEntry = chartData?.find(({total}) => total === label);
-    const rollsIncluded = forceRolls ?? worms.rollResults.filter(roll => payload.some(({dataKey}) => [`exactlyWith${roll}`, `atLeastWith${roll}`, `expectedValueOfAtLeastWith${roll}`].includes(dataKey as string)));
-    const exactlyChartLineData = ChartLineData.fromData(chartEntry, rollsIncluded, "exactly", payload, visibleChartLines);
-    const atLeastChartLineData = ChartLineData.fromData(chartEntry, rollsIncluded, "at-least", payload, visibleChartLines);
-    const expectedValueOfAtLeastChartLineData = ChartLineData.fromData(chartEntry, rollsIncluded, "expected-value-of-at-least", payload, visibleChartLines);
+    const {chartLineDataMap} = this;
+    const total = parseInt(label, 10);
+    const chartLineData = chartLineDataMap.get(total);
+    if (!chartLineData) {
+      return null;
+    }
+    const {exactlyChartLineData, atLeastChartLineData, expectedValueOfAtLeastChartLineData} = chartLineData;
     return (
       <div className={"custom-tooltip recharts-default-tooltip"}>
         <p className={"recharts-tooltip-label"}>Result: {label}</p>
@@ -110,7 +120,7 @@ class MultipleEvaluationsChartTooltip extends Component<MultipleEvaluationsChart
           <thead>
             <tr>
               <th></th>
-              {rollsIncluded.map(roll => {
+              {visibleRolls.map(roll => {
                 const isBest = (
                   exactlyChartLineData.isRollBest(roll)
                   && atLeastChartLineData.isRollBest(roll)
@@ -128,9 +138,9 @@ class MultipleEvaluationsChartTooltip extends Component<MultipleEvaluationsChart
             </tr>
           </thead>
           <tbody>
-            <MultipleEvaluationsChartTooltipTableRow chartLineData={exactlyChartLineData} />
-            <MultipleEvaluationsChartTooltipTableRow chartLineData={atLeastChartLineData} />
-            <MultipleEvaluationsChartTooltipTableRow chartLineData={expectedValueOfAtLeastChartLineData} />
+            <MultipleEvaluationsChartTooltipTableRow chartLineData={exactlyChartLineData} rollsIncluded={visibleRolls} />
+            <MultipleEvaluationsChartTooltipTableRow chartLineData={atLeastChartLineData} rollsIncluded={visibleRolls} />
+            <MultipleEvaluationsChartTooltipTableRow chartLineData={expectedValueOfAtLeastChartLineData} rollsIncluded={visibleRolls} />
           </tbody>
         </table>
       </div>
@@ -256,7 +266,7 @@ export class MultipleEvaluationsChart extends Component<MultipleEvaluationsChart
         <XAxis dataKey={"total"}/>
         <YAxis yAxisId={"percentage"} domain={[0, 100]} />
         <YAxis yAxisId={"expected-value"} orientation={"right"} domain={[0, diceCount * 5]} />
-        <Tooltip content={<MultipleEvaluationsChartTooltip forceRolls={showOnlyMaxValues ? visibleRolls : undefined} visibleChartLines={visibleChartLines} chartData={chartData} />}/>
+        <Tooltip content={<MultipleEvaluationsChartTooltip visibleRolls={visibleRolls} visibleChartLines={visibleChartLines} chartData={chartData} />}/>
         {/*<Legend width={100} wrapperStyle={this.legendWrapperStyle} formatter={this.formatLegend} />*/}
         {visibleRolls.map(roll => (
           <ReferenceLine yAxisId={"percentage"} key={roll} x={Math.floor(evaluationsByPickedRoll.get(roll)!.expectedValue)} stroke={"green"} label={`${roll}`}/>
