@@ -4,6 +4,7 @@ import * as worms from "./worms";
 import {CacheFetchingStatus, RemoteSearch, SearchInstance} from "./RemoteSearch";
 import {Button, Card, Container, DropdownProps, Header, Image, Select} from "semantic-ui-react";
 import {
+  About,
   EvaluationControls,
   Help,
   InitialStateModal,
@@ -198,6 +199,7 @@ export default class App extends Component<AppProps, AppState> {
             />
             <REvaluation evaluation={evaluation} total={state.runningTotal} diceCount={state.totalDiceCount} />
           </Container>
+          <About/>
         </Container>
       </div>
     );

@@ -1,3 +1,4 @@
+export * from "./About";
 export * from "./Die";
 export * from "./DiceSelector";
 export * from "./CacheControls";
