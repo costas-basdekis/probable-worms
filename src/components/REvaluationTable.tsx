@@ -16,7 +16,7 @@ interface REvaluationTableProps {
 export class REvaluationTable extends Component<REvaluationTableProps> {
   render() {
     const {diceCount, totals, exactRoundedPercentagesEntries, atLeastRoundedPercentagesEntries, expectedValueOfAtLeastRoundedEntries} = this.props;
-    const maxValue = diceCount * 5
+    const maxValue = diceCount * 5;
     return (
       <Table definition collapsing unstackable size={"small"}>
         <Table.Header>

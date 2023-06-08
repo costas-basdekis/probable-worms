@@ -4,6 +4,7 @@ import {TooltipProps} from "recharts/types/component/Tooltip";
 import {createSelector} from "reselect";
 import {CartesianGrid, DotProps, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis} from "recharts";
 import classNames from "classnames";
+import {ChartDataEntry} from "./MultipleEvaluations";
 
 class MultipleEvaluationsChartTooltipTableRow extends Component<{chartLineData: ChartLineData, rollsIncluded: worms.RollResult[]}> {
   colorMap = {
@@ -186,71 +187,16 @@ interface MultipleEvaluationsChartProps {
   exactRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   atLeastRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   expectedValueOfAtLeastRoundedEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
+  chartData: ChartDataEntry[],
+  visibleRolls: worms.RollResult[],
   visibleRollPicks?: worms.RollResult[],
   visibleChartLines?: ChartLineName[],
   showOnlyMaxValues?: boolean,
 }
 
-interface ChartDataEntry {
-  total: number,
-  exactlyWith1: number, exactlyWith2: number, exactlyWith3: number, exactlyWith4: number, exactlyWith5: number, exactlyWithW: number, exactlyMaxValue: number, exactlyMaxFaces: string,
-  atLeastWith1: number, atLeastWith2: number, atLeastWith3: number, atLeastWith4: number, atLeastWith5: number, atLeastWithW: number, atLeastMaxValue: number, atLeastMaxFaces: string,
-  expectedValueOfAtLeastWith1: number, expectedValueOfAtLeastWith2: number, expectedValueOfAtLeastWith3: number, expectedValueOfAtLeastWith4: number, expectedValueOfAtLeastWith5: number, expectedValueOfAtLeastWithW: number, expectedValueOfAtLeastMaxValue: number, expectedValueOfAtLeastMaxFaces: string,
-}
-
 export class MultipleEvaluationsChart extends Component<MultipleEvaluationsChartProps> {
-  visibleRollsSelector = createSelector(
-    ({evaluationsByPickedRoll}: MultipleEvaluationsChartProps) => evaluationsByPickedRoll,
-    ({visibleRollPicks}: MultipleEvaluationsChartProps) => visibleRollPicks,
-    (evaluationsByPickedRoll, visibleRollPicks) => {
-      return Array.from(evaluationsByPickedRoll.keys()).filter(roll => visibleRollPicks?.includes(roll) ?? true);
-    }
-  )
-
-  get visibleRolls() {
-    return this.visibleRollsSelector(this.props);
-  }
-
-  chartDataSelector = createSelector(
-    this.visibleRollsSelector,
-    ({totals}: MultipleEvaluationsChartProps) => totals,
-    ({exactRoundedPercentagesEntriesByPickedRolls}: MultipleEvaluationsChartProps) => exactRoundedPercentagesEntriesByPickedRolls,
-    ({atLeastRoundedPercentagesEntriesByPickedRolls}: MultipleEvaluationsChartProps) => atLeastRoundedPercentagesEntriesByPickedRolls,
-    ({expectedValueOfAtLeastRoundedEntriesByPickedRolls}: MultipleEvaluationsChartProps) => expectedValueOfAtLeastRoundedEntriesByPickedRolls,
-    (
-      visibleRolls, totals, exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
-      expectedValueOfAtLeastRoundedEntriesByPickedRolls,
-    ): ChartDataEntry[] => {
-      return totals.map(total => {
-        const exactlyEntries: [string, number][] = visibleRolls.map(roll => [`exactlyWith${roll}`, exactRoundedPercentagesEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0]);
-        const atLeastEntries: [string, number][] = visibleRolls.map(roll => [`atLeastWith${roll}`, atLeastRoundedPercentagesEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0]);
-        const expectedValueOfAtLeastEntries: [string, number][] = visibleRolls.map(roll => [`expectedValueOfAtLeastWith${roll}`, expectedValueOfAtLeastRoundedEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0]);
-        const exactlyMaxValue = Math.max(...exactlyEntries.map(([, value]) => value));
-        const atLeastMaxValue = Math.max(...atLeastEntries.map(([, value]) => value));
-        const expectedValueOfAtLeastMaxValue = Math.max(...expectedValueOfAtLeastEntries.map(([, value]) => value));
-        return ({
-          total,
-          ...Object.fromEntries(exactlyEntries),
-          exactlyMaxValue,
-          exactlyMaxFaces: exactlyEntries.filter(([, value]) => value === exactlyMaxValue).map(([label]) => label[label.length - 1]).join(","),
-          ...Object.fromEntries(atLeastEntries),
-          atLeastMaxValue,
-          atLeastMaxFaces: atLeastEntries.filter(([, value]) => value === atLeastMaxValue).map(([label]) => label[label.length - 1]).join(","),
-          ...Object.fromEntries(expectedValueOfAtLeastEntries),
-          expectedValueOfAtLeastMaxValue,
-          expectedValueOfAtLeastMaxFaces: expectedValueOfAtLeastEntries.filter(([, value]) => value === expectedValueOfAtLeastMaxValue).map(([label]) => label[label.length - 1]).join(","),
-        } as ChartDataEntry);
-      });
-    },
-  );
-
-  get chartData(): ChartDataEntry[] {
-    return this.chartDataSelector(this.props);
-  }
-
   render() {
-    const {visibleRolls, chartData} = this;
-    const {evaluationsByPickedRoll, diceCount, visibleChartLines, showOnlyMaxValues} = this.props;
+    const {evaluationsByPickedRoll, diceCount, visibleRolls, chartData, visibleChartLines, showOnlyMaxValues} = this.props;
     return (
       <LineChart className={"probabilities-chart"} width={600} height={300} data={chartData}>
         {showOnlyMaxValues ? <>

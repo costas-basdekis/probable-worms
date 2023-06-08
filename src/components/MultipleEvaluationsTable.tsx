@@ -6,6 +6,7 @@ import {ChartLineName} from "./MultipleEvaluationsChart";
 import {CheckboxProps} from "semantic-ui-react/dist/commonjs/modules/Checkbox/Checkbox";
 import {RolledState} from "../worms";
 import {createSelector} from "reselect";
+import {EvaluationAndPickedRoll} from "../App";
 
 class WrapColorLabel extends Component<{children: ReactNode, good: boolean, bad: boolean}> {
   render() {
@@ -116,7 +117,7 @@ export interface MinMaxPickValues {
 interface MultipleEvaluationsTableProps {
   preRollEvaluation: worms.Evaluation,
   preRollTotal: number,
-  evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number, total: number}[] | null,
+  evaluationsAndPickedRolls: EvaluationAndPickedRoll[] | null,
   exactRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   atLeastRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   expectedValueOfAtLeastRoundedEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,

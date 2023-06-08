@@ -19,6 +19,14 @@ const remoteSearch = RemoteSearch.default();
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface AppProps {
 }
+
+export interface EvaluationAndPickedRoll {
+  pickedRoll: worms.RollResult;
+  pickedCount: number;
+  evaluation: worms.Evaluation;
+  total: number;
+}
+
 interface AppState {
   state: worms.State,
   progress: number,
@@ -26,7 +34,7 @@ interface AppState {
   preRollEvaluation: worms.Evaluation,
   searching: boolean,
   searchFinished: boolean,
-  dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation, total: number}[] | null,
+  dicePickEvaluations: EvaluationAndPickedRoll[] | null,
   cacheStatusMessages: {message: string, id: number}[],
   cacheStats: worms.EvaluationCacheStats,
   targetType: TargetType,
@@ -53,7 +61,7 @@ export default class App extends Component<AppProps, AppState> {
   onSearchResult = (
     searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
     preRollEvaluation: worms.Evaluation,
-    dicePickEvaluations: {pickedRoll: worms.RollResult, pickedCount: number, evaluation: worms.Evaluation, total: number}[] | null,
+    dicePickEvaluations: EvaluationAndPickedRoll[] | null,
     cacheStats: worms.EvaluationCacheStats,
   ) => {
     this.setState({

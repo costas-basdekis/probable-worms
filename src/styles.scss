@@ -201,6 +201,10 @@ tr.table-row-expected-value-of-at-least td {
   background: linear-gradient(to top, #88d884 var(--percentage), transparent var(--percentage)) no-repeat;
 }
 
+tr td.grey {
+  background: linear-gradient(to top, lightgray var(--percentage), transparent var(--percentage)) no-repeat;
+}
+
 .die-dot {
   font-size: 10px;
 }
