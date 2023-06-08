@@ -9,7 +9,7 @@ interface MultipleEvaluationsProps {
   preRollEvaluation: worms.Evaluation,
   preRollTotal: number,
   rolledState: worms.RolledState,
-  evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number, total: number}[],
+  evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number, total: number}[] | null,
   onSetUnrolledState?: (unrolledState: worms.UnrolledState) => void,
   targetType: TargetType,
   targetValue: number,
@@ -34,6 +34,9 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
   evaluationsByPickedRollSelector = createSelector(
     ({evaluationsAndPickedRolls}: MultipleEvaluationsProps) => evaluationsAndPickedRolls,
     (evaluationsAndPickedRolls): Map<worms.RollResult, worms.Evaluation> => {
+      if (!evaluationsAndPickedRolls) {
+        return new Map();
+      }
       return new Map(evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => [pickedRoll, evaluation]));
     },
   );
@@ -45,6 +48,9 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
   maxTotalSelector = createSelector(
     ({evaluationsAndPickedRolls}: MultipleEvaluationsProps) => evaluationsAndPickedRolls,
     (evaluationsAndPickedRolls): number => {
+      if (!evaluationsAndPickedRolls) {
+        return NaN;
+      }
       return Math.max(
         0,
         ...evaluationsAndPickedRolls.map(({evaluation}) => Math.max(0, ...evaluation.exactResultOccurrences.keys())),
@@ -72,6 +78,9 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
     ({evaluationsAndPickedRolls}: MultipleEvaluationsProps) => evaluationsAndPickedRolls,
     this.totalsSelector,
     (evaluationsAndPickedRolls, totals): Map<worms.RollResult, [number, number][]> => {
+      if (!evaluationsAndPickedRolls) {
+        return new Map();
+      }
       return new Map(evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => [
         pickedRoll,
         totals.map(total => [total, Math.floor((evaluation.exactResultOccurrences.get(total) || 0) * 100)]),
@@ -87,6 +96,9 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
     ({evaluationsAndPickedRolls}: MultipleEvaluationsProps) => evaluationsAndPickedRolls,
     this.totalsSelector,
     (evaluationsAndPickedRolls, totals): Map<worms.RollResult, [number, number][]> => {
+      if (!evaluationsAndPickedRolls) {
+        return new Map();
+      }
       return new Map(evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => [
         pickedRoll,
         totals.map(total => [total, Math.floor((evaluation.minimumResultOccurrences.get(total) || 0) * 100)]),
@@ -102,6 +114,9 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
     ({evaluationsAndPickedRolls}: MultipleEvaluationsProps) => evaluationsAndPickedRolls,
     this.totalsSelector,
     (evaluationsAndPickedRolls, totals): Map<worms.RollResult, [number, number][]> => {
+      if (!evaluationsAndPickedRolls) {
+        return new Map();
+      }
       return new Map(evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => [
         pickedRoll,
         totals.map(total => [total, Math.floor(evaluation.expectedValueOfAtLeast.get(total) || 0)]),
@@ -153,18 +168,20 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
         onVisibleChartLinesChange={this.onVisibleChartLinesChange}
         onShowOnlyMaxValuesChange={this.onShowOnlyMaxValuesChange}
       />
-      <MultipleEvaluationsChart
-        evaluationsByPickedRoll={evaluationsByPickedRoll}
-        diceCount={rolledState.totalDiceCount}
-        maxTotal={maxTotal}
-        totals={totals}
-        exactRoundedPercentagesEntriesByPickedRolls={exactRoundedPercentagesEntriesByPickedRolls}
-        atLeastRoundedPercentagesEntriesByPickedRolls={atLeastRoundedPercentagesEntriesByPickedRolls}
-        expectedValueOfAtLeastRoundedEntriesByPickedRolls={expectedValueOfAtLeastRoundedEntriesByPickedRolls}
-        visibleRollPicks={visibleRollPicks}
-        visibleChartLines={visibleChartLines}
-        showOnlyMaxValues={showOnlyMaxValues}
-      />
+      {evaluationsAndPickedRolls ? (
+        <MultipleEvaluationsChart
+          evaluationsByPickedRoll={evaluationsByPickedRoll}
+          diceCount={rolledState.totalDiceCount}
+          maxTotal={maxTotal}
+          totals={totals}
+          exactRoundedPercentagesEntriesByPickedRolls={exactRoundedPercentagesEntriesByPickedRolls}
+          atLeastRoundedPercentagesEntriesByPickedRolls={atLeastRoundedPercentagesEntriesByPickedRolls}
+          expectedValueOfAtLeastRoundedEntriesByPickedRolls={expectedValueOfAtLeastRoundedEntriesByPickedRolls}
+          visibleRollPicks={visibleRollPicks}
+          visibleChartLines={visibleChartLines}
+          showOnlyMaxValues={showOnlyMaxValues}
+        />
+      ) : null}
     </>;
   }
 

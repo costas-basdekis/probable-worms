@@ -84,7 +84,7 @@ export interface MinMaxPickValues {
 interface MultipleEvaluationsTableProps {
   preRollEvaluation: worms.Evaluation,
   preRollTotal: number,
-  evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number, total: number}[],
+  evaluationsAndPickedRolls: {evaluation: worms.Evaluation, pickedRoll: worms.RollResult, pickedCount: number, total: number}[] | null,
   exactRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   atLeastRoundedPercentagesEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
   expectedValueOfAtLeastRoundedEntriesByPickedRolls: Map<worms.RollResult, [number, number][]>,
@@ -112,6 +112,9 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
       exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
       expectedValueOfAtLeastRoundedEntriesByPickedRolls, targetValue,
     ): PickValues => {
+      if (!evaluationsAndPickedRolls) {
+        return new Map();
+      }
       const entries: [worms.RollResult, PickValue][] =
         evaluationsAndPickedRolls.map(({evaluation, pickedRoll}) => {
           const {exactly, atLeast, evOfAtLeast} = {
@@ -219,7 +222,7 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
               <Table.Cell></Table.Cell>
               <Table.Cell></Table.Cell>
             </Table.Row>
-            {evaluationsAndPickedRolls.map(({evaluation, pickedRoll, pickedCount, total}) => (
+            {evaluationsAndPickedRolls?.map(({evaluation, pickedRoll, pickedCount, total}) => (
               <Table.Row key={pickedRoll}>
                 <Table.Cell>Pick {pickedRoll}</Table.Cell>
                 <Table.Cell><RChest chest={worms.Chest.fromDiceRoll(new worms.DiceRoll([[pickedRoll, pickedCount]]))} remainingDice={0} size={"tiny"} /></Table.Cell>
@@ -238,24 +241,26 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
             ))}
           </Table.Body>
         </Table>
-        <Table collapsing unstackable size={"small"} className={"centered-table"}>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>Show Exactly lines</Table.HeaderCell>
-              <Table.HeaderCell>Show At Least lines</Table.HeaderCell>
-              <Table.HeaderCell>Show EV of At Least Lines</Table.HeaderCell>
-              <Table.HeaderCell>Show only max values</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            <Table.Row>
-              <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("exactly")} onChange={this.makeOnChartLineVisibleChange("exactly")}/></Table.Cell>
-              <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("at-least")} onChange={this.makeOnChartLineVisibleChange("at-least")}/></Table.Cell>
-              <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("expected-value-of-at-least")} onChange={this.makeOnChartLineVisibleChange("expected-value-of-at-least")}/></Table.Cell>
-              <Table.Cell><Checkbox toggle checked={showOnlyMaxValues} onChange={this.onShowOnlyMaxValuesChange}/></Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
+        {evaluationsAndPickedRolls ? (
+          <Table collapsing unstackable size={"small"} className={"centered-table"}>
+            <Table.Header>
+              <Table.Row>
+                <Table.HeaderCell>Show Exactly lines</Table.HeaderCell>
+                <Table.HeaderCell>Show At Least lines</Table.HeaderCell>
+                <Table.HeaderCell>Show EV of At Least Lines</Table.HeaderCell>
+                <Table.HeaderCell>Show only max values</Table.HeaderCell>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              <Table.Row>
+                <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("exactly")} onChange={this.makeOnChartLineVisibleChange("exactly")}/></Table.Cell>
+                <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("at-least")} onChange={this.makeOnChartLineVisibleChange("at-least")}/></Table.Cell>
+                <Table.Cell><Checkbox toggle checked={visibleChartLines.includes("expected-value-of-at-least")} onChange={this.makeOnChartLineVisibleChange("expected-value-of-at-least")}/></Table.Cell>
+                <Table.Cell><Checkbox toggle checked={showOnlyMaxValues} onChange={this.onShowOnlyMaxValuesChange}/></Table.Cell>
+              </Table.Row>
+            </Table.Body>
+          </Table>
+        ) : null}
       </Container>
     );
   }

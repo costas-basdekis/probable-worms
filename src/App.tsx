@@ -157,34 +157,32 @@ export default class App extends Component<AppProps, AppState> {
           <br/>
           <br/>
           <Container textAlign={"center"}>
-            {dicePickEvaluations ? <>
-              <Container>
-                <Card centered>
-                  <Card.Content>
-                    <Card.Header>Target</Card.Header>
-                    <Button.Group>
-                      <Button positive={targetType === "exactly"} onClick={this.onExactlyClick}>Exactly</Button>
-                      <Button.Or />
-                      <Button positive={targetType === "atLeast"} onClick={this.onAtLeastClick}>At Least</Button>
-                    </Button.Group>
-                    <Select
-                      options={_.range(1, state.totalDiceCount * 5).map(total => ({text: `${total}`, value: total}))}
-                      value={targetValue}
-                      onChange={this.onTargetValueChange}
-                    />
-                  </Card.Content>
-                </Card>
-              </Container>
-              <MultipleEvaluations
-                preRollEvaluation={preRollEvaluation}
-                preRollTotal={state.runningTotal}
-                rolledState={state as worms.RolledState}
-                evaluationsAndPickedRolls={dicePickEvaluations}
-                onSetUnrolledState={this.onStateChange}
-                targetType={targetType}
-                targetValue={targetValue}
-              />
-            </> : null}
+            <Container>
+              <Card centered>
+                <Card.Content>
+                  <Card.Header>Target</Card.Header>
+                  <Button.Group>
+                    <Button positive={targetType === "exactly"} onClick={this.onExactlyClick}>Exactly</Button>
+                    <Button.Or />
+                    <Button positive={targetType === "atLeast"} onClick={this.onAtLeastClick}>At Least</Button>
+                  </Button.Group>
+                  <Select
+                    options={_.range(1, state.totalDiceCount * 5).map(total => ({text: `${total}`, value: total}))}
+                    value={targetValue}
+                    onChange={this.onTargetValueChange}
+                  />
+                </Card.Content>
+              </Card>
+            </Container>
+            <MultipleEvaluations
+              preRollEvaluation={preRollEvaluation}
+              preRollTotal={state.runningTotal}
+              rolledState={state as worms.RolledState}
+              evaluationsAndPickedRolls={dicePickEvaluations}
+              onSetUnrolledState={this.onStateChange}
+              targetType={targetType}
+              targetValue={targetValue}
+            />
             <REvaluation evaluation={evaluation} total={state.runningTotal} diceCount={state.totalDiceCount} />
           </Container>
         </Container>
