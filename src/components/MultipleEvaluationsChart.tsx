@@ -199,19 +199,32 @@ interface ChartDataEntry {
 }
 
 export class MultipleEvaluationsChart extends Component<MultipleEvaluationsChartProps> {
+  visibleRollsSelector = createSelector(
+    ({evaluationsByPickedRoll}: MultipleEvaluationsChartProps) => evaluationsByPickedRoll,
+    ({visibleRollPicks}: MultipleEvaluationsChartProps) => visibleRollPicks,
+    (evaluationsByPickedRoll, visibleRollPicks) => {
+      return Array.from(evaluationsByPickedRoll.keys()).filter(roll => visibleRollPicks?.includes(roll) ?? true);
+    }
+  )
+
+  get visibleRolls() {
+    return this.visibleRollsSelector(this.props);
+  }
+
   chartDataSelector = createSelector(
+    this.visibleRollsSelector,
     ({totals}: MultipleEvaluationsChartProps) => totals,
     ({exactRoundedPercentagesEntriesByPickedRolls}: MultipleEvaluationsChartProps) => exactRoundedPercentagesEntriesByPickedRolls,
     ({atLeastRoundedPercentagesEntriesByPickedRolls}: MultipleEvaluationsChartProps) => atLeastRoundedPercentagesEntriesByPickedRolls,
     ({expectedValueOfAtLeastRoundedEntriesByPickedRolls}: MultipleEvaluationsChartProps) => expectedValueOfAtLeastRoundedEntriesByPickedRolls,
     (
-      totals, exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
+      visibleRolls, totals, exactRoundedPercentagesEntriesByPickedRolls, atLeastRoundedPercentagesEntriesByPickedRolls,
       expectedValueOfAtLeastRoundedEntriesByPickedRolls,
     ): ChartDataEntry[] => {
       return totals.map(total => {
-        const exactlyEntries: [string, number][] = worms.rollResults.map(roll => [`exactlyWith${roll}`, exactRoundedPercentagesEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0]);
-        const atLeastEntries: [string, number][] = worms.rollResults.map(roll => [`atLeastWith${roll}`, atLeastRoundedPercentagesEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0]);
-        const expectedValueOfAtLeastEntries: [string, number][] = worms.rollResults.map(roll => [`expectedValueOfAtLeastWith${roll}`, expectedValueOfAtLeastRoundedEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0]);
+        const exactlyEntries: [string, number][] = visibleRolls.map(roll => [`exactlyWith${roll}`, exactRoundedPercentagesEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0]);
+        const atLeastEntries: [string, number][] = visibleRolls.map(roll => [`atLeastWith${roll}`, atLeastRoundedPercentagesEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0]);
+        const expectedValueOfAtLeastEntries: [string, number][] = visibleRolls.map(roll => [`expectedValueOfAtLeastWith${roll}`, expectedValueOfAtLeastRoundedEntriesByPickedRolls.get(roll)?.[total]?.[1] ?? 0]);
         const exactlyMaxValue = Math.max(...exactlyEntries.map(([, value]) => value));
         const atLeastMaxValue = Math.max(...atLeastEntries.map(([, value]) => value));
         const expectedValueOfAtLeastMaxValue = Math.max(...expectedValueOfAtLeastEntries.map(([, value]) => value));
@@ -236,9 +249,8 @@ export class MultipleEvaluationsChart extends Component<MultipleEvaluationsChart
   }
 
   render() {
-    const {chartData} = this;
-    const {evaluationsByPickedRoll, diceCount, visibleRollPicks, visibleChartLines, showOnlyMaxValues} = this.props;
-    const visibleRolls = Array.from(evaluationsByPickedRoll.keys()).filter(roll => visibleRollPicks?.includes(roll) ?? true);
+    const {visibleRolls, chartData} = this;
+    const {evaluationsByPickedRoll, diceCount, visibleChartLines, showOnlyMaxValues} = this.props;
     return (
       <LineChart className={"probabilities-chart"} width={600} height={300} data={chartData}>
         {showOnlyMaxValues ? <>
