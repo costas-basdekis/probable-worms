@@ -56,7 +56,7 @@ class ChartLineData {
       return new ChartLineData(chartLine, new Map());
     }
     const dataKey = dataKeyMap[chartLine];
-    return new ChartLineData(chartLine, new Map(worms.rollResults.map(roll => [roll, chartEntry[`${dataKey}With${roll}`]])));
+    return new ChartLineData(chartLine, new Map(worms.rollResults.map(roll => [roll, chartEntry[`${dataKey}With${roll}`] ?? null])));
   }
 
   constructor(chartLine: ChartLineName, valuesByRoll: Map<worms.RollResult, number | null>, values?: number[], minValue?: number, maxValue?: number) {
