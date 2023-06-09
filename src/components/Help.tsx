@@ -8,8 +8,9 @@ export class Help extends Component {
         <Segment>
           <Header as={"h2"}>What's the purpose of this tool?</Header>
           <p>
-            This tool is designed to aid decisions in the game Heck Meck, but only as far as deciding which dice to
-            pick, and when to stop, not how to decide which tile to go after.
+            This tool is designed to aid decisions in the game{" "}
+            <a href={"https://boardgamegeek.com/boardgame/15818/pickomino"}>Heckmeck™</a>, but only as far as
+            deciding which dice to pick, and when to stop, not how to decide which tile to go after.
           </p>
           <p>
             You should use this for tool to decide which dice to pick after a roll, after you've set a target on what
@@ -55,6 +56,11 @@ export class Help extends Component {
               <li>If your target is to hit exactly X, compare the "Exactly" graph lines</li>
               <li>If your target is to hit at least X, compare the "At Least" and "EV Of At Least" graph lines</li>
             </ul>
+          </p>
+          <Header as={"h2"}>How did you calculate these?</Header>
+          <p>
+            You can read the{" "}
+            <a href={"https://github.com/costas-basdekis/probable-worms"}>explanation in the Github repo</a>
           </p>
         </Segment>
       </Modal>
