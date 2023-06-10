@@ -2,7 +2,7 @@ import React, {Component, createRef, RefObject, SyntheticEvent} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {CacheFetchingStatus, RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {Button, Card, Container, DropdownProps, Header, Image, Select} from "semantic-ui-react";
+import {Button, Card, Container, DropdownProps, Header, Image, Select, Tab} from "semantic-ui-react";
 import {
   About,
   EvaluationControls,
@@ -114,11 +114,53 @@ export default class App extends Component<AppProps, AppState> {
     this.searchInstance.removeSearch();
   }
 
+  tabPanes = [
+    {menuItem: "Post-roll evaluation", render: () => {
+      const {state, evaluation, preRollEvaluation, dicePickEvaluations, targetType, targetValue} = this.state;
+      return (
+        <Tab.Pane attached={false}>
+          <Container>
+            <Card centered>
+              <Card.Content>
+                <Card.Header>Target</Card.Header>
+                <Button.Group>
+                  <Button positive={targetType === "exactly"} onClick={this.onExactlyClick}>Exactly</Button>
+                  <Button.Or />
+                  <Button positive={targetType === "atLeast"} onClick={this.onAtLeastClick}>At Least</Button>
+                </Button.Group>
+                <Select
+                  options={_.range(1, state.totalDiceCount * 5).map(total => ({text: `${total}`, value: total}))}
+                  value={targetValue}
+                  onChange={this.onTargetValueChange}
+                />
+              </Card.Content>
+            </Card>
+          </Container>
+          <MultipleEvaluations
+            evaluation={evaluation}
+            preRollEvaluation={preRollEvaluation}
+            preRollTotal={state.runningTotal}
+            rolledState={state as worms.RolledState}
+            evaluationsAndPickedRolls={dicePickEvaluations}
+            onSetUnrolledState={this.onStateChange}
+            targetType={targetType}
+            targetValue={targetValue}
+          />
+        </Tab.Pane>
+      );
+    }},
+    {menuItem: "Pre-roll evaluation", render: () => {
+      const {state, evaluation} = this.state;
+      return (
+        <Tab.Pane attached={false}>
+          <REvaluation evaluation={evaluation} total={state.runningTotal} diceCount={state.totalDiceCount} />
+        </Tab.Pane>
+      );
+    }},
+  ];
+
   render() {
-    const {
-      state, progress, evaluation, preRollEvaluation, searching, searchFinished, dicePickEvaluations,
-      cacheStatusMessages, cacheStats, targetType, targetValue,
-    } = this.state;
+    const {state, progress, searching, searchFinished, cacheStatusMessages, cacheStats} = this.state;
     const cacheStatusMessage = cacheStatusMessages[cacheStatusMessages.length - 1]?.message ?? null;
     return (
       <div className="App">
@@ -171,34 +213,7 @@ export default class App extends Component<AppProps, AppState> {
           <br/>
           <br/>
           <Container textAlign={"center"}>
-            <Container>
-              <Card centered>
-                <Card.Content>
-                  <Card.Header>Target</Card.Header>
-                  <Button.Group>
-                    <Button positive={targetType === "exactly"} onClick={this.onExactlyClick}>Exactly</Button>
-                    <Button.Or />
-                    <Button positive={targetType === "atLeast"} onClick={this.onAtLeastClick}>At Least</Button>
-                  </Button.Group>
-                  <Select
-                    options={_.range(1, state.totalDiceCount * 5).map(total => ({text: `${total}`, value: total}))}
-                    value={targetValue}
-                    onChange={this.onTargetValueChange}
-                  />
-                </Card.Content>
-              </Card>
-            </Container>
-            <MultipleEvaluations
-              evaluation={evaluation}
-              preRollEvaluation={preRollEvaluation}
-              preRollTotal={state.runningTotal}
-              rolledState={state as worms.RolledState}
-              evaluationsAndPickedRolls={dicePickEvaluations}
-              onSetUnrolledState={this.onStateChange}
-              targetType={targetType}
-              targetValue={targetValue}
-            />
-            <REvaluation evaluation={evaluation} total={state.runningTotal} diceCount={state.totalDiceCount} />
+            <Tab menu={{pointing: true}} panes={this.tabPanes} />
           </Container>
           <About/>
         </Container>
