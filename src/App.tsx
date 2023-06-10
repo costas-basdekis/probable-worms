@@ -189,6 +189,7 @@ export default class App extends Component<AppProps, AppState> {
               </Card>
             </Container>
             <MultipleEvaluations
+              evaluation={evaluation}
               preRollEvaluation={preRollEvaluation}
               preRollTotal={state.runningTotal}
               rolledState={state as worms.RolledState}

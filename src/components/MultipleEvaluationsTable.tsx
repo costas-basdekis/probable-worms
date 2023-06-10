@@ -115,6 +115,7 @@ export interface MinMaxPickValues {
 }
 
 interface MultipleEvaluationsTableProps {
+  evaluation: worms.Evaluation,
   preRollEvaluation: worms.Evaluation,
   preRollTotal: number,
   evaluationsAndPickedRolls: EvaluationAndPickedRoll[] | null,
@@ -210,7 +211,7 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
   render() {
     const {pickValues, minMaxPickValues} = this;
     const {
-      preRollEvaluation, preRollTotal, evaluationsAndPickedRolls, targetType, targetValue,
+      evaluation, preRollEvaluation, preRollTotal, evaluationsAndPickedRolls, targetType, targetValue,
       visibleRollPicks, visibleChartLines, showOnlyMaxValues,
     } = this.props;
     return (
@@ -255,6 +256,63 @@ export class MultipleEvaluationsTable extends Component<MultipleEvaluationsTable
               <Table.Cell></Table.Cell>
               <Table.Cell></Table.Cell>
             </Table.Row>
+            {evaluationsAndPickedRolls ? (
+              <Table.Row>
+                <Table.Cell>Post-roll</Table.Cell>
+                <Table.Cell />
+                <Table.Cell>{preRollTotal}</Table.Cell>
+                <Table.Cell>
+                  {targetType === "exactly" ? (
+                    evaluation.exactResultOccurrences.has(targetValue)
+                      ? (
+                        <WrapColorLabel
+                          good={evaluation.exactResultOccurrences.get(targetValue)! > (preRollEvaluation.exactResultOccurrences.get(targetValue) ?? 0)}
+                          bad={evaluation.exactResultOccurrences.get(targetValue)! < (preRollEvaluation.exactResultOccurrences.get(targetValue) ?? 0)}
+                        >
+                          {Math.round(evaluation.exactResultOccurrences.get(targetValue)! * 100)}%
+                        </WrapColorLabel>
+                      )
+                      : "N/A"
+                  ) : <>
+                    {(
+                      evaluation.minimumResultOccurrences.has(targetValue)
+                        ? (
+                          <WrapColorLabel
+                            good={evaluation.minimumResultOccurrences.get(targetValue)! > (preRollEvaluation.minimumResultOccurrences.get(targetValue) ?? 0)}
+                            bad={evaluation.minimumResultOccurrences.get(targetValue)! < (preRollEvaluation.minimumResultOccurrences.get(targetValue) ?? 0)}
+                          >
+                            {Math.round(evaluation.minimumResultOccurrences.get(targetValue)! * 100)}%
+                          </WrapColorLabel>
+                        )
+                        : "N/A"
+                    )}
+                    {" / EV: "}
+                    {(
+                      evaluation.expectedValueOfAtLeast.has(targetValue)
+                        ? (
+                          <WrapColorLabel
+                            good={evaluation.minimumResultOccurrences.get(targetValue)! > (preRollEvaluation.minimumResultOccurrences.get(targetValue) ?? 0)}
+                            bad={evaluation.minimumResultOccurrences.get(targetValue)! < (preRollEvaluation.minimumResultOccurrences.get(targetValue) ?? 0)}
+                          >
+                            {Math.round(evaluation.expectedValueOfAtLeast.get(targetValue)! * 10) / 10}
+                          </WrapColorLabel>
+                        )
+                        : "N/A"
+                    )}
+                  </>}
+                </Table.Cell>
+                <Table.Cell>
+                  <WrapColorLabel
+                    good={evaluation.expectedValue > preRollEvaluation.expectedValue}
+                    bad={evaluation.expectedValue < preRollEvaluation.expectedValue}
+                  >
+                    {evaluation.expectedValue.toFixed(1)}
+                  </WrapColorLabel>
+                </Table.Cell>
+                <Table.Cell></Table.Cell>
+                <Table.Cell></Table.Cell>
+              </Table.Row>
+            ) : null}
             {evaluationsAndPickedRolls?.map(({evaluation, pickedRoll, pickedCount, total}) => {
               const pickValue = pickValues.get(pickedRoll)!;
               const {isBest, isWorst} = MultipleEvaluationsTableTarget.getIsBestAndWorst(targetType, pickValue, minMaxPickValues);

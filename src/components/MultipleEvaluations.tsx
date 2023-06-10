@@ -9,6 +9,7 @@ import {MultipleEvaluationsMultiTable} from "./MultipleEvaluationsMultiTable";
 import { Segment } from "semantic-ui-react";
 
 interface MultipleEvaluationsProps {
+  evaluation: worms.Evaluation,
   preRollEvaluation: worms.Evaluation,
   preRollTotal: number,
   rolledState: worms.RolledState,
@@ -207,9 +208,10 @@ export class MultipleEvaluations extends Component<MultipleEvaluationsProps, Mul
       expectedValueOfAtLeastRoundedEntriesByPickedRolls, visibleRolls, chartData,
     } = this;
     const {visibleRollPicks, visibleChartLines, showOnlyMaxValues} = this.state;
-    const {preRollEvaluation, preRollTotal, rolledState, evaluationsAndPickedRolls, targetType, targetValue} = this.props;
+    const {evaluation, preRollEvaluation, preRollTotal, rolledState, evaluationsAndPickedRolls, targetType, targetValue} = this.props;
     return <>
       <MultipleEvaluationsTable
+        evaluation={evaluation}
         preRollEvaluation={preRollEvaluation}
         preRollTotal={preRollTotal}
         evaluationsAndPickedRolls={evaluationsAndPickedRolls}
