@@ -22,6 +22,16 @@ export class Chest {
     this.hasWorms = hasWorms;
   }
 
+  equals(other: Chest): boolean {
+    if (this === other) {
+      return true;
+    }
+    return (
+      this.hasWorms === other.hasWorms
+      && this.diceCounts.equals(other.diceCounts)
+    );
+  }
+
   get total(): number {
     return this.diceCounts.total;
   }

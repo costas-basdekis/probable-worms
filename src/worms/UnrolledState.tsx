@@ -37,6 +37,16 @@ export class UnrolledState implements IState {
     this.remainingDiceCount = remainingDiceCount;
   }
 
+  equals(other: UnrolledState): boolean {
+    if (this === other) {
+      return true;
+    }
+    return (
+      this.remainingDiceCount === other.remainingDiceCount
+      && this.chest.equals(other.chest)
+    )
+  }
+
   get unrolledState(): this {
     return this;
   }
@@ -85,6 +95,16 @@ export class UnrolledState implements IState {
       throw new Error("There are no remaining dice to roll");
     }
     return this.withRoll(DiceRoll.random(this.remainingDiceCount));
+  }
+
+  withPick(pickedRoll: RollResult, pickedCount: number): UnrolledState {
+    if (!this.chest.canAdd(pickedRoll)) {
+      throw new Error("Cannot pick same die again");
+    }
+    if (pickedCount > this.remainingDiceCount) {
+      throw new Error("Cannot pick that many dice");
+    }
+    return new UnrolledState(this.chest.add(pickedRoll, pickedCount), this.remainingDiceCount - pickedCount);
   }
 
   canAdd(roll: RollResult): boolean {

@@ -41,6 +41,13 @@ export interface ClearEvaluationCacheRequestMessage {
   type: "clear-evaluation-cache",
   id: number,
 }
+export interface DiceComparisonRequestMessage {
+  type: "dice-comparison",
+  id: number,
+  unrolledState: worms.SerialisedUnrolledState,
+  firstDie: worms.RollResult,
+  secondDie: worms.RollResult,
+}
 export type SearchRequestMessage = (
   | SetUnrolledStateSearchRequestMessage
   | SetRolledStateSearchRequestMessage
@@ -51,6 +58,7 @@ export type SearchRequestMessage = (
   | DownloadEvaluationCacheRequestMessage
   | LoadEvaluationCacheRequestMessage
   | ClearEvaluationCacheRequestMessage
+  | DiceComparisonRequestMessage
 );
 
 export interface ResultSearchResponseMessage {
@@ -76,10 +84,32 @@ export interface CacheFetchingProgressResponseMessage {
   diceCount: number,
   status: CacheFetchingStatus,
 }
+export type DiceComparisonEvaluations = Map<number, worms.Evaluation>;
+export type SerialisedDiceComparisonEvaluations = Map<number, worms.SerialisedEvaluation>;
+export interface DiceComparisonEvaluationsInfo {
+  unrolledState: worms.UnrolledState,
+  firstDie: worms.RollResult,
+  secondDie: worms.RollResult,
+  firstEvaluations: DiceComparisonEvaluations,
+  secondEvaluations: DiceComparisonEvaluations,
+}
+export interface SerialisedDiceComparisonEvaluationsInfo {
+  unrolledState: worms.SerialisedUnrolledState,
+  firstDie: worms.RollResult,
+  secondDie: worms.RollResult,
+  firstEvaluations: SerialisedDiceComparisonEvaluations,
+  secondEvaluations: SerialisedDiceComparisonEvaluations,
+}
+export interface DiceComparisonResponseMessage {
+  type: "dice-comparison",
+  id: number,
+  diceComparisonEvaluationsInfo: SerialisedDiceComparisonEvaluationsInfo,
+}
 export type SearchResponseMessage = (
   | ResultSearchResponseMessage
   | EvaluationCacheLinkResponseMessage
   | CacheFetchingProgressResponseMessage
+  | DiceComparisonResponseMessage
 );
 
 export class RemoteSearch {
@@ -110,6 +140,9 @@ export class RemoteSearch {
         break;
       case "cache-fetching-progress":
         this.onCacheFetchingProgress(data);
+        break;
+      case "dice-comparison":
+        this.onDiceComparisonResponse(data);
         break;
     }
   };
@@ -146,6 +179,22 @@ export class RemoteSearch {
     );
   }
 
+  onDiceComparisonResponse(resultResponse: DiceComparisonResponseMessage) {
+    const searchInstance = this.instancesById.get(resultResponse.id)!;
+    const diceComparisonEvaluationsInfo = resultResponse.diceComparisonEvaluationsInfo;
+    searchInstance.onDiceComparisonResponse({
+      unrolledState: worms.UnrolledState.deserialise(diceComparisonEvaluationsInfo.unrolledState),
+      firstDie: diceComparisonEvaluationsInfo.firstDie,
+      secondDie: diceComparisonEvaluationsInfo.secondDie,
+      firstEvaluations: new Map(Array.from(diceComparisonEvaluationsInfo.firstEvaluations.entries()).map(
+        ([firstDiceCount, firstEvaluation]) => [firstDiceCount, worms.Evaluation.deserialise(firstEvaluation, {})],
+      )),
+      secondEvaluations: new Map(Array.from(diceComparisonEvaluationsInfo.secondEvaluations.entries()).map(
+        ([secondDiceCount, secondEvaluation]) => [secondDiceCount, worms.Evaluation.deserialise(secondEvaluation, {})],
+      )),
+    });
+  }
+
   downloadUrl(url: string, filename: string) {
     const link = document.createElement("a");
     link.href = url;
@@ -153,9 +202,9 @@ export class RemoteSearch {
     link.click();
   }
 
-  newInstance(onResult: OnSearchResult, onCacheFetchingProgress: OnCacheFetchingProgress): SearchInstance {
+  newInstance(onResult: OnSearchResult, onCacheFetchingProgress: OnCacheFetchingProgress, onDiceComparisonResponse: OnDiceComparisonResponse): SearchInstance {
     const instanceId = this.nextInstanceId;
-    const instance = new SearchInstance(this, instanceId, onResult, onCacheFetchingProgress);
+    const instance = new SearchInstance(this, instanceId, onResult, onCacheFetchingProgress, onDiceComparisonResponse);
     this.instanceIds.set(instance, instanceId);
     this.instancesById.set(instanceId, instance);
     this.nextInstanceId++;
@@ -246,6 +295,16 @@ export class RemoteSearch {
       id: instance.id,
     });
   }
+
+  requestDiceComparison(instance: SearchInstance, unrolledState: worms.UnrolledState, firstDie: worms.RollResult, secondDie: worms.RollResult) {
+    this.postMessage({
+      type: "dice-comparison",
+      id: instance.id,
+      unrolledState: unrolledState.serialise(),
+      firstDie,
+      secondDie,
+    });
+  }
 }
 
 export type OnSearchResult = (
@@ -257,17 +316,21 @@ export type OnSearchResult = (
 
 export type OnCacheFetchingProgress = (diceCount: number, status: CacheFetchingStatus) => void;
 
+export type OnDiceComparisonResponse = (diceComparisonEvaluationsInfo: DiceComparisonEvaluationsInfo) => void;
+
 export class SearchInstance {
   id: number;
   remoteSearch: RemoteSearch;
   onResult: OnSearchResult;
   onCacheFetchingProgress: OnCacheFetchingProgress;
+  onDiceComparisonResponse: OnDiceComparisonResponse;
 
-  constructor(remoteSearch: RemoteSearch, id: number, onResult: OnSearchResult, onCacheFetchingProgress: OnCacheFetchingProgress) {
+  constructor(remoteSearch: RemoteSearch, id: number, onResult: OnSearchResult, onCacheFetchingProgress: OnCacheFetchingProgress, onDiceComparisonResponse: OnDiceComparisonResponse) {
     this.remoteSearch = remoteSearch;
     this.id = id;
     this.onResult = onResult;
     this.onCacheFetchingProgress = onCacheFetchingProgress;
+    this.onDiceComparisonResponse = onDiceComparisonResponse;
   }
 
   setSearchState(state: worms.State) {
@@ -300,5 +363,9 @@ export class SearchInstance {
 
   clearEvaluationCache() {
     this.remoteSearch.clearEvaluationCache(this);
+  }
+
+  requestDiceComparison(unrolledState: worms.UnrolledState, firstDie: worms.RollResult, secondDie: worms.RollResult) {
+    this.remoteSearch.requestDiceComparison(this, unrolledState, firstDie, secondDie)
   }
 }

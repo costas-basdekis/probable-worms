@@ -1,10 +1,11 @@
 import React, {Component, createRef, RefObject} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
-import {CacheFetchingStatus, RemoteSearch, SearchInstance} from "./RemoteSearch";
+import {CacheFetchingStatus, DiceComparisonEvaluationsInfo, RemoteSearch, SearchInstance} from "./RemoteSearch";
 import {Button, Card, Container, Header, Image, Tab} from "semantic-ui-react";
 import {
   About,
+  DiceComparison,
   EvaluationControls,
   Help,
   InitialStateModal,
@@ -58,6 +59,7 @@ export default class App extends Component<AppProps, AppState> {
   };
 
   initialStateModalRef: RefObject<InitialStateModal> = createRef();
+  diceComparisonRef: RefObject<DiceComparison> = createRef();
 
   onSearchResult = (
     searching: boolean, searchFinished: boolean, progress: number, evaluation: worms.Evaluation,
@@ -104,7 +106,11 @@ export default class App extends Component<AppProps, AppState> {
     });
   };
 
-  searchInstance: SearchInstance = remoteSearch.newInstance(this.onSearchResult, this.onCacheFetchingProgress);
+  onDiceComparisonResponse = (diceComparisonEvaluationsInfo: DiceComparisonEvaluationsInfo) => {
+    this.diceComparisonRef.current?.setDiceComparisonEvaluationsInfo(diceComparisonEvaluationsInfo);
+  };
+
+  searchInstance: SearchInstance = remoteSearch.newInstance(this.onSearchResult, this.onCacheFetchingProgress, this.onDiceComparisonResponse);
 
   componentDidMount() {
     this.onReset();
@@ -144,6 +150,18 @@ export default class App extends Component<AppProps, AppState> {
       return (
         <Tab.Pane attached={false}>
           <REvaluation evaluation={evaluation} total={state.runningTotal} diceCount={state.totalDiceCount} />
+        </Tab.Pane>
+      );
+    }},
+    {menuItem: "Dice comparison", render: () => {
+        const {state} = this.state;
+        return (
+        <Tab.Pane attached={false}>
+          <DiceComparison
+            ref={this.diceComparisonRef}
+            unrolledState={state.unrolledState}
+            requestDiceComparison={this.requestDiceComparison}
+          />
         </Tab.Pane>
       );
     }},
@@ -267,5 +285,9 @@ export default class App extends Component<AppProps, AppState> {
 
   onTargetValueChange = (targetValue: number) => {
     this.setState({targetValue});
+  };
+
+  requestDiceComparison = (unrolledState: worms.UnrolledState, firstDie: worms.RollResult, secondDie: worms.RollResult) => {
+    this.searchInstance.requestDiceComparison(unrolledState, firstDie, secondDie);
   };
 }

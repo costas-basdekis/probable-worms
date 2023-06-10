@@ -235,3 +235,17 @@ td, th {
 .ui.modal > .actions.initial-state-modal-actions {
   text-align: center;
 }
+
+.ui.table thead :is(td, th).comparison {
+  &.first {
+    background-color: #00b5ad!important;
+  }
+
+  &.second {
+    background-color: #b5cc18!important;
+  }
+
+  &.equal {
+    background-color: #767676!important;
+  }
+}

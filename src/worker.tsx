@@ -2,6 +2,7 @@ import {CacheFetchingStatus, SearchRequestMessage, SearchResponseMessage} from "
 import * as worms from "./worms";
 import {EvaluationCacheCache} from "./EvaluationCacheCache";
 import {Evaluation, SerialisedEvaluation, StateEvaluator, StateEvaluatorHelper} from "./worms";
+import _ from "underscore";
 
 interface InstanceInfo {
   id: number,
@@ -110,6 +111,9 @@ class SearchWorker {
         break;
       case "clear-evaluation-cache":
         this.onClearEvaluationCache(data.id);
+        break;
+      case "dice-comparison":
+        this.requestDiceComparison(data.id, worms.UnrolledState.deserialise(data.unrolledState), data.firstDie, data.secondDie);
         break;
     }
   };
@@ -260,6 +264,28 @@ class SearchWorker {
     this.instancesById.get(instanceId)!.searching = false;
     this.postResult(instanceId);
     this.instancesById.delete(instanceId);
+  }
+
+  private requestDiceComparison(id: number, unrolledState: worms.UnrolledState, firstDie: worms.RollResult, secondDie: worms.RollResult) {
+    if (!this.instancesById.has(id)) {
+      return;
+    }
+    const instance = this.instancesById.get(id)!;
+    this.postMessage({
+      type: "dice-comparison",
+      id,
+      diceComparisonEvaluationsInfo: {
+        unrolledState: unrolledState.serialise(),
+        firstDie,
+        secondDie,
+        firstEvaluations: new Map(_.range(1, unrolledState.remainingDiceCount).map(
+          firstDiceCount => [firstDiceCount, this.getEvaluation(instance, unrolledState.withPick(firstDie, firstDiceCount)).serialise({}) as SerialisedEvaluation],
+        )),
+        secondEvaluations: new Map(_.range(1, unrolledState.remainingDiceCount).map(
+          secondDiceCount => [secondDiceCount, this.getEvaluation(instance, unrolledState.withPick(secondDie, secondDiceCount)).serialise({}) as SerialisedEvaluation],
+        )),
+      },
+    });
   }
 }
 

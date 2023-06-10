@@ -25,6 +25,13 @@ export class DiceRoll {
     );
   }
 
+  equals(other: DiceRoll): boolean {
+    if (this === other) {
+      return true;
+    }
+    return this.key === other.key;
+  }
+
   adding(roll: RollResult, count: number): DiceRoll {
     return new DiceRoll([
       ...Array.from(this.counts.entries()),
