@@ -1,8 +1,8 @@
-import React, {Component, createRef, RefObject, SyntheticEvent} from "react";
+import React, {Component, createRef, RefObject} from "react";
 import "./styles.scss";
 import * as worms from "./worms";
 import {CacheFetchingStatus, RemoteSearch, SearchInstance} from "./RemoteSearch";
-import {Button, Card, Container, DropdownProps, Header, Image, Select, Tab} from "semantic-ui-react";
+import {Button, Card, Container, Header, Image, Tab} from "semantic-ui-react";
 import {
   About,
   EvaluationControls,
@@ -11,9 +11,9 @@ import {
   MultipleEvaluations,
   REvaluation,
   RState,
+  TargetSelector,
   TargetType
 } from "./components";
-import _ from "underscore";
 
 const remoteSearch = RemoteSearch.default();
 
@@ -119,23 +119,13 @@ export default class App extends Component<AppProps, AppState> {
       const {state, evaluation, preRollEvaluation, dicePickEvaluations, targetType, targetValue} = this.state;
       return (
         <Tab.Pane attached={false}>
-          <Container>
-            <Card centered>
-              <Card.Content>
-                <Card.Header>Target</Card.Header>
-                <Button.Group>
-                  <Button positive={targetType === "exactly"} onClick={this.onExactlyClick}>Exactly</Button>
-                  <Button.Or />
-                  <Button positive={targetType === "atLeast"} onClick={this.onAtLeastClick}>At Least</Button>
-                </Button.Group>
-                <Select
-                  options={_.range(1, state.totalDiceCount * 5).map(total => ({text: `${total}`, value: total}))}
-                  value={targetValue}
-                  onChange={this.onTargetValueChange}
-                />
-              </Card.Content>
-            </Card>
-          </Container>
+          <TargetSelector
+            state={state}
+            targetType={targetType}
+            targetValue={targetValue}
+            onTargetTypeChange={this.onTargetTypeChange}
+            onTargetValueChange={this.onTargetValueChange}
+          />
           <MultipleEvaluations
             evaluation={evaluation}
             preRollEvaluation={preRollEvaluation}
@@ -271,15 +261,11 @@ export default class App extends Component<AppProps, AppState> {
     this.searchInstance.stopSearch();
   }
 
-  onExactlyClick = () => {
-    this.setState({targetType: "exactly"});
+  onTargetTypeChange = (targetType: TargetType) => {
+    this.setState({targetType});
   };
 
-  onAtLeastClick = () => {
-    this.setState({targetType: "atLeast"});
-  };
-
-  onTargetValueChange = (ev: SyntheticEvent<HTMLElement, Event>, {value}: DropdownProps) => {
-    this.setState({targetValue: parseInt(value as string, 10)});
+  onTargetValueChange = (targetValue: number) => {
+    this.setState({targetValue});
   };
 }
