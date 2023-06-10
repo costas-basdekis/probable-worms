@@ -4,10 +4,14 @@
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,
-    "module": "es2020",
+    "module": "esnext",
     "moduleResolution": "node",
     "lib": ["dom", "es2021"],
     "jsx": "react-jsx",
-    "target": "es2015"
+    "target": "es2020"
+  },
+  "ts-node": {
+    "swc": true,
+    "esm": true
   }
 }
