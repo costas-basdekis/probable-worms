@@ -1,10 +1,10 @@
 import React, {Component} from "react";
-import {Button, Header, Modal, Segment} from "semantic-ui-react";
+import {Button, Header, Icon, Modal, Segment} from "semantic-ui-react";
 
 export class About extends Component {
   render() {
     return (
-      <Modal trigger={<Button icon={"info"} color={"blue"}>About</Button>}>
+      <Modal trigger={<Button color={"blue"}><Icon name={"info"} />About</Button>}>
         <Segment>
           <Header as={"h2"}>About</Header>
           <p>
