@@ -1,5 +1,5 @@
 import React, {ChangeEvent, Component} from "react";
-import {Button, Grid, Header} from "semantic-ui-react";
+import {Button, Container, Divider, Grid, Header} from "semantic-ui-react";
 import {DiceSelector} from "./DiceSelector";
 import _ from "underscore";
 import {RChest} from "./RChest";
@@ -51,33 +51,34 @@ export class StateSelector extends Component<StateSelectorProps, StateSelectorSt
         <Grid.Row>
           <Grid.Column>
             <Header>Picked dice</Header>
-            <br/>
             <DiceSelector counts={pickedDice} count={diceCount} size={size} onChange={this.onPickedDiceChange}/>
+            <br/>
             <label>
               Dice count:
               <select value={diceCount} onChange={this.onDiceCountChange}>
                 {_.range(11).map(count => <option key={count} value={count}>{count}</option>)}
               </select>
             </label>
+            <Divider horizontal>Result:</Divider>
             <RChest chest={unrolledChest} remainingDice={unrolledDiceCount} size={size}/>
             <br/>
             <Button size={"small"} color={"red"} onClick={this.onUnrolledClear}>Clear</Button>
           </Grid.Column>
           <Grid.Column>
             <Header>Roll</Header>
-            <br/>
             <DiceSelector excludedFaces={pickedDice.getFaces()} counts={rolledDice} count={unrolledDiceCount} size={size} onChange={this.onRolledDiceChange}/>
+            <Divider horizontal>Result:</Divider>
             <RChest chest={Chest.fromDiceRoll(rolledDice)} remainingDice={unrolledDiceCount - rolledDice.diceCount} size={size}/>
             <br/>
             <Button size={"small"} color={"red"} onClick={this.onRolledClear}>Clear</Button>
           </Grid.Column>
         </Grid.Row>
-        <Grid.Row>
-          <div>
+        <Grid.Row textAlign={"center"}>
+          <Container textAlign={"center"}>
             <RState size={size} state={state} />
             <br/>
             <Button size={"small"} color={"red"} onClick={this.onClear}>Clear</Button>
-          </div>
+          </Container>
         </Grid.Row>
       </Grid>
     );

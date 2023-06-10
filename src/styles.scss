@@ -4,8 +4,12 @@
 }
 
 .dice {
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
+
+  .ui.modal & {
+    padding-bottom: 1em;
+  }
 
   &.center {
     justify-content: center;
@@ -226,4 +230,8 @@ td, th {
 .centered-table {
   margin-left: auto!important;
   margin-right: auto!important;
+}
+
+.ui.modal > .actions.initial-state-modal-actions {
+  text-align: center;
 }

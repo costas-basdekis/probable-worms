@@ -43,7 +43,7 @@ export class InitialStateModal extends Component<InitialStateModalProps, Initial
             size={size}
           />
         </Modal.Content>
-        <Modal.Actions>
+        <Modal.Actions className={"initial-state-modal-actions"}>
           <Button color='black' onClick={this.onClose}>
             Cancel
           </Button>
